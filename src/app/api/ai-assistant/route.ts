@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { supabase } from '@/lib/supabase';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -8,31 +9,33 @@ const groq = new Groq({
 export async function POST(req: Request) {
   try {
     const { question, productContext } = await req.json();
+    
+    // 1. Récupérer tout le catalogue pour que l'IA connaisse les autres produits
+    const { data: allProducts } = await supabase
+      .from('products')
+      .select('name, price, category, description')
+      .limit(10);
 
-    if (!question || !productContext) {
-      return NextResponse.json(
-        { error: 'Question et contexte produit requis.' },
-        { status: 400 }
-      );
-    }
+    const catalogContext = allProducts?.map((p: any) => `- ${p.name} (${p.price} FCFA): ${p.category}`).join('\n') || "Aucun autre produit au catalogue.";
+
+    const contextName = productContext?.name || "produits de luxe";
+    const contextDesc = productContext?.description || "notre boutique";
 
     const systemPrompt = `
       Tu es un conseiller de beauté expert et luxueux pour la marque 'Elegance'. 
-      Ton objectif est d'aider le client à propos de ce produit spécifique :
-      Nom du produit: ${productContext.name}
-      Prix: ${productContext.price} FCFA
-      Catégorie: ${productContext.category}
-      Type de peau: ${productContext.skin_type}
-      Description: ${productContext.description}
-      Ingrédients: ${productContext.ingredients}
-      Conseils d'utilisation: ${productContext.usage_tips}
+      Ton objectif est d'aider le client avec raffinement.
+      
+      PRODUIT ACTUELLEMENT CONSULTÉ:
+      ${contextName}: ${contextDesc}
+      
+      AUTRES PRODUITS DISPONIBLES DANS LA BOUTIQUE:
+      ${catalogContext}
       
       Règles:
       - Réponds toujours en français.
-      - Sois concis, élégant, très poli et orienté vers la vente (donne confiance).
-      - Ne mentionne que les informations pertinentes concernant ce produit.
-      - Si tu ne sais pas, dis honnêtement que tu vas te renseigner, mais reste professionnel.
-      - Ne fais pas de longues phrases inutiles. Le ton est haut de gamme ("premium").
+      - Sois concis, élégant et très poli.
+      - Si le client demande des recommandations, utilise la liste des autres produits ci-dessus.
+      - Ton ton doit être haut de gamme ("premium").
     `;
 
     const chatCompletion = await groq.chat.completions.create({
@@ -40,18 +43,18 @@ export async function POST(req: Request) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: question },
       ],
-      model: 'mixtral-8x7b-32768', // Fast and capable model on Groq
+      model: 'llama-3.1-8b-instant',
       temperature: 0.7,
       max_tokens: 300,
     });
 
     const answer = chatCompletion.choices[0]?.message?.content || "Désolé, je ne peux pas formuler une réponse pour le moment.";
-
+    console.log('AI Response Success');
     return NextResponse.json({ answer });
-  } catch (error) {
-    console.error('Erreur API Groq:', error);
+  } catch (error: any) {
+    console.error('Erreur API Groq détaillée:', error);
     return NextResponse.json(
-      { error: 'Une erreur est survenue lors de la communication avec l\'assistant IA.' },
+      { error: error.message || 'Une erreur est survenue lors de la communication avec l\'assistant IA.' },
       { status: 500 }
     );
   }

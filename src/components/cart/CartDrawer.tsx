@@ -17,19 +17,19 @@ export const CartDrawer: React.FC = () => {
       <div className={styles.overlay} onClick={closeDrawer} aria-hidden="true" />
       <div className={styles.drawer} role="dialog" aria-modal="true" aria-label="Votre panier">
         <div className={styles.header}>
-          <h2 className={styles.title}>Votre Panier</h2>
+          <h2 className={styles.title}>Votre Sélection</h2>
           <button className={styles.closeBtn} onClick={closeDrawer} aria-label="Fermer le panier">
-            <X size={24} />
+            <X size={28} strokeWidth={1.5} />
           </button>
         </div>
 
         <div className={styles.items}>
           {items.length === 0 ? (
             <div className={styles.empty}>
-              <ShoppingBag size={48} className={styles.emptyIcon} />
-              <p>Votre panier est vide.</p>
-              <button className={`btn btn-primary ${styles.continueBtn}`} onClick={closeDrawer}>
-                Continuer les achats
+              <ShoppingBag size={64} strokeWidth={1} className={styles.emptyIcon} />
+              <p className={styles.emptyText}>Votre sélection est actuellement vide.</p>
+              <button className="btn-premium" onClick={closeDrawer}>
+                Découvrir la Collection
               </button>
             </div>
           ) : (
@@ -37,7 +37,7 @@ export const CartDrawer: React.FC = () => {
               <div key={item.product.id} className={styles.item}>
                 <div className={styles.imageContainer}>
                   <Image 
-                    src={item.product.image_url} 
+                    src={item.product.image_url || '/serum-luxury.png'} 
                     alt={item.product.name} 
                     fill 
                     className={styles.image}
@@ -49,9 +49,8 @@ export const CartDrawer: React.FC = () => {
                     <button 
                       className={styles.removeBtn} 
                       onClick={() => removeFromCart(item.product.id)}
-                      aria-label="Supprimer l'article"
                     >
-                      <X size={16} />
+                      Enlever
                     </button>
                   </div>
                   <div className={styles.itemFooter}>
@@ -65,7 +64,7 @@ export const CartDrawer: React.FC = () => {
                       </button>
                     </div>
                     <span className={styles.itemPrice}>
-                      {item.product.price * item.quantity} FCFA
+                      {item.product.price.toLocaleString()} FCFA
                     </span>
                   </div>
                 </div>
@@ -77,12 +76,12 @@ export const CartDrawer: React.FC = () => {
         {items.length > 0 && (
           <div className={styles.footer}>
             <div className={styles.summaryRow}>
-              <span>Sous-total</span>
-              <span className={styles.totalAmount}>{totalAmount} FCFA</span>
+              <span>Total estimations</span>
+              <span className={styles.totalAmount}>{totalAmount.toLocaleString()} FCFA</span>
             </div>
-            <p className={styles.shippingInfo}>Taxes et frais de port calculés à la caisse.</p>
-            <Link href="/checkout" className={`btn btn-primary ${styles.checkoutBtn}`} onClick={closeDrawer}>
-              Procéder au Paiement
+            <p className={styles.shippingInfo}>Livraison Premium calculée lors de la finalisation.</p>
+            <Link href="/checkout" className="btn-premium checkoutBtn" onClick={closeDrawer}>
+              Finaliser la Commande
             </Link>
           </div>
         )}

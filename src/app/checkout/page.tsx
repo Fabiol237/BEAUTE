@@ -68,22 +68,22 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // 1. Upload proof to Supabase Storage
-      const fileExt = paymentProof.name.split('.').pop();
-      const fileName = `proof_${Date.now()}.${fileExt}`;
-      const filePath = `payment_proofs/${fileName}`;
+      // 1. Upload proof to Cloudinary via API route
+      let proofUrl = '';
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', paymentProof);
 
-      const { error: uploadError } = await supabase.storage
-        .from('orders')
-        .upload(filePath, paymentProof);
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
 
-      if (uploadError) {
-        // Fallback for demo purposes if bucket doesn't exist yet
-        console.error("Storage Error, inserting order without URL for now:", uploadError);
+      if (uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+        proofUrl = uploadData.url;
+      } else {
+        throw new Error("Échec de l'upload de la capture d'écran.");
       }
-      
-      const { data: publicUrlData } = supabase.storage.from('orders').getPublicUrl(filePath);
-      const proofUrl = publicUrlData.publicUrl;
 
       // 2. Create the Order
       const { data: orderData, error: orderError } = await supabase
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
           Elle est actuellement en attente de vérification de votre paiement ({paymentMethod}).
           Vous serez contacté(e) très prochainement pour la livraison.
         </p>
-        <Button onClick={() => router.push('/shop')} className={styles.backBtn}>Retourner à la boutique</Button>
+        <button onClick={() => router.push('/shop')} className="btn-premium backBtn">Retourner à la boutique</button>
       </div>
     );
   }
@@ -145,8 +145,8 @@ export default function CheckoutPage() {
   if (items.length === 0) return null;
 
   return (
-    <div className={`container ${styles.checkoutContainer}`}>
-      <h1 className={styles.title}>Finaliser la commande</h1>
+    <div className={styles.checkoutContainer}>
+      <h1 className={styles.title}>Finaliser votre Sélection</h1>
 
       <div className={styles.layout}>
         {/* Left: Form & Payment Info */}
@@ -186,8 +186,8 @@ export default function CheckoutPage() {
 
             {/* Step 2: Payment Method & USSD */}
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>2. Paiement Mobile (Sans API)</h2>
-              <p className={styles.helperText}>Choisissez votre opérateur pour effectuer le transfert manuel vers notre compte marchand.</p>
+              <h2 className={styles.sectionTitle}>2. Paiement Mobile</h2>
+              <p className={styles.helperText}>Choisissez votre opérateur pour effectuer le transfert vers notre compte marchand.</p>
               
               <div className={styles.methods}>
                 <label className={`${styles.methodRadio} ${paymentMethod === 'MTN' ? styles.methodActive : ''}`}>
@@ -200,7 +200,7 @@ export default function CheckoutPage() {
                   />
                   <div className={styles.methodInfo}>
                     <span className={styles.methodName}>MTN Mobile Money</span>
-                    <span className={styles.methodDesc}>MoMo</span>
+                    <span className={styles.methodDesc}>Options Premium MoMo</span>
                   </div>
                 </label>
                 
@@ -214,28 +214,28 @@ export default function CheckoutPage() {
                   />
                   <div className={styles.methodInfo}>
                     <span className={styles.methodName}>Orange Money</span>
-                    <span className={styles.methodDesc}>OM</span>
+                    <span className={styles.methodDesc}>Options Premium OM</span>
                   </div>
                 </label>
               </div>
 
               <div className={styles.ussdBox}>
-                <h3 className={styles.ussdTitle}>Comment Payer ?</h3>
-                <p>1. Tapez ce code exact sur votre téléphone ou cliquez sur le bouton ci-dessous pour lancer l'appel directement.</p>
+                <h3 className={styles.ussdTitle}>Procédure de Règlement</h3>
+                <p>1. Initiez la transaction en appelant le code ci-dessous depuis votre mobile :</p>
                 <div className={styles.codeContainer}>
                   <code className={styles.ussdCode}>{ussdCode}</code>
-                  <a href={`tel:${ussdCode.replace(/#/g, '%23')}`} className={`btn btn-secondary ${styles.telBtn}`}>
-                    Appeler ce code
+                  <a href={`tel:${ussdCode.replace(/#/g, '%23')}`} className={`btn-premium ${styles.telBtn}`}>
+                    Lancer l'appel
                   </a>
                 </div>
-                <p className={styles.ussdNotice}>Ce code initie un transfert de <strong>{totalAmount} FCFA</strong> vers le numéro <strong>{merchantNumber}</strong>.</p>
+                <p className={styles.ussdNotice}>Montant à régler : <strong>{totalAmount.toLocaleString()} FCFA</strong> vers <strong>{merchantNumber}</strong>.</p>
               </div>
             </section>
 
             {/* Step 3: Proof of Payment */}
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>3. Preuve de Paiement</h2>
-              <p className={styles.helperText}>Après avoir effectué le transfert, veuillez importer la capture d'écran du message de confirmation.</p>
+              <p className={styles.helperText}>Veuillez joindre la capture d'écran de confirmation pour accélérer le traitement.</p>
               
               <div className={styles.uploadBox}>
                 <input 
@@ -249,15 +249,15 @@ export default function CheckoutPage() {
                 <label htmlFor="proof" className={styles.uploadLabel}>
                   <UploadCloud size={32} className={styles.uploadIcon} />
                   <span>
-                    {paymentProof ? paymentProof.name : "Cliquez pour télécharger la capture d'écran"}
+                    {paymentProof ? paymentProof.name : "Cliquez pour uploader le reçu"}
                   </span>
                 </label>
               </div>
             </section>
 
-            <Button type="submit" fullWidth className={styles.submitBtn} disabled={isSubmitting}>
-              {isSubmitting ? 'Traitement en cours...' : 'Confirmer la commande'}
-            </Button>
+            <button type="submit" className="btn-premium" style={{width: '100%', padding: '1.5rem'}} disabled={isSubmitting}>
+              {isSubmitting ? 'Traitement de votre demande...' : 'Confirmer la Commande'}
+            </button>
           </form>
         </div>
 

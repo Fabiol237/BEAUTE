@@ -1,143 +1,198 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ProductCard } from '@/components/ui/ProductCard';
-import { Button } from '@/components/ui/Button';
 import styles from './page.module.css';
 
-// Mock data based on the structure (we will fetch from Supabase later)
-const POPULAR_PRODUCTS = [
-  {
-    id: '1',
-    name: 'Sérum Éclat Infini',
-    price: 35000,
-    category: 'Soins Visage',
-    image_url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80',
-    is_popular: true,
-  },
-  {
-    id: '2',
-    name: 'Crème de Nuit Régénérante',
-    price: 42000,
-    category: 'Soins Visage',
-    image_url: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&q=80',
-    is_new: true,
-  },
-  {
-    id: '3',
-    name: 'Essence Botanique',
-    price: 28000,
-    category: 'Soins Corporels',
-    image_url: 'https://images.unsplash.com/photo-1571781926291-c477eb378b27?auto=format&fit=crop&q=80',
-  },
-  {
-    id: '4',
-    name: 'Huile Précieuse Cheveux',
-    price: 30000,
-    category: 'Soins Cheveux',
-    image_url: 'https://images.unsplash.com/photo-1626285861696-9f0bf5a49ceb?auto=format&fit=crop&q=80',
-    is_popular: true,
-  }
-];
-
 export default function Home() {
+  const [hoveredService, setHoveredService] = useState<number | null>(null);
+
+  const services = [
+    {
+      icon: '💆',
+      title: 'Soins Visage Premium',
+      description: 'Nettoyage profond, hydratation intensive et rajeunissement avec produits haut de gamme',
+    },
+    {
+      icon: '💅',
+      title: 'Manucure & Pédicure',
+      description: 'Soins luxueux des ongles avec vernis semi-permanents et design personnalisé',
+    },
+    {
+      icon: '✨',
+      title: 'Massage Thérapeutique',
+      description: 'Massages relaxants et régénérants pour détente complète et bien-être',
+    },
+    {
+      icon: '💇',
+      title: 'Coupe & Coloration',
+      description: 'Transformation capillaire par nos stylistes experts avec techniques modernes',
+    },
+    {
+      icon: '🌸',
+      title: 'Épilation Professionnelle',
+      description: 'Épilation douce et indolore avec les techniques les plus efficaces',
+    },
+    {
+      icon: '👑',
+      title: 'Maquillage Professionnel',
+      description: 'Maquillage expert pour vos événements spéciaux et occasions importantes',
+    },
+  ];
+
+  const features = [
+    {
+      icon: '⏱️',
+      title: 'Rapide & Efficace',
+      description: 'Services adaptés à votre emploi du temps sans compromis sur la qualité',
+    },
+    {
+      icon: '🎯',
+      title: 'Résultats Garantis',
+      description: 'Transformations visibles avec suivi personnalisé et conseils experts',
+    },
+    {
+      icon: '🏥',
+      title: 'Hygiène Premium',
+      description: 'Protocoles sanitaires stricts et produits certifiés de haute qualité',
+    },
+    {
+      icon: '👥',
+      title: 'Équipe Experte',
+      description: 'Professionnels qualifiés, attentifs et passionnés par votre beauté',
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: 'Sarah Michel',
+      title: 'Directrice Marketing',
+      text: 'Un véritable havre de paix ! Les soins visage ont complètement transformé ma peau.',
+      stars: 5,
+    },
+    {
+      name: 'Julie Dupont',
+      title: 'Influenceuse Beauté',
+      text: 'Le maquillage pour mon mariage était parfait. Je recommande vivement ce salon !',
+      stars: 5,
+    },
+    {
+      name: 'Anne Leclerc',
+      title: 'Avocate',
+      text: 'L\'équipe est accueillante et professionnelle. J\'y reviens chaque mois !',
+      stars: 5,
+    },
+  ];
+
   return (
-    <>
+    <main>
       {/* Hero Section */}
       <section className={styles.hero}>
-        <div className={styles.heroImageContainer}>
-          <Image 
-            src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80"
-            alt="Femme appliquant une crème de beauté"
-            fill
-            className={styles.heroImage}
-            priority
-          />
-          <div className={styles.heroOverlay} />
-        </div>
-        <div className={`container ${styles.heroContent}`}>
-          <div className={styles.heroTextContainer}>
-            <span className={styles.heroSubtitle}>Nouvelle Collection</span>
-            <h1 className={styles.heroTitle}>L&apos;éclat naturel, <br />redéfini.</h1>
-            <p className={styles.heroDesc}>
-              Découvrez nos soins luxueux formulés avec des ingrédients purs pour révéler votre beauté unique et authentique.
+        <div className="container">
+          <div className={styles.heroContent}>
+            <span className={styles.heroSubtitle}>Bienvenue chez Beauté Luxe</span>
+            <h1 className={styles.heroTitle}>Révélez Votre Beauté Naturelle</h1>
+            <p className={styles.heroDescription}>
+              Découvrez nos services de beauté luxe dans un environnement calme et raffiné. 
+              Nos expertes vous accordent une attention personnalisée pour révéler votre meilleur vous-même.
             </p>
-            <Link href="/shop" className={`btn btn-primary ${styles.heroBtn}`}>
-              Découvrir la boutique
-            </Link>
+            <div className={styles.heroButtons}>
+              <Link href="/shop" className="btn btnPrimary btnLarge">
+                Découvrir nos Services
+              </Link>
+              <button className="btn btnSecondary btnLarge" onClick={() => alert('Réservation bientôt disponible')}>
+                Réserver une Consultation
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className={`container ${styles.section}`}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>L&apos;Essentiel Beauté</h2>
-          <p className={styles.sectionSubtitle}>Une routine adaptée à vos besoins</p>
-        </div>
-        
-        <div className={styles.categoriesGrid}>
-          <Link href="/shop?category=visage" className={styles.categoryCard}>
-            <Image src="https://images.unsplash.com/photo-1615397323067-27bfe6624c9c?auto=format&fit=crop&q=80" alt="Soins Visage" fill className={styles.categoryImage} />
-            <div className={styles.categoryOverlay}>
-              <h3>Soins Visage</h3>
-            </div>
-          </Link>
-          <Link href="/shop?category=corps" className={styles.categoryCard}>
-            <Image src="https://images.unsplash.com/photo-1552693673-1bf958298935?auto=format&fit=crop&q=80" alt="Soins Corps" fill className={styles.categoryImage} />
-            <div className={styles.categoryOverlay}>
-              <h3>Soins Corps</h3>
-            </div>
-          </Link>
-          <Link href="/shop?category=cheveux" className={styles.categoryCard}>
-            <Image src="https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80" alt="Cheveux" fill className={styles.categoryImage} />
-            <div className={styles.categoryOverlay}>
-              <h3>Cheveux</h3>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Popular Products */}
-      <section className={styles.popularSection}>
-        <div className={`container ${styles.section}`}>
-          <div className={styles.sectionHeaderFlex}>
-            <h2 className={styles.sectionTitle}>Coups de Cœur</h2>
-            <Link href="/shop" className={styles.viewAllLink}>Voir tout</Link>
+      {/* Services Section */}
+      <section className={styles.services}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Nos Services Premium</h2>
+            <p className={styles.sectionDescription}>
+              Une gamme complète de soins beauté professionnels pour transformer votre apparence
+            </p>
           </div>
-          
-          <div className={styles.productsGrid}>
-            {POPULAR_PRODUCTS.map(product => (
-              <ProductCard key={product.id} product={product} />
+
+          <div className={styles.servicesGrid}>
+            {services.map((service, index) => (
+              <div
+                key={index}
+                className={styles.serviceCard}
+                onMouseEnter={() => setHoveredService(index)}
+                onMouseLeave={() => setHoveredService(null)}
+              >
+                <span className={styles.serviceIcon}>{service.icon}</span>
+                <h3 className={styles.serviceTitle}>{service.title}</h3>
+                <p className={styles.serviceText}>{service.description}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className={`container ${styles.section}`}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Ce qu&apos;elles en disent</h2>
-        </div>
-        
-        <div className={styles.testimonialsGrid}>
-          <div className={styles.testimonialCard}>
-            <div className={styles.stars}>★★★★★</div>
-            <p className={styles.quote}>&quot;Le Sérum Éclat a complètement transformé ma routine. Ma peau n&apos;a jamais été aussi lumineuse.&quot;</p>
-            <p className={styles.author}>— Sophie L.</p>
+      {/* Features Section */}
+      <section className={styles.features}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Pourquoi Nous Choisir ?</h2>
           </div>
-          <div className={styles.testimonialCard}>
-            <div className={styles.stars}>★★★★★</div>
-            <p className={styles.quote}>&quot;Des produits d&apos;une qualité exceptionnelle. On sent la différence dès la première utilisation.&quot;</p>
-            <p className={styles.author}>— Marie K.</p>
-          </div>
-          <div className={styles.testimonialCard}>
-            <div className={styles.stars}>★★★★★</div>
-            <p className={styles.quote}>&quot;L&apos;expérience client est incroyable et l&apos;odeur de l&apos;Essence Botanique est divine.&quot;</p>
-            <p className={styles.author}>— Amina D.</p>
+
+          <div className={styles.featuresGrid}>
+            {features.map((feature, index) => (
+              <div key={index} className={styles.feature}>
+                <span className={styles.featureIcon}>{feature.icon}</span>
+                <div className={styles.featureContent}>
+                  <h4>{feature.title}</h4>
+                  <p>{feature.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-    </>
+
+      {/* Testimonials Section */}
+      <section className={styles.testimonials}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Avis de nos Clients</h2>
+            <p className={styles.sectionDescription}>
+              Ce que nos clients satisfaits pensent de nos services
+            </p>
+          </div>
+
+          <div className={styles.testimonialsGrid}>
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className={styles.testimonialCard}>
+                <div className={styles.stars}>
+                  {'⭐'.repeat(testimonial.stars)}
+                </div>
+                <p className={styles.testimonialText}>"{testimonial.text}"</p>
+                <p className={styles.testimonialAuthor}>{testimonial.name}</p>
+                <p className={styles.testimonialTitle}>{testimonial.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section style={{ padding: '3rem 1rem' }}>
+        <div className={styles.cta}>
+          <h2 className={styles.ctaTitle}>Prête pour une Transformation ?</h2>
+          <p className={styles.ctaDescription}>
+            Rejoignez des milliers de clients satisfaits et découvrez le pouvoir de nos soins beauté d'exception
+          </p>
+          <Link href="/shop" className="btn btnPrimary btnLarge">
+            Réserver Votre Consultation Gratuite
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }

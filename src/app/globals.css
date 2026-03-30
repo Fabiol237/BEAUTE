@@ -1,155 +1,340 @@
+/* THEME: fonts, variables and base tokens */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;600;700&display=swap');
+
 :root {
-  --color-primary: #dea5a4; /* Rose doux */
-  --color-primary-dark: #c98887;
-  --color-secondary: #f4ecd8; /* Beige */
-  --color-background: #ffffff;
-  --color-surface: #faf9f7; /* Slightly darker white for cards */
-  --color-text-main: #1c1c1c; /* Noir/Gris très foncé */
-  --color-text-muted: #595959;
-  --color-border: #e8e8e8;
-  
-  --font-heading: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
-
-  --spacing-2: 0.5rem;
-  --spacing-4: 1rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-12: 3rem;
-  --spacing-16: 4rem;
-
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --color-bg: #fbf6f7;
+  --color-surface: #ffffff;
+  --color-text: #232323;
+  --color-muted: #6b6b6b;
+  --color-accent: #b35b7a; /* rose / blush */
+  --color-gold: #c9a961; /* gold accent */
+  --color-white: #ffffff;
+  --color-charcoal: #232323;
+  --color-text-muted: #7a7a7a;
+  --shadow-soft: 0 6px 20px rgba(0,0,0,0.08);
+  --transition: 0.3s ease;
+  --container-max-width: 1400px;
 }
 
-@media (prefers-color-scheme: dark) {
-  /* In a luxury theme, dark mode can be a deep charcoal with rose gold accents */
-  :root {
-    --color-background: #121212;
-    --color-surface: #1e1e1e;
-    --color-text-main: #f5f5f5;
-    --color-text-muted: #a0a0a0;
-    --color-border: #333333;
-    --color-primary: #e8b1b0;
-    --color-primary-dark: #d69796;
-    --color-secondary: #2a2825;
-  }
-}
-
+/* ==================== RESET & BASE ==================== */
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-html, body {
-  background-color: var(--color-background);
-  color: var(--color-text-main);
-  font-family: var(--font-body);
-  line-height: 1.6;
+html {
+  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-surface) 100%);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+/* ==================== TYPOGRAPHY ==================== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: 400; /* Elegant light headings */
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 5vw, 3rem);
   line-height: 1.2;
-  margin-bottom: var(--spacing-4);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+h4 {
+  font-size: 1.1rem;
+}
+
+p {
+  font-size: clamp(0.95rem, 2vw, 1rem);
+  color: #555;
 }
 
 a {
-  color: inherit;
+  color: var(--color-accent);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--transition);
 }
 
-ul {
-  list-style: none;
+a:hover {
+  color: var(--color-gold);
 }
 
-button {
-  font-family: var(--font-body);
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-/* Utilities Class for Layout */
+/* ==================== CONTAINERS ==================== */
 .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.containerSmall {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 var(--spacing-4);
+  padding: 0 1rem;
 }
 
-@media (min-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-8);
-  }
-}
+/* ==================== SPACING ==================== */
+.mt1 { margin-top: 0.5rem; }
+.mt2 { margin-top: 1rem; }
+.mt3 { margin-top: 1.5rem; }
+.mt4 { margin-top: 2rem; }
+.mt5 { margin-top: 3rem; }
+.mt6 { margin-top: 4rem; }
 
-/* Basic Button Styles (Global to be reused) */
+.mb1 { margin-bottom: 0.5rem; }
+.mb2 { margin-bottom: 1rem; }
+.mb3 { margin-bottom: 1.5rem; }
+.mb4 { margin-bottom: 2rem; }
+.mb5 { margin-bottom: 3rem; }
+.mb6 { margin-bottom: 4rem; }
+
+.px1 { padding: 0 0.5rem; }
+.px2 { padding: 0 1rem; }
+.py1 { padding: 1rem 0; }
+.py2 { padding: 2rem 0; }
+.py3 { padding: 3rem 0; }
+.py4 { padding: 4rem 0; }
+
+/* ==================== BUTTONS ==================== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0; /* Sharp/luxury edge, or small radius */
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  font-size: 0.875rem;
-  transition: all var(--transition-normal);
+  padding: 0.75rem 1.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-size: 0.95rem;
+  gap: 0.5rem;
 }
 
-.btn-primary {
-  background-color: var(--color-text-main);
-  color: var(--color-background);
-  border: 1px solid var(--color-text-main);
+.btnPrimary {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #e6c200 100%);
+  color: var(--color-text);
+  box-shadow: var(--shadow-soft);
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 
-.btn-secondary {
-  background-color: transparent;
-  color: var(--color-text-main);
-  border: 1px solid var(--color-text-main);
+.btnSecondary {
+  background: transparent;
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
 }
 
-.btn-secondary:hover {
-  background-color: var(--color-text-main);
-  color: var(--color-background);
+.btnSecondary:hover {
+  background: var(--color-accent);
+  color: var(--color-text);
 }
 
-.btn-accent {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: 1px solid var(--color-primary);
+.btnLarge {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
 }
 
-.btn-accent:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+.btnSmall {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ==================== CARDS ==================== */
+.card {
+  background: var(--color-white);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-soft);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.8s ease forwards;
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
+
+/* ==================== FORMS ==================== */
+input, textarea, select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9e9e9;
+  border-radius: 8px;
+  transition: all var(--transition);
+  width: 100%;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(179,87,122,0.06);
+}
+
+/* ==================== UTILITIES ==================== */
+.flex {
+  display: flex;
+}
+
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flexBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid {
+  display: grid;
+}
+
+.gridCenter {
+  display: grid;
+  place-items: center;
+}
+
+.justifyCenter {
+  justify-content: center;
+}
+
+.itemsCenter {
+  align-items: center;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.opacity50 {
+  opacity: 0.5;
+}
+
+/* ==================== GRADIENTS ==================== */
+
+.gradientGold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #e6c200 100%);
+  color: var(--color-white);
+}
+
+.gradientDark {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: var(--color-white);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+  h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+  h2 { font-size: clamp(1.3rem, 3vw, 2rem); }
+  h3 { font-size: clamp(1rem, 2.5vw, 1.5rem); }
+
+  .mt6 { margin-top: 3rem; }
+  .mb6 { margin-bottom: 3rem; }
+  .py4 { padding: 3rem 0; }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 0.95rem;
+  }
+
+  h1 { font-size: clamp(1.4rem, 3.5vw, 2rem); }
+  h2 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); }
+  
+  .container,
+  .containerSmall {
+    padding: 0 1rem;
+  }
+
+  .mt5,
+  .mt6 { margin-top: 2rem; }
+  .mb5,
+  .mb6 { margin-bottom: 2rem; }
+  
+  .py3,
+  .py4 { padding: 2rem 0; }
+
+  .btn {
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.1rem; }
+  h3 { font-size: 0.95rem; }
+
+  .container,
+  .containerSmall {
+    padding: 0 0.75rem;
+  }
+
+  .mt3,
+  .mt4,
+  .mt5,
+  .mt6 { margin-top: 1.5rem; }
+  .mb3,
+  .mb4,
+  .mb5,
+  .mb6 { margin-bottom: 1.5rem; }
+  
+  .py2,
+  .py3,
+  .py4 { padding: 1.5rem 0; }
+
+  .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9a961;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e6c200;
+}
+
