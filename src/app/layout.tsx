@@ -1,21 +1,26 @@
 import type { Metadata } from 'next';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { CartProvider } from '@/components/cart/CartContext';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 import './globals.css';
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'BEAUTÉ LUXE | Salon de Beauté Premium Paris',
-  description: 'Découvrez nos services beauté haut de gamme: soins visage, manucure, massage, coupe cheveux. Salon professionnel luxe à Paris.',
-  keywords: 'salon de beauté, soins visage, manucure, massage, coupe cheveux, beauté professionnel, Paris',
-  viewport: 'width=device-width, initial-scale=1.0',
-  robots: 'index, follow',
-  authors: [{ name: 'BEAUTÉ LUXE' }],
-  openGraph: {
-    title: 'BEAUTÉ LUXE | Salon de Beauté Premium',
-    description: 'Services de beauté professionnels et luxueux',
-    type: 'website',
-  }
+  title: 'Beauté & Cosmétique | Luxe',
+  description: 'Boutique en ligne de produits cosmétiques haut de gamme.',
 };
 
 export default function RootLayout({
@@ -24,25 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="theme-color" content="#c9a961" />
-        <link rel="icon" href="/favicon.ico" />
-      </head>
+    <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body>
         <CartProvider>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100vh'
-          }}>
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />
-            <main style={{ flex: 1 }}>
-              {children}
-            </main>
+            <main style={{ flex: 1 }}>{children}</main>
             <Footer />
           </div>
+          <CartDrawer />
         </CartProvider>
       </body>
     </html>
