@@ -2,13 +2,21 @@ import { PlusCircle, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'l
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
-export default async function ProjetsPage() {
+export default async function ProjetsPage({ searchParams }: { searchParams: Promise<{ commune?: string }> }) {
   const supabase = await createClient()
+  const params = await searchParams
+  const selectedCommuneId = params.commune
 
-  const { data: projects } = await supabase
+  let query = supabase
     .from('projets')
     .select('*, communes(nom), types_projets(nom)')
     .order('created_at', { ascending: false })
+
+  if (selectedCommuneId) {
+    query = query.eq('commune_id', selectedCommuneId)
+  }
+
+  const { data: projects } = await query
 
   return (
     <div>

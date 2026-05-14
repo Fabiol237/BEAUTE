@@ -7,7 +7,12 @@ import dynamic from 'next/dynamic'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 
-export default function AdminSuggestionsPage() {
+import { use } from 'react'
+
+export default function AdminSuggestionsPage({ searchParams }: { searchParams: Promise<{ commune?: string }> }) {
+  const params = use(searchParams)
+  const selectedCommuneId = params.commune
+  
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('tous')
@@ -17,14 +22,18 @@ export default function AdminSuggestionsPage() {
 
   useEffect(() => {
     fetchSuggestions()
-  }, [filter])
+  }, [filter, selectedCommuneId])
 
   async function fetchSuggestions() {
     setLoading(true)
-    let query = supabase.from('suggestions').select('*, projets(titre)').order('date_soumission', { ascending: false })
+    let query = supabase.from('suggestions').select('*, projets(titre, commune_id)').order('date_soumission', { ascending: false })
     
     if (filter !== 'tous') {
       query = query.eq('mode', filter)
+    }
+
+    if (selectedCommuneId) {
+      query = query.eq('commune_id', selectedCommuneId)
     }
 
     const { data } = await query

@@ -3,16 +3,26 @@ import StatCard from '@/components/StatCard'
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
-export default async function BudgetPage() {
+export default async function BudgetPage({ searchParams }: { searchParams: Promise<{ commune?: string }> }) {
   const supabase = await createClient()
+  const params = await searchParams
+  const selectedCommuneId = params.commune
 
-  // Fetch stats and expenses
-  const { data: depenses } = await supabase
+  let queryDepenses = supabase
     .from('depenses')
-    .select('*, projets(titre)')
+    .select('*, projets(titre, commune_id)')
     .order('date_depense', { ascending: false })
+  
+  let queryBudget = supabase.from('projets').select('budget_actuel')
 
-  const { data: budgetData } = await supabase.from('projets').select('budget_actuel')
+  if (selectedCommuneId) {
+    // Note: Filtering joined table is tricky in simple select, but we can filter the main query
+    queryDepenses = queryDepenses.eq('projets.commune_id', selectedCommuneId)
+    queryBudget = queryBudget.eq('commune_id', selectedCommuneId)
+  }
+
+  const { data: depenses } = await queryDepenses
+  const { data: budgetData } = await queryBudget
   
   const totalBudget = budgetData?.reduce((acc, p) => acc + Number(p.budget_actuel), 0) || 0
   const totalDepenses = depenses?.filter(d => d.validee).reduce((acc, d) => acc + Number(d.montant), 0) || 0

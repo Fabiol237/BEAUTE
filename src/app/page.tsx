@@ -4,9 +4,10 @@ import DashboardCharts from '@/components/DashboardCharts'
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
-export default async function Dashboard({ searchParams }: { searchParams: { commune?: string } }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ commune?: string }> }) {
   const supabase = await createClient()
-  const selectedCommuneId = searchParams.commune
+  const params = await searchParams
+  const selectedCommuneId = params.commune
 
   let queryTotal = supabase.from('projets').select('*', { count: 'exact', head: true })
   let queryEnCours = supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'en_cours')
