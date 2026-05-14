@@ -41,6 +41,24 @@ export default function Sidebar() {
           </div>
         </div>
 
+        <div style={{ marginTop: '1.5rem' }}>
+          <select 
+            className="form-select" 
+            style={{ fontSize: '0.85rem', fontWeight: 600 }}
+            onChange={(e) => {
+              const val = e.target.value;
+              window.location.href = val ? `/?commune=${val}` : '/';
+            }}
+          >
+            <option value="">Toutes les Mairies</option>
+            <option value="1">Douala 1er</option>
+            <option value="2">Douala 2e</option>
+            <option value="3">Douala 3e</option>
+            <option value="4">Douala 4e</option>
+            <option value="5">Douala 5e</option>
+          </select>
+        </div>
+
         {/* Mobile Toggle */}
         <button 
           className="desktop-hidden" 

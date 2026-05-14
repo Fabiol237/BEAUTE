@@ -8,6 +8,7 @@ import { Search, MapPin, Tag, ArrowRight, Folder, Hammer, CheckCircle, Banknote,
 export default function CitoyensPage() {
   const [stats, setStats] = useState({ total: 0, en_cours: 0, termines: 0, budget_total: 0 })
   const [projetsRecents, setProjetsRecents] = useState<any[]>([])
+  const [communes, setCommunes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -32,6 +33,10 @@ export default function CitoyensPage() {
         .limit(6)
       
       if (projects) setProjetsRecents(projects)
+
+      const { data: comms } = await supabase.from('communes').select('*')
+      if (comms) setCommunes(comms)
+
       setLoading(false)
     }
     loadData()
@@ -166,11 +171,22 @@ export default function CitoyensPage() {
           <p style={{ marginTop: '1rem', fontSize: '1.1rem', opacity: 0.9 }}>Suivez en temps réel les projets de développement de votre commune</p>
           
           <div className="search-box">
-            <input type="text" placeholder="Rechercher un projet, une commune..." />
+            <select className="commune-select" onChange={(e) => window.location.href=`/citoyens/projets?commune=${e.target.value}`}>
+              <option value="">Sélectionnez votre Mairie (simulation)</option>
+              {communes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
+            </select>
+            <input type="text" placeholder="Ou recherchez un projet..." />
             <button><Search size={18} /> Rechercher</button>
           </div>
         </div>
       </section>
+
+      <style jsx>{`
+        .commune-select { border: none; padding: 12px 20px; border-right: 1px solid #eee; background: transparent; font-weight: 600; color: var(--cameroun-vert); outline: none; max-width: 200px; }
+        @media (max-width: 768px) {
+          .commune-select { max-width: 100%; border-right: none; border-bottom: 1px solid #eee; }
+        }
+      `}</style>
 
       {/* Stats Section */}
       <section className="stats-section">

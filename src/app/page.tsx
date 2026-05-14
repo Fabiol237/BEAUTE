@@ -4,23 +4,31 @@ import DashboardCharts from '@/components/DashboardCharts'
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }: { searchParams: { commune?: string } }) {
   const supabase = await createClient()
+  const selectedCommuneId = searchParams.commune
 
-  // Fetch stats
-  const { count: totalProjets } = await supabase.from('projets').select('*', { count: 'exact', head: true })
-  const { count: projetsEnCours } = await supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'en_cours')
-  const { count: projetsTermines } = await supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'terminé')
+  let queryTotal = supabase.from('projets').select('*', { count: 'exact', head: true })
+  let queryEnCours = supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'en_cours')
+  let queryTermines = supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'terminé')
+  let queryBudget = supabase.from('projets').select('budget_actuel')
+  let queryRecent = supabase.from('projets').select('*, communes(nom)').order('created_at', { ascending: false }).limit(5)
+
+  if (selectedCommuneId) {
+    queryTotal = queryTotal.eq('commune_id', selectedCommuneId)
+    queryEnCours = queryEnCours.eq('commune_id', selectedCommuneId)
+    queryTermines = queryTermines.eq('commune_id', selectedCommuneId)
+    queryBudget = queryBudget.eq('commune_id', selectedCommuneId)
+    queryRecent = queryRecent.eq('commune_id', selectedCommuneId)
+  }
+
+  const { count: totalProjets } = await queryTotal
+  const { count: projetsEnCours } = await queryEnCours
+  const { count: projetsTermines } = await queryTermines
+  const { data: budgetData } = await queryBudget
+  const { data: recentProjects } = await queryRecent
   
-  const { data: budgetData } = await supabase.from('projets').select('budget_actuel')
   const totalBudget = budgetData?.reduce((acc, p) => acc + Number(p.budget_actuel), 0) || 0
-
-  // Fetch recent projects
-  const { data: recentProjects } = await supabase
-    .from('projets')
-    .select('*, communes(nom)')
-    .order('created_at', { ascending: false })
-    .limit(5)
 
   const stats = [
     { label: 'Total Projets', value: totalProjets || 0, icon: Folder, color: 'primary' as const },
