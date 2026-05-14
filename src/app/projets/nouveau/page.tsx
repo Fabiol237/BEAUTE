@@ -81,7 +81,7 @@ export default function NouveauProjetPage() {
           />
         </div>
 
-        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+        <div className="grid-responsive">
           <div className="flex flex-col gap-2">
             <label style={{ fontWeight: 600 }}>Commune *</label>
             <select 
@@ -125,7 +125,7 @@ export default function NouveauProjetPage() {
 
         <div className="card" style={{ background: '#f8fafc', border: '1px dashed var(--border)' }}>
           <h4 className="flex items-center gap-2 mb-4"><MapPin size={18} /> Géolocalisation (Optionnel)</h4>
-          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div className="grid-responsive">
             <div className="flex flex-col gap-2">
               <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Latitude</label>
               <input 

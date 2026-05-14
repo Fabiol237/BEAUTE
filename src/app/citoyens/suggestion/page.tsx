@@ -166,7 +166,7 @@ export default function SuggestionPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="form-card">
           <div className="section-label">Vos coordonnées</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-responsive" style={{ gap: '15px' }}>
              <div className="form-group">
                <label className="form-label"><User size={16} /> Nom complet *</label>
                <input className="form-control" placeholder="Votre nom" required value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} />
@@ -176,7 +176,7 @@ export default function SuggestionPage() {
                <input className="form-control" type="email" placeholder="votre@email.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
              </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-responsive" style={{ gap: '15px' }}>
              <div className="form-group">
                <label className="form-label"><Phone size={16} /> Téléphone</label>
                <input className="form-control" placeholder="+237 XXX XXX XXX" value={formData.telephone} onChange={e => setFormData({...formData, telephone: e.target.value})} />
@@ -188,7 +188,7 @@ export default function SuggestionPage() {
           </div>
 
           <div className="section-label">{mode === 'suggestion' ? 'Votre suggestion' : 'Détails du problème'}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-responsive" style={{ gap: '15px' }}>
             <div className="form-group">
               <label className="form-label"><Tag size={16} /> Catégorie *</label>
               <select className="form-select" required value={formData.categorie} onChange={e => setFormData({...formData, categorie: e.target.value})}>
@@ -247,7 +247,7 @@ export default function SuggestionPage() {
           )}
 
           <div className="section-label">Options</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-responsive" style={{ gap: '15px' }}>
             <div className={`toggle-card ${formData.disponible_contact ? 'active' : ''}`} onClick={() => setFormData({...formData, disponible_contact: !formData.disponible_contact})}>
               <div style={{ fontSize: '0.85rem' }}>
                 <div style={{ fontWeight: 700 }}>Disponible pour contact</div>

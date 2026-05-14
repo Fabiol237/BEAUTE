@@ -145,7 +145,7 @@ export default function ProjetsCitoyensPage() {
         </div>
 
         {/* Liste */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '30px' }}>
+        <div className="grid-responsive mt-6">
           {projects.map((p) => (
             <div key={p.id} className="project-card">
               <div style={{ padding: '25px' }}>

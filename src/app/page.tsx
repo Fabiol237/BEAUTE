@@ -52,9 +52,9 @@ export default async function Dashboard() {
 
       <div className="dashboard-layout mt-6">
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="flex items-center justify-between p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
             <h3 style={{ margin: 0 }}>Derniers Projets</h3>
-            <Link href="/projets" className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+            <Link href="/projets" className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', width: 'auto' }}>
               Voir tout <ArrowRight size={16} />
             </Link>
           </div>

@@ -51,7 +51,7 @@ export default function DashboardCharts() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
+    <div className="grid-responsive mt-6">
       <div className="card">
         <h3>Budget / Commune</h3>
         <div style={{ height: 200 }}>
