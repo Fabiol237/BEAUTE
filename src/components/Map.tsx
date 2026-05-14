@@ -2,10 +2,9 @@
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { MapPin, Navigation, Activity } from 'lucide-react'
+import { MapPin, Navigation, Activity, AlertTriangle } from 'lucide-react'
 
 // Helper to zoom the map
 function ChangeView({ center, zoom }: { center: [number, number], zoom: number }) {
@@ -86,7 +85,13 @@ export default function Map({ selectedProject, projects: initialProjects }: { se
   const centerPos: [number, number] = view[0] ? view : [4.0511, 9.7679]
 
   return (
-    <div style={{ height: '650px', width: '100%', position: 'relative', background: '#f1f5f9' }}>
+    <div style={{ height: '650px', width: '100%', position: 'relative', background: '#f1f5f9', border: '2px solid #ddd' }}>
+      {/* Barre de Diagnostic */}
+      <div style={{ position: 'absolute', top: 10, left: 50, zIndex: 1002, background: 'white', padding: '5px 10px', borderRadius: 5, fontSize: '10px', border: '1px solid #ccc' }}>
+        Status DB: {projects.length > 0 ? '✅ Données reçues' : '❌ Pas de données'} | 
+        Projets localisés: {projects.filter(p => p.latitude && p.longitude).length}
+      </div>
+
       {projects.length === 0 && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.8)' }}>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
