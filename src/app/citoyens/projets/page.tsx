@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import CitizenNavbar from '@/components/CitizenNavbar'
 import Link from 'next/link'
 import { Search, Filter, MapPin, Tag, Banknote, ArrowRight, XCircle } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 export default function ProjetsCitoyensPage() {
   const [projects, setProjects] = useState<any[]>([])
@@ -12,9 +13,12 @@ export default function ProjetsCitoyensPage() {
   const [types, setTypes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   
+  const searchParams = useSearchParams()
+  const initialCommune = searchParams.get('commune') || ''
+
   const [filters, setFilters] = useState({
     q: '',
-    commune: '',
+    commune: initialCommune,
     type: '',
     statut: ''
   })
@@ -27,10 +31,13 @@ export default function ProjetsCitoyensPage() {
       const { data: typs } = await supabase.from('types_projets').select('*').order('nom')
       if (comms) setCommunes(comms)
       if (typs) setTypes(typs)
-      fetchProjects()
     }
     loadInitialData()
   }, [])
+
+  useEffect(() => {
+    fetchProjects()
+  }, [filters.commune])
 
   async function fetchProjects() {
     setLoading(true)
