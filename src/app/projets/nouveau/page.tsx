@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -111,7 +111,7 @@ export default function NouveauProjetPage() {
         <div className="flex flex-col gap-2">
           <label style={{ fontWeight: 600 }}>Budget Alloué (FCFA) *</label>
           <div style={{ position: 'relative' }}>
-            <Banknote size={18} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--muted)' }} />
+            <span style={{ position: 'absolute', left: 12, top: 14, fontSize: '1.1rem' }}>💰</span>
             <input 
               required
               type="number" 

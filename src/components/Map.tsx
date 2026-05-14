@@ -12,7 +12,7 @@ const icon = L.icon({
   iconAnchor: [12, 41]
 })
 
-export default function Map({ projects = [] }: { projects?: any[] }) {
+export default function Map({ projects = [], selectedProject = null, points = [] }: { projects?: any[], selectedProject?: any, points?: any[] }) {
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -23,14 +23,16 @@ export default function Map({ projects = [] }: { projects?: any[] }) {
     return <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>Initialisation de la carte...</div>
   }
 
-  // Position par défaut sur Douala
-  const defaultCenter: [number, number] = [4.0511, 9.7679]
+  // Position par défaut sur Douala ou sur le projet sélectionné
+  const center: [number, number] = selectedProject?.latitude && selectedProject?.longitude 
+    ? [Number(selectedProject.latitude), Number(selectedProject.longitude)]
+    : [4.0511, 9.7679]
 
   return (
     <div style={{ height: '100%', width: '100%', minHeight: '500px' }}>
       <MapContainer
-        center={defaultCenter}
-        zoom={13}
+        center={center}
+        zoom={selectedProject ? 15 : 13}
         style={{ height: '100%', width: '100%' }}
       >
         <LayersControl position="topright">
@@ -47,6 +49,8 @@ export default function Map({ projects = [] }: { projects?: any[] }) {
             />
           </LayersControl.BaseLayer>
         </LayersControl>
+
+        {/* Projets standards */}
         {projects.filter(p => p.latitude && p.longitude).map((p) => (
           <Marker
             key={p.id}
@@ -56,6 +60,15 @@ export default function Map({ projects = [] }: { projects?: any[] }) {
             <Popup>
               <strong>{p.titre}</strong><br />
               {p.communes?.nom}
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* Points spécifiques (ex: suggestions) */}
+        {points.map((pt: any, i: number) => (
+          <Marker key={i} position={[pt.lat, pt.lng]} icon={icon}>
+            <Popup>
+              <div dangerouslySetInnerHTML={{ __html: pt.popup }} />
             </Popup>
           </Marker>
         ))}

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
@@ -48,7 +48,7 @@ export default function AdminUsersPage() {
       <div className="stat-grid mt-6">
         <div className="card flex items-center gap-4">
            <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '12px', borderRadius: '12px' }}>
-              <Users size={24} />
+              <span style={{ fontSize: '1.5rem' }}>👥</span>
            </div>
            <div>
               <div className="text-xs font-bold text-muted uppercase">Total</div>
@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="card flex items-center gap-4">
            <div style={{ background: 'var(--success-light)', color: 'var(--success)', padding: '12px', borderRadius: '12px' }}>
-              <ShieldCheck size={24} />
+              <span style={{ fontSize: '1.5rem' }}>✅</span>
            </div>
            <div>
               <div className="text-xs font-bold text-muted uppercase">Actifs</div>
@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="card flex items-center gap-4">
            <div style={{ background: 'var(--warning-light)', color: 'var(--warning)', padding: '12px', borderRadius: '12px' }}>
-              <Shield size={24} />
+              <span style={{ fontSize: '1.5rem' }}>🛡️</span>
            </div>
            <div>
               <div className="text-xs font-bold text-muted uppercase">Admins</div>
@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
       <div className="card mt-6" style={{ padding: 0 }}>
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div style={{ position: 'relative', width: '300px' }}>
-            <Search size={18} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--muted)' }} />
+            <span style={{ position: 'absolute', left: 12, top: 11, fontSize: '1rem' }}>🔍</span>
             <input 
               className="form-control" 
               placeholder="Rechercher un membre..." 

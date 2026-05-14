@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import dynamic from 'next/dynamic'
 // import { MapPin, Search, Navigation, RefreshCw } from 'lucide-react'
@@ -45,7 +45,7 @@ export default function CartePage() {
         <div>
           <h1 className="flex align-center gap-2">
             Carte Interactive
-            {loading && <RefreshCw size={20} className="animate-spin" style={{ color: 'var(--muted)' }} />}
+            {loading && <span style={{ fontSize: '1.2rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>🔄</span>}
           </h1>
           <p>Localisation des chantiers municipaux.</p>
         </div>
@@ -93,7 +93,7 @@ export default function CartePage() {
                 </div>
                 <h4 style={{ fontSize: '0.875rem' }}>{p.titre}</h4>
                 <div className="flex align-center gap-1" style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
-                  <MapPin size={12} />
+                  <span style={{ fontSize: '0.8rem' }}>📍</span>
                   {p.communes?.nom}
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function CartePage() {
 
           <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--primary-light)', borderRadius: 8 }}>
             <div className="flex gap-2" style={{ color: 'var(--primary)', fontSize: '0.75rem' }}>
-              <Navigation size={14} />
+              <span style={{ fontSize: '1rem' }}>🧭</span>
               <p>Cliquez sur un projet pour le localiser.</p>
             </div>
           </div>

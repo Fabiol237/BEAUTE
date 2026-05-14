@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
@@ -152,17 +152,17 @@ export default function AdminSuggestionsPage({ searchParams }: { searchParams: P
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <MapPin size={16} color="var(--muted)" />
+                  <span style={{ fontSize: '1rem' }}>📍</span>
                   <span>{selectedSuggestion.quartier || 'Non précisé'}</span>
                 </div>
                 {selectedSuggestion.mode === 'signalement' && (
                   <div className="flex items-center gap-2 text-sm text-danger">
-                    <AlertTriangle size={16} />
+                    <span style={{ fontSize: '1rem' }}>⚠️</span>
                     <span>Urgence: {selectedSuggestion.priorite || 'Normale'}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock size={16} color="var(--muted)" />
+                  <span style={{ fontSize: '1rem' }}>⏰</span>
                   <span>Envoyé le {new Date(selectedSuggestion.date_soumission).toLocaleString()}</span>
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default function AdminSuggestionsPage({ searchParams }: { searchParams: P
             </>
           ) : (
             <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--muted)' }}>
-              <MessageSquare size={48} style={{ opacity: 0.2, margin: '0 auto 1rem' }} />
+              <div style={{ fontSize: '3rem', opacity: 0.2, margin: '0 auto 1rem' }}>💬</div>
               <p>Sélectionnez une ligne pour voir les détails.</p>
             </div>
           )}

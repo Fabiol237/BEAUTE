@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -62,7 +62,7 @@ export default function NouvelleDepensePage() {
         <div className="flex flex-col gap-2">
           <label style={{ fontWeight: 600 }}>Projet Concerné *</label>
           <div style={{ position: 'relative' }}>
-            <Tag size={18} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--muted)' }} />
+            <span style={{ position: 'absolute', left: 12, top: 14, fontSize: '1.1rem' }}>🏷️</span>
             <select 
               required
               value={formData.projet_id}
@@ -78,7 +78,7 @@ export default function NouvelleDepensePage() {
         <div className="flex flex-col gap-2">
           <label style={{ fontWeight: 600 }}>Montant de la dépense (FCFA) *</label>
           <div style={{ position: 'relative' }}>
-            <Banknote size={18} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--muted)' }} />
+            <span style={{ position: 'absolute', left: 12, top: 14, fontSize: '1.1rem' }}>💰</span>
             <input 
               required
               type="number" 
@@ -93,7 +93,7 @@ export default function NouvelleDepensePage() {
         <div className="flex flex-col gap-2">
           <label style={{ fontWeight: 600 }}>Libellé / Description *</label>
           <div style={{ position: 'relative' }}>
-            <FileText size={18} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--muted)' }} />
+            <span style={{ position: 'absolute', left: 12, top: 14, fontSize: '1.1rem' }}>📝</span>
             <input 
               required
               type="text" 
