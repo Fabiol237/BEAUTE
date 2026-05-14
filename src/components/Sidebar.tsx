@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FolderKanban, Banknote, Map, Users, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Banknote, Map, Users, LogOut, Menu, X, PlusCircle } from 'lucide-react'
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
@@ -17,25 +17,41 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
+
   const toggleMenu = () => setIsOpen(!isOpen)
 
   return (
     <>
-      <aside className="sidebar">
-        <div className="flex align-center gap-2">
-          <div style={{ background: 'var(--primary)', width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-            <FolderKanban size={20} />
+      <header className="sidebar">
+        <div className="flex items-center gap-4">
+          <div style={{ background: 'linear-gradient(135deg, var(--primary), #1d4ed8)', width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)' }}>
+            <FolderKanban size={24} />
           </div>
-          <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>Projets Mun.</span>
+          <div>
+            <span style={{ fontWeight: 800, fontSize: '1.25rem', display: 'block', lineHeight: 1 }}>MuniTrack</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Douala v1.0</span>
+          </div>
         </div>
 
         {/* Mobile Toggle */}
-        <button className="desktop-hidden p-2" onClick={toggleMenu}>
+        <button 
+          className="desktop-hidden" 
+          onClick={toggleMenu}
+          style={{ width: 44, height: 44, background: 'var(--primary-light)', borderRadius: 12, color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
         {/* Desktop Menu */}
-        <nav className="mobile-hidden" style={{ flex: 1, marginTop: '2rem', flexDirection: 'column' }}>
+        <nav className="mobile-hidden" style={{ flex: 1, marginTop: '3rem', display: 'flex', flexDirection: 'column' }}>
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -43,77 +59,87 @@ export default function Sidebar() {
               <Link 
                 key={item.href} 
                 href={item.href}
-                className="flex align-center gap-2"
+                className="flex items-center gap-3"
                 style={{
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
+                  padding: '1rem 1.25rem',
+                  borderRadius: '12px',
                   marginBottom: '0.5rem',
                   color: isActive ? 'var(--primary)' : 'var(--muted)',
                   background: isActive ? 'var(--primary-light)' : 'transparent',
-                  fontWeight: isActive ? 600 : 500,
-                  transition: 'all 0.2s'
+                  fontWeight: isActive ? 700 : 500,
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: isActive ? '1px solid rgba(59, 130, 246, 0.1)' : '1px solid transparent'
                 }}
               >
-                <Icon size={20} />
+                <Icon size={22} />
                 {item.label}
               </Link>
             )
           })}
         </nav>
 
-        <div className="mobile-hidden" style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+        <div className="mobile-hidden" style={{ borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
           <button 
-            className="flex align-center gap-2" 
-            style={{ color: 'var(--danger)', width: '100%', padding: '0.75rem 1rem', fontWeight: 500 }}
+            className="flex items-center gap-3" 
+            style={{ color: 'var(--danger)', width: '100%', padding: '1rem', fontWeight: 600, borderRadius: 12 }}
           >
-            <LogOut size={20} />
+            <LogOut size={22} />
             Déconnexion
           </button>
         </div>
-      </aside>
+      </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Navigation */}
       {isOpen && (
-        <div 
-          className="desktop-hidden" 
-          style={{ 
-            position: 'fixed', top: 64, left: 0, right: 0, bottom: 0, 
-            background: 'white', zIndex: 40, padding: '1rem',
-            display: 'flex', flexDirection: 'column'
-          }}
-        >
-          <nav style={{ flex: 1 }}>
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="flex align-center gap-2"
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    marginBottom: '0.5rem',
-                    color: isActive ? 'var(--primary)' : 'var(--muted)',
-                    background: isActive ? 'var(--primary-light)' : 'transparent',
-                    fontWeight: isActive ? 600 : 500,
-                  }}
-                >
-                  <Icon size={24} />
-                  {item.label}
-                </Link>
-              )
-            })}
-          </nav>
-          <button 
-            className="flex align-center gap-2" 
-            style={{ color: 'var(--danger)', width: '100%', padding: '1rem', fontWeight: 500, borderTop: '1px solid var(--border)' }}
-          >
-            <LogOut size={24} />
-            Déconnexion
-          </button>
+        <div className="mobile-nav-overlay" onClick={toggleMenu}>
+          <div className="mobile-menu" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <span style={{ fontWeight: 800, fontSize: '1.5rem' }}>Menu</span>
+              <button onClick={toggleMenu} style={{ background: '#f1f5f9', p: 2, borderRadius: '50%' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <nav style={{ flex: 1 }}>
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    onClick={toggleMenu}
+                    className="flex items-center gap-4"
+                    style={{
+                      padding: '1.25rem',
+                      borderRadius: '16px',
+                      marginBottom: '0.75rem',
+                      color: isActive ? 'var(--primary)' : 'var(--muted)',
+                      background: isActive ? 'var(--primary-light)' : 'transparent',
+                      fontWeight: isActive ? 700 : 600,
+                      fontSize: '1.1rem'
+                    }}
+                  >
+                    <Icon size={26} />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            <button className="btn btn-primary mb-6">
+              <PlusCircle size={20} />
+              Nouveau Projet
+            </button>
+
+            <button 
+              className="flex items-center gap-4" 
+              style={{ color: 'var(--danger)', width: '100%', padding: '1.25rem', fontWeight: 700, borderTop: '1px solid var(--border)' }}
+            >
+              <LogOut size={26} />
+              Déconnexion
+            </button>
+          </div>
         </div>
       )}
     </>

@@ -25,19 +25,19 @@ export default async function Dashboard() {
     { label: 'Total Projets', value: totalProjets || 0, icon: Folder, color: 'primary' as const },
     { label: 'En cours', value: projetsEnCours || 0, icon: Clock, color: 'warning' as const },
     { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M`, icon: Banknote, color: 'success' as const },
-    { label: 'Terminés', value: projetsTermines || 0, icon: CheckCircle, color: 'primary' as const },
+    { label: 'Terminés', value: projetsTermines || 0, icon: CheckCircle, color: 'success' as const },
   ]
 
   return (
     <div>
-      <header className="header-actions mb-4">
+      <header className="header-actions mb-6">
         <div>
-          <h1>Tableau de bord</h1>
-          <p>Bienvenue sur votre espace de gestion.</p>
+          <h1>Tableau de Bord</h1>
+          <p>Supervision des projets de la commune.</p>
         </div>
-        <button className="btn btn-primary w-full-mobile">
+        <button className="btn btn-primary">
           <PlusCircle size={20} />
-          Nouveau projet
+          Nouveau Projet
         </button>
       </header>
 
@@ -49,11 +49,11 @@ export default async function Dashboard() {
 
       <DashboardCharts />
 
-      <div className="dashboard-layout">
-        <div className="card">
-          <div className="flex justify-between align-center mb-4">
-            <h3>Derniers projets</h3>
-            <button className="btn btn-outline" style={{ fontSize: '0.875rem' }}>
+      <div className="dashboard-layout mt-6">
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="flex items-center justify-between p-6">
+            <h3 style={{ margin: 0 }}>Derniers Projets</h3>
+            <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
               Voir tout <ArrowRight size={16} />
             </button>
           </div>
@@ -64,7 +64,7 @@ export default async function Dashboard() {
                   <th>Projet</th>
                   <th>Commune</th>
                   <th className="mobile-hidden">Budget</th>
-                  <th>Avancement</th>
+                  <th>Progrès</th>
                   <th>Statut</th>
                   <th></th>
                 </tr>
@@ -76,21 +76,21 @@ export default async function Dashboard() {
                     <td>{(p.communes as any)?.nom}</td>
                     <td className="mobile-hidden">{(Number(p.budget_actuel) / 1000000).toFixed(1)}M</td>
                     <td>
-                      <div className="flex align-center gap-2">
-                        <div style={{ flex: 1, minWidth: 40, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: p.avancement_physique === 100 ? 'var(--success)' : 'var(--primary)' }} />
+                      <div className="flex items-center gap-3">
+                        <div style={{ flex: 1, minWidth: 60, height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), #60a5fa)', borderRadius: 4 }} />
                         </div>
-                        <span style={{ fontSize: '0.75rem' }}>{p.avancement_physique}%</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.avancement_physique}%</span>
                       </div>
                     </td>
                     <td>
                       <span className={`badge ${p.statut === 'terminé' ? 'badge-success' : 'badge-warning'}`}>
-                        {p.statut === 'terminé' ? 'OK' : '...'}
+                        {p.statut === 'terminé' ? 'Terminé' : 'En cours'}
                       </span>
                     </td>
                     <td>
-                      <button className="btn btn-outline" style={{ padding: '0.4rem' }}>
-                        <Eye size={16} />
+                      <button className="btn btn-outline" style={{ padding: '0.5rem', borderRadius: 10 }}>
+                        <Eye size={18} />
                       </button>
                     </td>
                   </tr>
@@ -100,10 +100,17 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
-          <h3>Alertes</h3>
-          <div className="mt-4">
-            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucune alerte critique.</p>
+        <div className="card" style={{ background: 'linear-gradient(180deg, #ffffff, #f8fafc)', borderLeft: '4px solid var(--warning)' }}>
+          <h3 className="mb-4">Alertes Récentes</h3>
+          <div className="flex flex-col gap-4">
+            <div style={{ padding: '1rem', borderRadius: 12, background: 'var(--warning-light)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase' }}>Retard</span>
+              <p style={{ color: '#92400e', fontWeight: 600, marginTop: '4px', fontSize: '0.9rem' }}>Route de Bépanda : +15 jours</p>
+            </div>
+            <div style={{ padding: '1rem', borderRadius: 12, background: 'var(--danger-light)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase' }}>Budget</span>
+              <p style={{ color: '#991b1b', fontWeight: 600, marginTop: '4px', fontSize: '0.9rem' }}>Hôpital : Dépassement 5%</p>
+            </div>
           </div>
         </div>
       </div>
