@@ -212,6 +212,9 @@ td {
 @media (min-width: 768px) { .mobile-hidden { display: block !important; } }
 @media (min-width: 768px) { td.mobile-hidden { display: table-cell !important; } }
 
+.desktop-hidden { display: block !important; }
+@media (min-width: 1024px) { .desktop-hidden { display: none !important; } }
+
 .mobile-only { display: block !important; }
 @media (min-width: 768px) { .mobile-only { display: none !important; } }
 

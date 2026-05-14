@@ -140,6 +140,19 @@ export default function CitoyensPage() {
         .footer ul { list-style: none; padding: 0; }
         .footer ul li { margin-bottom: 10px; }
         .footer a { color: var(--cameroun-jaune); text-decoration: none; }
+
+        @media (max-width: 768px) {
+          .hero-title { font-size: 2rem; flex-direction: column; gap: 10px; }
+          .hero-section { padding: 60px 0 40px; }
+          .search-box { flex-direction: column; border-radius: 20px; padding: 15px; margin: 20px 10px 0; }
+          .search-box input { padding: 10px; margin-bottom: 10px; text-align: center; }
+          .search-box button { width: 100%; justify-content: center; }
+          .project-grid { grid-template-columns: 1fr; gap: 20px; }
+          .cta-section { padding: 30px 15px; margin: 40px 15px; }
+          .cta-section h2 { font-size: 1.5rem; }
+          .hero-title img { height: 50px; }
+          .stats-section { margin-top: 0; padding-top: 20px; }
+        }
       `}</style>
 
       {/* Hero Section */}
