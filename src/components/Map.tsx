@@ -5,12 +5,20 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { MapPin, Info, Navigation, Activity } from 'lucide-react'
+import { MapPin, Navigation, Activity } from 'lucide-react'
 
 // Helper to zoom the map
 function ChangeView({ center, zoom }: { center: [number, number], zoom: number }) {
   const map = useMap()
-  map.setView(center, zoom)
+  useEffect(() => {
+    if (center[0] && center[1]) {
+      map.setView(center, zoom)
+      // Force invalidateSize to fix blank maps
+      setTimeout(() => {
+        map.invalidateSize()
+      }, 500)
+    }
+  }, [center, zoom, map])
   return null
 }
 
@@ -22,21 +30,28 @@ export default function Map({ selectedProject, projects: initialProjects }: { se
   useEffect(() => {
     if (!initialProjects) {
       async function fetchProjects() {
-        const { data } = await supabase
-          .from('projets')
-          .select('*, communes(nom), types_projets(nom, couleur)')
-          .not('latitude', 'is', null)
-          .not('longitude', 'is', null)
-        
-        if (data) setProjects(data)
+        try {
+          const { data, error } = await supabase
+            .from('projets')
+            .select('*, communes(nom), types_projets(nom, couleur)')
+            .not('latitude', 'is', null)
+            .not('longitude', 'is', null)
+          
+          if (error) throw error
+          if (data) setProjects(data)
+        } catch (err) {
+          console.error("Erreur chargement projets carte:", err)
+        }
       }
       fetchProjects()
+    } else {
+      setProjects(initialProjects)
     }
   }, [initialProjects])
 
   useEffect(() => {
     if (selectedProject?.latitude && selectedProject?.longitude) {
-      setView([selectedProject.latitude, selectedProject.longitude])
+      setView([Number(selectedProject.latitude), Number(selectedProject.longitude)])
     }
   }, [selectedProject])
 
@@ -57,7 +72,7 @@ export default function Map({ selectedProject, projects: initialProjects }: { se
           justify-content: center;
         ">
           <div style="transform: rotate(45deg); color: white;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           </div>
         </div>
       `,
@@ -67,88 +82,61 @@ export default function Map({ selectedProject, projects: initialProjects }: { se
     })
   }
 
+  // Si pas de projets, on centre sur Douala par défaut
+  const centerPos: [number, number] = view[0] ? view : [4.0511, 9.7679]
+
   return (
-    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+    <div style={{ height: '650px', width: '100%', position: 'relative', background: '#f1f5f9' }}>
+      {projects.length === 0 && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.8)' }}>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <MapPin size={48} color="var(--muted)" style={{ marginBottom: '1rem' }} />
+            <p style={{ fontWeight: 600 }}>Aucun projet géolocalisé</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Vérifiez les latitudes/longitudes en base.</p>
+          </div>
+        </div>
+      )}
+
       <MapContainer 
-        center={view} 
+        center={centerPos} 
         zoom={12} 
-        style={{ height: '100%', width: '100%', borderRadius: 12 }}
+        style={{ height: '650px', width: '100%' }}
+        scrollWheelZoom={true}
       >
-        <ChangeView center={view} zoom={14} />
+        <ChangeView center={centerPos} zoom={selectedProject ? 15 : 12} />
         <TileLayer
-          url="https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {projects.map((p) => (
-          <Marker 
-            key={p.id} 
-            position={[p.latitude, p.longitude]} 
-            icon={getCustomIcon(p.types_projets?.couleur)}
-          >
-            <Popup minWidth={250}>
-              <div style={{ padding: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
-                  <span className="badge badge-primary" style={{ background: p.types_projets?.couleur + '20', color: p.types_projets?.couleur }}>
-                    {p.types_projets?.nom}
-                  </span>
-                  <span className={`badge ${p.statut === 'terminé' ? 'badge-success' : 'badge-warning'}`}>
-                    {p.statut === 'terminé' ? 'Terminé' : 'En cours'}
-                  </span>
-                </div>
-                
-                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#1e293b' }}>{p.titre}</h4>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>
-                  <MapPin size={14} />
-                  <span>{p.communes?.nom}</span>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: 8, margin: '1rem 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                    <span>Avancement Physique</span>
-                    <strong>{p.avancement_physique}%</strong>
+        {projects
+          .filter(p => p.latitude && p.longitude)
+          .map((p) => (
+            <Marker 
+              key={p.id} 
+              position={[Number(p.latitude), Number(p.longitude)]} 
+              icon={getCustomIcon(p.types_projets?.couleur)}
+            >
+              <Popup minWidth={250}>
+                <div style={{ padding: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.5rem' }}>
+                    <span className="badge badge-primary" style={{ background: p.types_projets?.couleur + '20', color: p.types_projets?.couleur }}>
+                      {p.types_projets?.nom}
+                    </span>
+                    <span className={`badge ${p.statut === 'terminé' ? 'badge-success' : 'badge-warning'}`}>
+                      {p.statut}
+                    </span>
                   </div>
-                  <div style={{ height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: p.types_projets?.couleur || 'var(--primary)' }}></div>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{p.titre}</h4>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{p.communes?.nom}</p>
+                  <div style={{ marginTop: '0.5rem', height: 4, background: '#eee', borderRadius: 2 }}>
+                    <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: 'var(--primary)', borderRadius: 2 }}></div>
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
-                  <div>
-                    <span style={{ color: 'var(--muted)', display: 'block', fontSize: '0.7rem' }}>Budget</span>
-                    <strong>{(Number(p.budget_actuel) / 1000000).toFixed(1)}M FCFA</strong>
-                  </div>
-                  <button className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>
-                    Détails
-                  </button>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))
+        }
       </MapContainer>
-
-      {/* Floating Control Panel */}
-      <div style={{ 
-        position: 'absolute', top: 20, right: 20, zIndex: 1000, 
-        background: 'white', padding: '0.75rem', borderRadius: 12, 
-        boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)',
-        width: '200px'
-      }} className="mobile-hidden">
-        <h5 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Activity size={16} color="var(--primary)" />
-          Légende
-        </h5>
-        {Array.from(new Set(projects.map(p => p.types_projets?.nom))).map(type => {
-          const project = projects.find(p => p.types_projets?.nom === type)
-          return (
-            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.8rem' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: project?.types_projets?.couleur }}></div>
-              <span>{type}</span>
-            </div>
-          )
-        })}
-      </div>
     </div>
   )
 }
