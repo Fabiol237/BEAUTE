@@ -1,13 +1,14 @@
 import { PlusCircle, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase-server'
 
-const projects = [
-  { id: 1, titre: 'Construction Hôpital de District', commune: 'Douala 1er', budget: '150 000 000', type: 'Santé', avancement: 65, statut: 'en_cours' },
-  { id: 2, titre: 'Réhabilitation Route Principale', commune: 'Douala 2e', budget: '250 000 000', type: 'Infrastructure', avancement: 40, statut: 'en_cours' },
-  { id: 3, titre: 'Éclairage Public Boulevard', commune: 'Douala 3e', budget: '45 000 000', type: 'Énergie', avancement: 100, statut: 'terminé' },
-  { id: 4, titre: 'Nouveau Marché Municipal', commune: 'Douala 5e', budget: '120 000 000', type: 'Commerce', avancement: 10, statut: 'en_cours' },
-]
+export default async function ProjetsPage() {
+  const supabase = await createClient()
 
-export default function ProjetsPage() {
+  const { data: projects } = await supabase
+    .from('projets')
+    .select('*, communes(nom), types_projets(nom)')
+    .order('created_at', { ascending: false })
+
   return (
     <div>
       <header className="flex justify-between align-center mb-4">
@@ -51,21 +52,23 @@ export default function ProjetsPage() {
               </tr>
             </thead>
             <tbody>
-              {projects.map((p) => (
+              {projects?.map((p) => (
                 <tr key={p.id}>
                   <td>
                     <div style={{ fontWeight: 600 }}>{p.titre}</div>
-                    <small style={{ color: 'var(--muted)' }}>Créé le 12/05/2024</small>
+                    <small style={{ color: 'var(--muted)' }}>
+                      Créé le {new Date(p.created_at).toLocaleDateString('fr-FR')}
+                    </small>
                   </td>
-                  <td>{p.commune}</td>
-                  <td>{p.budget}</td>
-                  <td><span className="badge badge-primary">{p.type}</span></td>
+                  <td>{(p.communes as any)?.nom}</td>
+                  <td>{Number(p.budget_actuel).toLocaleString('fr-FR')}</td>
+                  <td><span className="badge badge-primary">{(p.types_projets as any)?.nom}</span></td>
                   <td>
                     <div className="flex align-center gap-2">
                       <div style={{ flex: 1, minWidth: 60, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ width: `${p.avancement}%`, height: '100%', background: p.avancement === 100 ? 'var(--success)' : 'var(--primary)' }} />
+                        <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: p.avancement_physique === 100 ? 'var(--success)' : 'var(--primary)' }} />
                       </div>
-                      <span>{p.avancement}%</span>
+                      <span>{p.avancement_physique}%</span>
                     </div>
                   </td>
                   <td>
@@ -82,6 +85,9 @@ export default function ProjetsPage() {
                   </td>
                 </tr>
               ))}
+              {(!projects || projects.length === 0) && (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>Aucun projet trouvé.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -1,22 +1,33 @@
 import { Folder, Clock, Banknote, CheckCircle, PlusCircle, ArrowRight, Eye } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import DashboardCharts from '@/components/DashboardCharts'
+import { createClient } from '@/lib/supabase-server'
 
-// Mock data for initial presentation
-const stats = [
-  { label: 'Total Projets', value: 24, icon: Folder, color: 'primary' as const },
-  { label: 'En cours', value: 12, icon: Clock, color: 'warning' as const },
-  { label: 'Budget Total', value: '850M FCFA', icon: Banknote, color: 'success' as const },
-  { label: 'Terminés', value: 8, icon: CheckCircle, color: 'primary' as const },
-]
+export default async function Dashboard() {
+  const supabase = await createClient()
 
-const recentProjects = [
-  { id: 1, titre: 'Construction Hôpital', commune: 'Douala 1er', budget: '150M', avancement: 65, statut: 'en_cours' },
-  { id: 2, titre: 'Réhabilitation Route', commune: 'Douala 2e', budget: '250M', avancement: 40, statut: 'en_cours' },
-  { id: 3, titre: 'Éclairage Public', commune: 'Douala 3e', budget: '45M', avancement: 100, statut: 'terminé' },
-]
+  // Fetch stats
+  const { count: totalProjets } = await supabase.from('projets').select('*', { count: 'exact', head: true })
+  const { count: projetsEnCours } = await supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'en_cours')
+  const { count: projetsTermines } = await supabase.from('projets').select('*', { count: 'exact', head: true }).eq('statut', 'terminé')
+  
+  const { data: budgetData } = await supabase.from('projets').select('budget_actuel')
+  const totalBudget = budgetData?.reduce((acc, p) => acc + Number(p.budget_actuel), 0) || 0
 
-export default function Dashboard() {
+  // Fetch recent projects
+  const { data: recentProjects } = await supabase
+    .from('projets')
+    .select('*, communes(nom)')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const stats = [
+    { label: 'Total Projets', value: totalProjets || 0, icon: Folder, color: 'primary' as const },
+    { label: 'En cours', value: projetsEnCours || 0, icon: Clock, color: 'warning' as const },
+    { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M FCFA`, icon: Banknote, color: 'success' as const },
+    { label: 'Terminés', value: projetsTermines || 0, icon: CheckCircle, color: 'primary' as const },
+  ]
+
   return (
     <div>
       <header className="flex justify-between align-center mb-4">
@@ -59,17 +70,17 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentProjects.map((p) => (
+                {recentProjects?.map((p) => (
                   <tr key={p.id}>
                     <td><strong>{p.titre}</strong></td>
-                    <td>{p.commune}</td>
-                    <td>{p.budget}</td>
+                    <td>{(p.communes as any)?.nom}</td>
+                    <td>{(Number(p.budget_actuel) / 1000000).toFixed(1)}M</td>
                     <td>
                       <div className="flex align-center gap-2">
                         <div style={{ flex: 1, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ width: `${p.avancement}%`, height: '100%', background: p.avancement === 100 ? 'var(--success)' : 'var(--primary)' }} />
+                          <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: p.avancement_physique === 100 ? 'var(--success)' : 'var(--primary)' }} />
                         </div>
-                        <span>{p.avancement}%</span>
+                        <span>{p.avancement_physique}%</span>
                       </div>
                     </td>
                     <td>
@@ -84,6 +95,9 @@ export default function Dashboard() {
                     </td>
                   </tr>
                 ))}
+                {(!recentProjects || recentProjects.length === 0) && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>Aucun projet trouvé.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -92,15 +106,7 @@ export default function Dashboard() {
         <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
           <h3>Alertes & Retards</h3>
           <div className="mt-4">
-            {[1, 2].map((i) => (
-              <div key={i} style={{ padding: '1rem 0', borderBottom: i === 1 ? '1px solid var(--border)' : 'none' }}>
-                <div className="flex justify-between align-center">
-                  <strong>Réhabilitation Axe Sud</strong>
-                  <span className="badge badge-danger">Retard 12j</span>
-                </div>
-                <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>Commune de Douala 4e</p>
-              </div>
-            ))}
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucune alerte critique pour le moment.</p>
           </div>
         </div>
       </div>
