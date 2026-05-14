@@ -28,10 +28,10 @@ ChartJS.register(
 
 export default function DashboardCharts() {
   const barData = {
-    labels: ['Douala 1', 'Douala 2', 'Douala 3', 'Douala 4', 'Douala 5'],
+    labels: ['D1', 'D2', 'D3', 'D4', 'D5'],
     datasets: [
       {
-        label: 'Budget (M FCFA)',
+        label: 'Budget (M)',
         data: [150, 250, 100, 180, 210],
         backgroundColor: '#3b82f6',
         borderRadius: 6,
@@ -40,21 +40,21 @@ export default function DashboardCharts() {
   }
 
   const doughnutData = {
-    labels: ['En cours', 'Terminé', 'Suspendu', 'En attente'],
+    labels: ['En cours', 'Terminé', 'Retard'],
     datasets: [
       {
-        data: [12, 8, 2, 4],
-        backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b'],
+        data: [12, 8, 4],
+        backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
         borderWidth: 0,
       },
     ],
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '2rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
       <div className="card">
-        <h3>Budget par Commune</h3>
-        <div style={{ height: 250 }}>
+        <h3>Budget / Commune</h3>
+        <div style={{ height: 200 }}>
           <Bar 
             data={barData} 
             options={{ 
@@ -66,14 +66,14 @@ export default function DashboardCharts() {
         </div>
       </div>
       <div className="card">
-        <h3>Répartition par Statut</h3>
-        <div style={{ height: 250, display: 'flex', justifyContent: 'center' }}>
+        <h3>Statut Projets</h3>
+        <div style={{ height: 200, display: 'flex', justifyContent: 'center' }}>
           <Doughnut 
             data={doughnutData} 
             options={{ 
               responsive: true, 
               maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } } 
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } 
             }} 
           />
         </div>

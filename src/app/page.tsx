@@ -24,18 +24,18 @@ export default async function Dashboard() {
   const stats = [
     { label: 'Total Projets', value: totalProjets || 0, icon: Folder, color: 'primary' as const },
     { label: 'En cours', value: projetsEnCours || 0, icon: Clock, color: 'warning' as const },
-    { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M FCFA`, icon: Banknote, color: 'success' as const },
+    { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M`, icon: Banknote, color: 'success' as const },
     { label: 'Terminés', value: projetsTermines || 0, icon: CheckCircle, color: 'primary' as const },
   ]
 
   return (
     <div>
-      <header className="flex justify-between align-center mb-4">
+      <header className="header-actions mb-4">
         <div>
           <h1>Tableau de bord</h1>
-          <p>Bienvenue sur votre espace de gestion des projets municipaux.</p>
+          <p>Bienvenue sur votre espace de gestion.</p>
         </div>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary w-full-mobile">
           <PlusCircle size={20} />
           Nouveau projet
         </button>
@@ -49,7 +49,7 @@ export default async function Dashboard() {
 
       <DashboardCharts />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginTop: '2rem' }}>
+      <div className="dashboard-layout">
         <div className="card">
           <div className="flex justify-between align-center mb-4">
             <h3>Derniers projets</h3>
@@ -63,7 +63,7 @@ export default async function Dashboard() {
                 <tr>
                   <th>Projet</th>
                   <th>Commune</th>
-                  <th>Budget</th>
+                  <th className="mobile-hidden">Budget</th>
                   <th>Avancement</th>
                   <th>Statut</th>
                   <th></th>
@@ -74,18 +74,18 @@ export default async function Dashboard() {
                   <tr key={p.id}>
                     <td><strong>{p.titre}</strong></td>
                     <td>{(p.communes as any)?.nom}</td>
-                    <td>{(Number(p.budget_actuel) / 1000000).toFixed(1)}M</td>
+                    <td className="mobile-hidden">{(Number(p.budget_actuel) / 1000000).toFixed(1)}M</td>
                     <td>
                       <div className="flex align-center gap-2">
-                        <div style={{ flex: 1, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ flex: 1, minWidth: 40, height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
                           <div style={{ width: `${p.avancement_physique}%`, height: '100%', background: p.avancement_physique === 100 ? 'var(--success)' : 'var(--primary)' }} />
                         </div>
-                        <span>{p.avancement_physique}%</span>
+                        <span style={{ fontSize: '0.75rem' }}>{p.avancement_physique}%</span>
                       </div>
                     </td>
                     <td>
                       <span className={`badge ${p.statut === 'terminé' ? 'badge-success' : 'badge-warning'}`}>
-                        {p.statut === 'terminé' ? 'Terminé' : 'En cours'}
+                        {p.statut === 'terminé' ? 'OK' : '...'}
                       </span>
                     </td>
                     <td>
@@ -95,18 +95,15 @@ export default async function Dashboard() {
                     </td>
                   </tr>
                 ))}
-                {(!recentProjects || recentProjects.length === 0) && (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted)' }}>Aucun projet trouvé.</td></tr>
-                )}
               </tbody>
             </table>
           </div>
         </div>
 
         <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
-          <h3>Alertes & Retards</h3>
+          <h3>Alertes</h3>
           <div className="mt-4">
-            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucune alerte critique pour le moment.</p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Aucune alerte critique.</p>
           </div>
         </div>
       </div>
