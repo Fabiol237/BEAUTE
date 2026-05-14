@@ -1,5 +1,6 @@
 import { PlusCircle, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
+import Link from 'next/link'
 
 export default async function ProjetsPage() {
   const supabase = await createClient()
@@ -11,15 +12,15 @@ export default async function ProjetsPage() {
 
   return (
     <div>
-      <header className="flex justify-between align-center mb-4">
+      <header className="header-actions mb-6">
         <div>
           <h1>Liste des Projets</h1>
-          <p>Gérez et suivez l'ensemble des projets municipaux en temps réel.</p>
+          <p>Gérez et suivez l'ensemble des chantiers.</p>
         </div>
-        <button className="btn btn-primary">
+        <Link href="/projets" className="btn btn-primary">
           <PlusCircle size={20} />
           Nouveau projet
-        </button>
+        </Link>
       </header>
 
       <div className="card mb-4 flex align-center gap-2" style={{ padding: '1rem' }}>

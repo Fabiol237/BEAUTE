@@ -79,13 +79,14 @@ export default function Sidebar() {
         </nav>
 
         <div className="mobile-hidden" style={{ borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
-          <button 
+          <Link 
+            href="/login"
             className="flex items-center gap-3" 
             style={{ color: 'var(--danger)', width: '100%', padding: '1rem', fontWeight: 600, borderRadius: 12 }}
           >
             <LogOut size={22} />
             Déconnexion
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -127,18 +128,19 @@ export default function Sidebar() {
               })}
             </nav>
 
-            <button className="btn btn-primary mb-6">
+            <Link href="/projets" className="btn btn-primary mb-6" onClick={toggleMenu}>
               <PlusCircle size={20} />
               Nouveau Projet
-            </button>
+            </Link>
 
-            <button 
+            <Link 
+              href="/login"
               className="flex items-center gap-4" 
               style={{ color: 'var(--danger)', width: '100%', padding: '1.25rem', fontWeight: 700, borderTop: '1px solid var(--border)' }}
             >
               <LogOut size={26} />
               Déconnexion
-            </button>
+            </Link>
           </div>
         </div>
       )}

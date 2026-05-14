@@ -35,10 +35,10 @@ export default async function Dashboard() {
           <h1>Tableau de Bord</h1>
           <p>Supervision des projets de la commune.</p>
         </div>
-        <button className="btn btn-primary">
+        <Link href="/projets" className="btn btn-primary">
           <PlusCircle size={20} />
           Nouveau Projet
-        </button>
+        </Link>
       </header>
 
       <div className="stat-grid">
@@ -53,9 +53,9 @@ export default async function Dashboard() {
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="flex items-center justify-between p-6">
             <h3 style={{ margin: 0 }}>Derniers Projets</h3>
-            <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+            <Link href="/projets" className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
               Voir tout <ArrowRight size={16} />
-            </button>
+            </Link>
           </div>
           <div className="table-container">
             <table>
