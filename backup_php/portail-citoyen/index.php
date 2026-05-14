@@ -1,0 +1,614 @@
+<?php
+/**
+ * Portail Citoyen - Page d'accueil
+ * Interface publique pour consulter les projets municipaux
+ */
+
+require_once '../includes/config.php';
+require_once '../includes/functions.php';
+
+// Statistiques globales
+$stats = [
+    'total' => $pdo->query("SELECT COUNT(*) FROM projets WHERE visible_public = TRUE")->fetchColumn(),
+    'en_cours' => $pdo->query("SELECT COUNT(*) FROM projets WHERE visible_public = TRUE AND statut = 'en_cours'")->fetchColumn(),
+    'termines' => $pdo->query("SELECT COUNT(*) FROM projets WHERE visible_public = TRUE AND statut = 'terminé'")->fetchColumn(),
+    // BUG CORRIGÉ : SUM sans COALESCE retourne NULL si aucun projet → crash à l'affichage
+    'budget_total' => $pdo->query("SELECT COALESCE(SUM(budget_actuel), 0) FROM projets WHERE visible_public = TRUE")->fetchColumn()
+];
+
+// Projets récents AVEC leur première photo
+$projets_recents = $pdo->query("
+    SELECT p.*, t.nom as type_nom, c.nom as commune_nom,
+           (SELECT fichier_url FROM photos WHERE projet_id = p.id ORDER BY date_upload DESC LIMIT 1) as photo
+    FROM projets p
+    LEFT JOIN types_projets t ON p.type_projet_id = t.id
+    LEFT JOIN communes c ON p.commune_id = c.id
+    WHERE p.visible_public = TRUE
+    ORDER BY p.created_at DESC
+    LIMIT 6
+")->fetchAll();
+
+$page_title = 'Portail Citoyen - Projets Municipaux';
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $page_title ?></title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* VRAIES Couleurs du Drapeau Camerounais 🇨🇲 */
+            --cameroun-vert: #007A3D;
+            --cameroun-jaune: #FCD116;
+            --cameroun-rouge: #CE1126;
+            --bg-light: #F8F9FA;
+            --text-dark: #2C3E50;
+            --text-muted: #6C757D;
+            --white: #FFFFFF;
+        }
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+        
+        /* Hero avec IMAGE DE FOND PERSONNALISABLE + DÉGRADÉ CAMEROUNAIS */
+        .hero-section {
+            /* ÉTAPE 1 : Mettez votre image dans assets/images/hero-bg.jpg */
+            background-image: url('../assets/images/hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Dégradé camerounais PAR-DESSUS l'image (filtre coloré) */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Dégradé VERT-ROUGE-JAUNE avec transparence */
+            background: linear-gradient(135deg, 
+                rgba(0, 122, 61, 0.80) 0%,     /* Vert 80% opaque */
+                rgba(206, 17, 38, 0.75) 50%,   /* Rouge 75% opaque */
+                rgba(252, 209, 22, 0.70) 100%  /* Jaune 70% opaque */
+            );
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+        
+        /* Barre de recherche */
+        .search-box {
+            background: white;
+            border-radius: 50px;
+            padding: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 30px auto 0;
+        }
+        
+        .search-box input {
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+        
+        .search-box .btn {
+            background: var(--cameroun-vert);
+            color: white;
+            border-radius: 50px;
+            padding: 12px 30px;
+            border: none;
+        }
+        
+        .search-box .btn:hover {
+            background: #245a42;
+        }
+        
+        /* Stats cards */
+        .stats-section {
+            margin-top: -40px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--cameroun-vert);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card.jaune {
+            border-left-color: var(--cameroun-jaune);
+        }
+        
+        .stat-card.rouge {
+            border-left-color: var(--cameroun-rouge);
+        }
+        
+        .stat-card .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card.vert .stat-icon {
+            background: rgba(0, 122, 61, 0.1);
+            color: var(--cameroun-vert);
+        }
+        
+        .stat-card.jaune .stat-icon {
+            background: rgba(252, 209, 22, 0.15);
+            color: #D4A017; /* Version plus foncée pour meilleure lisibilité */
+        }
+        
+        .stat-card.rouge .stat-icon {
+            background: rgba(206, 17, 38, 0.1);
+            color: var(--cameroun-rouge);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+        
+        /* Project cards */
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .project-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+        }
+        
+        .project-card-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--cameroun-vert), var(--cameroun-jaune));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Image de fond du projet */
+        .project-card-image.has-photo {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        /* Overlay sombre pour lire le texte */
+        .project-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
+        }
+        
+        /* Icône par défaut si pas de photo */
+        .project-card-image .project-icon {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .project-card-body {
+            padding: 20px;
+        }
+        
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .progress-section {
+            margin-bottom: 15px;
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background-color: #E9ECEF;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--cameroun-vert), var(--cameroun-jaune));
+            border-radius: 10px;
+        }
+        
+        .badge-custom {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .badge-en-cours {
+            background-color: rgba(45, 106, 79, 0.1);
+            color: var(--cameroun-vert);
+        }
+        
+        .badge-termine {
+            background-color: rgba(244, 164, 96, 0.1);
+            color: var(--cameroun-jaune);
+        }
+        
+        /* Boutons */
+        .btn-cameroun {
+            background: var(--cameroun-vert);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cameroun:hover {
+            background: #245a42;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+        }
+        
+        .btn-outline-cameroun {
+            border: 2px solid var(--cameroun-vert);
+            color: var(--cameroun-vert);
+            background: transparent;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-cameroun:hover {
+            background: var(--cameroun-vert);
+            color: white;
+        }
+        
+        /* Section titles */
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--cameroun-vert), var(--cameroun-jaune));
+            border-radius: 2px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 80px;
+        }
+        
+        .footer a {
+            color: var(--cameroun-jaune);
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: var(--cameroun-vert);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="text-center">
+                <h1 class="hero-title">
+                    <img src="/projet-municipal/assets/images/logo.png"
+                         alt="Logo Communes" 
+                         style="height: 60px; width: 60px; object-fit: contain; vertical-align: middle; margin-right: 15px; background: white; padding: 8px; border-radius: 12px;">
+                    Projets Municipaux
+                </h1>
+                <p class="hero-subtitle">
+                    Communes Urbaines du Littoral - Cameroun
+                </p>
+                <p class="mt-3" style="font-size: 1.1rem; opacity: 0.9;">
+                    Suivez en temps réel les projets de développement de votre commune
+                </p>
+                
+                <!-- Barre de recherche -->
+                <div class="search-box">
+                    <form action="projets.php" method="GET" class="d-flex">
+                        <input type="text" 
+                               name="q" 
+                               class="form-control" 
+                               placeholder="Rechercher un projet, une commune..." 
+                               style="flex: 1;">
+                        <button type="submit" class="btn ms-2">
+                            <i class="bi bi-search"></i>
+                            Rechercher
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="stat-card vert">
+                        <div class="stat-icon">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <div class="stat-value"><?= $stats['total'] ?></div>
+                        <div class="stat-label">Projets totaux</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card jaune">
+                        <div class="stat-icon">
+                            <i class="bi bi-hammer"></i>
+                        </div>
+                        <div class="stat-value"><?= $stats['en_cours'] ?></div>
+                        <div class="stat-label">En cours</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card rouge">
+                        <div class="stat-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-value"><?= $stats['termines'] ?></div>
+                        <div class="stat-label">Terminés</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="stat-card vert">
+                        <div class="stat-icon">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <!-- BUG CORRIGÉ : divisait par 1 000 000 000 (milliards) → affichait 0.0M pour tous les budgets -->
+                        <div class="stat-value"><?= number_format($stats['budget_total'] / 1000000, 1) ?>M</div>
+                        <div class="stat-label">Budget total (milliards FCFA)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Projets Récents -->
+    <section class="container mt-5 pt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="section-title">Projets Récents</h2>
+                <p class="text-muted">Découvrez les derniers projets lancés dans votre région</p>
+            </div>
+            <a href="projets.php" class="btn-outline-cameroun">
+                Voir tous les projets
+                <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            <?php foreach ($projets_recents as $projet): ?>
+            <div class="col-md-4">
+                <div class="project-card">
+                    <?php if (!empty($projet['photo'])): ?>
+                        <!-- Image de fond si le projet a une photo -->
+                        <div class="project-card-image has-photo" 
+                             style="background-image: url('../assets/uploads/<?= e($projet['photo']) ?>');">
+                            <div class="project-overlay"></div>
+                        </div>
+                    <?php else: ?>
+                        <!-- Dégradé par défaut si pas de photo -->
+                        <div class="project-card-image">
+                            <div class="project-icon">
+                                <img src="/projet-municipal/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <div class="project-card-body">
+                        <h3 class="project-title"><?= e($projet['titre']) ?></h3>
+                        
+                        <div class="project-meta">
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                <?= e($projet['commune_nom']) ?>
+                            </span>
+                            <span>
+                                <i class="bi bi-tag"></i>
+                                <?= e($projet['type_nom']) ?>
+                            </span>
+                        </div>
+                        
+                        <div class="progress-section">
+                            <div class="d-flex justify-content-between mb-2">
+                                <small class="text-muted">Avancement</small>
+                                <small class="fw-bold"><?= $projet['avancement_physique'] ?>%</small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" 
+                                     style="width: <?= $projet['avancement_physique'] ?>%">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge-custom <?= $projet['statut'] == 'en_cours' ? 'badge-en-cours' : 'badge-termine' ?>">
+                                <?= ucfirst(str_replace('_', ' ', $projet['statut'])) ?>
+                            </span>
+                            <a href="projet.php?id=<?= $projet['id'] ?>" class="btn-cameroun btn-sm">
+                                Détails
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    
+    <!-- Call to Action avec image de fond -->
+    <section class="container mt-5 pt-5 mb-5">
+        <div class="card" style="background: linear-gradient(135deg, rgba(0, 122, 61, 0.9), rgba(252, 209, 22, 0.9)), 
+                                             url('https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&h=400&fit=crop') center/cover; 
+                                  border: none; 
+                                  border-radius: 20px;
+                                  box-shadow: 0 10px 40px rgba(0, 122, 61, 0.3);">
+            <div class="card-body text-center text-white p-5">
+                <h2 class="mb-3 fw-bold">Une suggestion ? Un commentaire ?</h2>
+                <p class="mb-4" style="font-size: 1.2rem; opacity: 0.95;">
+                    Votre avis compte ! Partagez vos idées pour améliorer les projets de votre commune.
+                </p>
+                <a href="suggestion.php" class="btn btn-light btn-lg px-5" style="color: var(--cameroun-vert); font-weight: 700; border-radius: 50px;">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    Faire une suggestion
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 style="color: var(--cameroun-jaune);">
+                        <img src="/projet-municipal/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
+                        Portail Citoyen
+                    </h5>
+                    <p class="mt-3">
+                        Système de suivi des projets municipaux<br>
+                        Communes Urbaines du Littoral - Cameroun
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Liens rapides</h6>
+                    <ul class="list-unstyled mt-3">
+                        <li><a href="index.php">Accueil</a></li>
+                        <li><a href="projets.php">Tous les projets</a></li>
+                        <li><a href="suggestion.php">Faire une suggestion</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Contact</h6>
+                    <ul class="list-unstyled mt-3">
+                        <li><i class="bi bi-envelope"></i> contact@commune-littoral.cm</li>
+                        <li><i class="bi bi-telephone"></i> +237 XXX XXX XXX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1);" class="my-4">
+            <div class="text-center">
+                <small>&copy; <?= date('Y') ?> Communes Urbaines du Littoral. Tous droits réservés.</small>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
