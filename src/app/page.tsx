@@ -36,7 +36,7 @@ export default async function Dashboard() {
           <h1>Tableau de Bord</h1>
           <p>Supervision des projets de la commune.</p>
         </div>
-        <Link href="/projets" className="btn btn-primary">
+        <Link href="/projets/nouveau" className="btn btn-primary">
           <PlusCircle size={20} />
           Nouveau Projet
         </Link>

@@ -17,7 +17,7 @@ export default async function ProjetsPage() {
           <h1>Liste des Projets</h1>
           <p>Gérez et suivez l'ensemble des chantiers.</p>
         </div>
-        <Link href="/projets" className="btn btn-primary">
+        <Link href="/projets/nouveau" className="btn btn-primary">
           <PlusCircle size={20} />
           Nouveau projet
         </Link>

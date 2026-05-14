@@ -128,7 +128,7 @@ export default function Sidebar() {
               })}
             </nav>
 
-            <Link href="/projets" className="btn btn-primary mb-6" onClick={toggleMenu}>
+            <Link href="/projets/nouveau" className="btn btn-primary mb-6" onClick={toggleMenu}>
               <PlusCircle size={20} />
               Nouveau Projet
             </Link>

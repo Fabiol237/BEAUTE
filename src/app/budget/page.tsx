@@ -1,6 +1,7 @@
 import { Banknote, TrendingDown, TrendingUp, CheckCircle, Clock, PlusCircle } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import { createClient } from '@/lib/supabase-server'
+import Link from 'next/link'
 
 export default async function BudgetPage() {
   const supabase = await createClient()
@@ -24,18 +25,18 @@ export default async function BudgetPage() {
     { label: 'Budget Restant', value: `${(restant / 1000000).toFixed(1)}M FCFA`, icon: TrendingUp, color: 'success' as const },
     { label: 'En attente', value: `${(enAttente / 1000000).toFixed(1)}M FCFA`, icon: Clock, color: 'warning' as const },
   ]
-
+  
   return (
     <div>
-      <header className="flex justify-between align-center mb-4">
+      <header className="header-actions mb-6">
         <div>
           <h1>Suivi Budgétaire</h1>
-          <p>Consultez l'état des finances et gérez les dépenses des projets.</p>
+          <p>Consultez l'état des finances et gérez les dépenses.</p>
         </div>
-        <button className="btn btn-primary">
+        <Link href="/budget/nouvelle-depense" className="btn btn-primary">
           <PlusCircle size={20} />
           Nouvelle dépense
-        </button>
+        </Link>
       </header>
 
       <div className="stat-grid">
