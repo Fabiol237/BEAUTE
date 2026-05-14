@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import CitizenNavbar from '@/components/CitizenNavbar'
 import Link from 'next/link'
 
-export default function SuggestionPage() {
+function SuggestionForm() {
   const searchParams = useSearchParams()
   const projetId = searchParams.get('projet')
 
@@ -145,5 +145,13 @@ export default function SuggestionPage() {
         © 2024 République du Cameroun — MuniTrack v1.0
       </footer>
     </div>
+  )
+}
+
+export default function SuggestionPage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: 'center', padding: '100px' }}>Chargement du formulaire...</div>}>
+      <SuggestionForm />
+    </Suspense>
   )
 }
