@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import Link from 'next/link'
-import { Search, MapPin, Tag, ArrowRight, Folder, Hammer, CheckCircle, Banknote, ChatBubble } from 'lucide-react'
+import { Search, MapPin, Tag, ArrowRight, Folder, Hammer, CheckCircle, Banknote, MessageSquare } from 'lucide-react'
 
 export default function CitoyensPage() {
   const [stats, setStats] = useState({ total: 0, en_cours: 0, termines: 0, budget_total: 0 })
@@ -240,7 +240,7 @@ export default function CitoyensPage() {
         <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '15px' }}>Une suggestion ? Un commentaire ?</h2>
         <p style={{ fontSize: '1.2rem', opacity: 0.95, marginBottom: '30px' }}>Votre avis compte ! Partagez vos idées pour améliorer les projets de votre commune.</p>
         <Link href="/citoyens/suggestion" style={{ background: 'white', color: 'var(--cameroun-vert)', padding: '15px 40px', borderRadius: '50px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-          <ChatBubble size={20} /> Faire une suggestion
+          <MessageSquare size={20} /> Faire une suggestion
         </Link>
       </section>
 
