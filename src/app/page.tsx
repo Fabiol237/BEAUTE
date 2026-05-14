@@ -2,6 +2,7 @@ import { Folder, Clock, Banknote, CheckCircle, PlusCircle, ArrowRight, Eye } fro
 import StatCard from '@/components/StatCard'
 import DashboardCharts from '@/components/DashboardCharts'
 import { createClient } from '@/lib/supabase-server'
+import Link from 'next/link'
 
 export default async function Dashboard() {
   const supabase = await createClient()
