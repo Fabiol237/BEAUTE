@@ -3,10 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { 
-  ArrowLeft, Save, MapPin, Banknote, Calendar, Info, 
-  BarChart3, AlertTriangle, CheckCircle2, Trash2, Camera 
-} from 'lucide-react'
+// No external icon library - using text/emoji icons
 import Link from 'next/link'
 
 export default function AdminProjetDetailsPage() {
@@ -97,15 +94,15 @@ export default function AdminProjetDetailsPage() {
       <header className="header-actions mb-8">
         <div>
           <Link href="/projets" className="flex items-center gap-2 text-muted hover:text-primary mb-2 transition-colors">
-            <ArrowLeft size={18} /> Retour
+            ← Retour
           </Link>
           <h1>{formData.titre}</h1>
           <p>Gestion administrative et suivi technique</p>
         </div>
         <div className="flex gap-3">
-          <button className="btn btn-outline text-danger" onClick={handleDelete}><Trash2 size={20} /> Supprimer</button>
+          <button className="btn btn-outline text-danger" onClick={handleDelete}>🗑️ Supprimer</button>
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Enregistrement...' : <><Save size={20} /> Enregistrer</>}
+            {saving ? 'Enregistrement...' : '💾 Enregistrer'}
           </button>
         </div>
       </header>
@@ -113,17 +110,17 @@ export default function AdminProjetDetailsPage() {
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-border overflow-x-auto pb-1">
         {[
-          { id: 'general', label: 'Général', icon: Info },
-          { id: 'budget', label: 'Budget', icon: Banknote },
-          { id: 'planning', label: 'Planning', icon: Calendar },
-          { id: 'suivi', label: 'Suivi & Public', icon: BarChart3 },
+          { id: 'general', label: '📋 Général' },
+          { id: 'budget', label: '💰 Budget' },
+          { id: 'planning', label: '📅 Planning' },
+          { id: 'suivi', label: '📊 Suivi & Public' },
         ].map(tab => (
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 font-semibold transition-all whitespace-nowrap ${activeTab === tab.id ? 'border-b-2 border-primary text-primary' : 'text-muted'}`}
           >
-            <tab.icon size={18} /> {tab.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -191,7 +188,7 @@ export default function AdminProjetDetailsPage() {
               </div>
               <div className="card" style={{ background: 'var(--primary-light)', border: '1px dashed var(--primary)' }}>
                 <div className="flex items-center gap-3">
-                  <Info size={24} color="var(--primary)" />
+                  <span style={{ fontSize: '1.5rem' }}>ℹ️</span>
                   <div>
                     <div className="font-bold">Calcul de durée</div>
                     <div className="text-sm">Le projet est prévu sur une durée de {Math.round((new Date(formData.date_fin_prevue).getTime() - new Date(formData.date_debut).getTime()) / (1000 * 3600 * 24)) || 0} jours.</div>
@@ -254,7 +251,7 @@ export default function AdminProjetDetailsPage() {
 
           <div className="card" style={{ background: 'var(--warning-light)', borderLeft: '4px solid var(--warning)' }}>
             <div className="flex gap-3">
-              <AlertTriangle color="var(--warning)" />
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
               <div>
                 <div className="font-bold text-sm">Contrôle de conformité</div>
                 <p className="text-xs text-muted mt-1">Assurez-vous que les photos de chantier sont à jour avant de valider le franchissement d'un jalon.</p>

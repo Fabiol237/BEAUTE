@@ -1,4 +1,3 @@
-import { Banknote, TrendingDown, TrendingUp, CheckCircle, Clock, PlusCircle } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
@@ -16,7 +15,6 @@ export default async function BudgetPage({ searchParams }: { searchParams: Promi
   let queryBudget = supabase.from('projets').select('budget_actuel')
 
   if (selectedCommuneId) {
-    // Note: Filtering joined table is tricky in simple select, but we can filter the main query
     queryDepenses = queryDepenses.eq('projets.commune_id', selectedCommuneId)
     queryBudget = queryBudget.eq('commune_id', selectedCommuneId)
   }
@@ -30,10 +28,10 @@ export default async function BudgetPage({ searchParams }: { searchParams: Promi
   const restant = totalBudget - totalDepenses
 
   const budgetStats = [
-    { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M FCFA`, icon: Banknote, color: 'primary' as const },
-    { label: 'Dépenses Validées', value: `${(totalDepenses / 1000000).toFixed(1)}M FCFA`, icon: TrendingDown, color: 'danger' as const },
-    { label: 'Budget Restant', value: `${(restant / 1000000).toFixed(1)}M FCFA`, icon: TrendingUp, color: 'success' as const },
-    { label: 'En attente', value: `${(enAttente / 1000000).toFixed(1)}M FCFA`, icon: Clock, color: 'warning' as const },
+    { label: 'Budget Total', value: `${(totalBudget / 1000000).toFixed(1)}M FCFA`, icon: '💰', color: 'primary' as const },
+    { label: 'Dépenses Validées', value: `${(totalDepenses / 1000000).toFixed(1)}M FCFA`, icon: '📉', color: 'danger' as const },
+    { label: 'Budget Restant', value: `${(restant / 1000000).toFixed(1)}M FCFA`, icon: '📈', color: 'success' as const },
+    { label: 'En attente', value: `${(enAttente / 1000000).toFixed(1)}M FCFA`, icon: '⏳', color: 'warning' as const },
   ]
   
   return (
@@ -44,8 +42,7 @@ export default async function BudgetPage({ searchParams }: { searchParams: Promi
           <p>Consultez l'état des finances et gérez les dépenses.</p>
         </div>
         <Link href="/budget/nouvelle-depense" className="btn btn-primary">
-          <PlusCircle size={20} />
-          Nouvelle dépense
+          ➕ Nouvelle dépense
         </Link>
       </header>
 
@@ -78,12 +75,12 @@ export default async function BudgetPage({ searchParams }: { searchParams: Promi
                   <td style={{ fontWeight: 600 }}>{Number(d.montant).toLocaleString('fr-FR')}</td>
                   <td>
                     <span className={`badge ${d.validee ? 'badge-success' : 'badge-warning'}`}>
-                      {d.validee ? 'Validée' : 'En attente'}
+                      {d.validee ? '✅ Validée' : '⏳ En attente'}
                     </span>
                   </td>
                   <td>
                     <button className="btn btn-outline" style={{ padding: '0.4rem' }}>
-                      <CheckCircle size={16} />
+                      ✔
                     </button>
                   </td>
                 </tr>

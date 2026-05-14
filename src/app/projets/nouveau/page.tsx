@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ArrowLeft, Save, MapPin, Banknote, Calendar } from 'lucide-react'
+// import { ArrowLeft, Save, MapPin, Banknote, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NouveauProjetPage() {
@@ -61,7 +61,7 @@ export default function NouveauProjetPage() {
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <header className="mb-6">
         <Link href="/projets" className="flex items-center gap-2 text-muted hover:text-primary mb-4 transition-colors">
-          <ArrowLeft size={20} />
+          ←
           Retour aux projets
         </Link>
         <h1>Créer un Nouveau Projet</h1>
@@ -124,7 +124,7 @@ export default function NouveauProjetPage() {
         </div>
 
         <div className="card" style={{ background: '#f8fafc', border: '1px dashed var(--border)' }}>
-          <h4 className="flex items-center gap-2 mb-4"><MapPin size={18} /> Géolocalisation (Optionnel)</h4>
+          <h4 className="flex items-center gap-2 mb-4">📍 Géolocalisation (Optionnel)</h4>
           <div className="grid-responsive">
             <div className="flex flex-col gap-2">
               <label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Latitude</label>
@@ -164,7 +164,7 @@ export default function NouveauProjetPage() {
           className="btn btn-primary" 
           style={{ padding: '1rem', marginTop: '1rem' }}
         >
-          {loading ? 'Enregistrement...' : <><Save size={20} /> Créer le projet</>}
+          {loading ? 'Enregistrement...' : <>💾 Créer le projet</>}
         </button>
       </form>
     </div>

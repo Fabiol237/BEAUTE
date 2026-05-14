@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { Users, UserPlus, Mail, Shield, ShieldCheck, Eye, Trash2, Search, Filter } from 'lucide-react'
+// import { Users, UserPlus, Mail, Shield, ShieldCheck, Eye, Trash2, Search, Filter } from 'lucide-react'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
           <p>Administration des accès et des rôles de l'équipe.</p>
         </div>
         <button className="btn btn-primary">
-          <UserPlus size={20} /> Nouvel Utilisateur
+          👤+ Nouvel Utilisateur
         </button>
       </header>
 
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
             />
           </div>
           <button className="btn btn-outline" style={{ padding: '0.5rem 1rem' }}>
-            <Filter size={18} /> Filtres
+            🔽 Filtres
           </button>
         </div>
 
@@ -133,8 +133,8 @@ export default function AdminUsersPage() {
                   </td>
                   <td>
                     <div className="flex gap-2">
-                       <button className="btn btn-outline" style={{ padding: '0.4rem' }}><Eye size={16} /></button>
-                       <button className="btn btn-outline text-danger" style={{ padding: '0.4rem' }}><Trash2 size={16} /></button>
+                       <button className="btn btn-outline" style={{ padding: '0.4rem' }}>👁️</button>
+                       <button className="btn btn-outline text-danger" style={{ padding: '0.4rem' }}>🗑️</button>
                     </div>
                   </td>
                 </tr>

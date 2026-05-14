@@ -1,4 +1,4 @@
-import { PlusCircle, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
+// import { PlusCircle, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
@@ -26,14 +26,13 @@ export default async function ProjetsPage({ searchParams }: { searchParams: Prom
           <p>Gérez et suivez l'ensemble des chantiers.</p>
         </div>
         <Link href="/projets/nouveau" className="btn btn-primary">
-          <PlusCircle size={20} />
-          Nouveau projet
+          ➕ Nouveau projet
         </Link>
       </header>
 
       <div className="card mb-4 flex align-center gap-2" style={{ padding: '1rem' }}>
         <div className="flex align-center gap-2" style={{ flex: 1, background: 'var(--background)', padding: '0.5rem 1rem', borderRadius: 8 }}>
-          <Search size={18} color="var(--muted)" />
+          <span>🔍</span>
           <input 
             type="text" 
             placeholder="Rechercher un projet..." 
@@ -41,8 +40,7 @@ export default async function ProjetsPage({ searchParams }: { searchParams: Prom
           />
         </div>
         <button className="btn btn-outline">
-          <Filter size={18} />
-          Filtres
+          🔽 Filtres
         </button>
       </div>
 
@@ -87,9 +85,8 @@ export default async function ProjetsPage({ searchParams }: { searchParams: Prom
                   </td>
                   <td>
                     <div className="flex gap-2">
-                      <button className="btn btn-outline" style={{ padding: '0.4rem' }}><Eye size={16} /></button>
-                      <button className="btn btn-outline" style={{ padding: '0.4rem' }}><Edit size={16} /></button>
-                      <button className="btn btn-outline" style={{ padding: '0.4rem', color: 'var(--danger)' }}><Trash2 size={16} /></button>
+                      <Link href={`/projets/${p.id}`} className="btn btn-outline" style={{ padding: '0.4rem' }}>👁️</Link>
+                      <Link href={`/projets/${p.id}`} className="btn btn-outline" style={{ padding: '0.4rem' }}>✏️</Link>
                     </div>
                   </td>
                 </tr>

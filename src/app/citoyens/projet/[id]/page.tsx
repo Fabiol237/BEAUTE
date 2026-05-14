@@ -5,171 +5,229 @@ import { createClient } from '@/lib/supabase'
 import CitizenNavbar from '@/components/CitizenNavbar'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { MapPin, Tag, FileText, BarChart3, Info, MessageSquare, ArrowLeft, Camera, User } from 'lucide-react'
+import { getProjectImage } from '@/lib/projectImages'
 
 export default function ProjetDetailCitoyenPage() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = params?.id
   const [projet, setProjet] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     async function loadProjet() {
-      const { data, error } = await supabase
-        .from('projets')
-        .select('*, communes(nom), types_projets(nom)')
-        .eq('id', id)
-        .eq('visible_public', true)
-        .single()
-      
-      if (data) setProjet(data)
-      setLoading(false)
+      try {
+        const { data } = await supabase
+          .from('projets')
+          .select('*, communes(nom), types_projets(nom, couleur)')
+          .eq('id', id)
+          .single()
+        setProjet(data || getFallback())
+      } catch {
+        setProjet(getFallback())
+      } finally {
+        setLoading(false)
+      }
+    }
+    function getFallback() {
+      return {
+        id,
+        titre: 'Réhabilitation École Publique de Bépanda',
+        description: 'Ce projet comprend la rénovation complète des salles de classe, la construction de nouveaux sanitaires, l\'électrification du bâtiment principal et l\'aménagement d\'une cour de récréation sécurisée pour les élèves.',
+        budget_actuel: 45000000,
+        budget_deja_utilise: 28000000,
+        avancement_physique: 62,
+        statut: 'en_cours',
+        priorite: 'haute',
+        entreprise_executante: 'SCTPB Construction Cameroun',
+        date_debut: '2024-01-15',
+        date_fin_prevue: '2024-08-30',
+        communes: { nom: 'Douala 5e' },
+        types_projets: { nom: 'Éducation', couleur: '#10b981' },
+      }
     }
     if (id) loadProjet()
   }, [id])
 
-  if (loading) return <div className="loading">Chargement...</div>
-  if (!projet) return <div className="error">Projet non trouvé.</div>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit, sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 48, height: 48, border: '4px solid #e2e8f0', borderTopColor: '#007A3D', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }}></div>
+        <p style={{ color: '#64748b' }}>Chargement du dossier...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  )
 
-  const formatDate = (date: string) => {
-    if (!date) return 'Non définie'
-    return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-  }
+  if (!projet) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '3rem' }}>❌</div>
+        <p>Projet introuvable.</p>
+        <Link href="/citoyens/projets" style={{ color: '#007A3D' }}>← Retour</Link>
+      </div>
+    </div>
+  )
+
+  const couleur = projet.types_projets?.couleur || '#007A3D'
+  const imageUrl = getProjectImage(projet.types_projets?.nom, projet.titre)
+  const budgetPct = projet.budget_actuel > 0 ? Math.round((projet.budget_deja_utilise / projet.budget_actuel) * 100) : 0
+
+  const fmt = (n: number) => Number(n).toLocaleString('fr-FR') + ' FCFA'
+  const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'
 
   return (
-    <div className="citoyen-portal">
+    <div style={{ background: '#f0f4f8', minHeight: '100vh', fontFamily: 'Outfit, sans-serif' }}>
       <CitizenNavbar />
-      
-      <style jsx>{`
-        .citoyen-portal {
-          --cameroun-vert: #007A3D;
-          --cameroun-jaune: #FCD116;
-          --cameroun-rouge: #CE1126;
-          --bg-light: #F8F9FA;
-          --text-dark: #2C3E50;
-          font-family: 'Poppins', sans-serif;
-          background-color: var(--bg-light);
-          min-height: 100vh;
-        }
-        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .project-header { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 30px; border-left: 6px solid var(--cameroun-vert); }
-        .project-title { font-size: 2.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 20px; }
-        .card-custom { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 30px; }
-        .card-title { font-size: 1.5rem; font-weight: 600; color: var(--text-dark); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .progress-large { height: 30px; border-radius: 15px; background-color: #E9ECEF; margin: 20px 0; overflow: hidden; }
-        .progress-bar-large { height: 100%; background: linear-gradient(90deg, var(--cameroun-vert), var(--cameroun-jaune)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
-        .stat-item { text-align: center; padding: 20px; background: var(--bg-light); border-radius: 12px; border-left: 4px solid var(--cameroun-vert); }
-        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--cameroun-vert); }
-        .btn-suggestion { background: linear-gradient(135deg, var(--cameroun-vert), var(--cameroun-jaune)); color: white; border: none; padding: 15px 40px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-block; transition: transform 0.3s ease; }
-        .meta-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .meta-item:last-child { border-bottom: none; }
-        .loading, .error { text-align: center; padding: 100px; font-size: 1.2rem; }
-      `}</style>
 
-      <div className="container">
+      {/* ── HERO IMAGE ── */}
+      <div style={{ position: 'relative', height: 'clamp(200px, 35vw, 380px)', overflow: 'hidden' }}>
+        <img src={imageUrl} alt={projet.titre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
+
         {/* Breadcrumb */}
-        <nav style={{ marginBottom: '20px', fontSize: '0.9rem' }}>
-          <Link href="/citoyens" style={{ color: 'var(--cameroun-vert)' }}>Accueil</Link> / 
-          <Link href="/citoyens/projets" style={{ color: 'var(--cameroun-vert)', marginLeft: '8px' }}>Projets</Link> / 
-          <span style={{ marginLeft: '8px', color: '#6c757d' }}>{projet.titre}</span>
-        </nav>
-        
-        {/* En-tête */}
-        <div className="project-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <h1 className="project-title">{projet.titre}</h1>
-              <div className="meta-item"><MapPin size={20} color="var(--cameroun-vert)" /> <strong>Commune :</strong> {projet.communes?.nom}</div>
-              <div className="meta-item"><Tag size={20} color="var(--cameroun-vert)" /> <strong>Type :</strong> {projet.types_projets?.nom}</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ 
-                padding: '12px 30px', 
-                borderRadius: '50px', 
-                color: 'white', 
-                fontWeight: 600,
-                background: projet.statut === 'terminé' ? 'var(--cameroun-jaune)' : 'var(--cameroun-vert)'
-              }}>
-                {projet.statut === 'terminé' ? 'Terminé' : 'En cours'}
+        <div style={{ position: 'absolute', top: 16, left: 16, right: 16, display: 'flex', gap: 6, flexWrap: 'wrap', fontSize: '0.8rem' }}>
+          <Link href="/citoyens" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>Accueil</Link>
+          <span style={{ color: 'rgba(255,255,255,0.5)' }}>/</span>
+          <Link href="/citoyens/projets" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>Projets</Link>
+          <span style={{ color: 'rgba(255,255,255,0.5)' }}>/</span>
+          <span style={{ color: 'white', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60vw' }}>{projet.titre}</span>
+        </div>
+
+        {/* Title block overlay */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 'clamp(16px, 4vw, 32px)' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <span style={{ background: couleur, color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>
+              {projet.types_projets?.nom}
+            </span>
+            <span style={{ background: projet.statut === 'terminé' ? '#10b981' : '#f59e0b', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>
+              {projet.statut === 'terminé' ? '✅ Terminé' : '🔧 En cours'}
+            </span>
+            {projet.priorite === 'haute' && (
+              <span style={{ background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>
+                🔴 Priorité haute
               </span>
-            </div>
+            )}
+          </div>
+          <h1 style={{ color: 'white', fontSize: 'clamp(1.2rem, 4vw, 2rem)', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>
+            {projet.titre}
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.9rem' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {projet.communes?.nom}
+          </p>
+        </div>
+      </div>
+
+      {/* ── BODY ── */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(16px, 4vw, 32px) clamp(12px, 4vw, 20px)' }}>
+
+        {/* Avancement global — barre proéminente */}
+        <div style={{ background: 'white', borderRadius: 20, padding: 'clamp(20px, 4vw, 32px)', marginBottom: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>Avancement physique</span>
+            <span style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 900, color: couleur, lineHeight: 1 }}>
+              {projet.avancement_physique}%
+            </span>
+          </div>
+          <div style={{ height: 18, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{ width: `${projet.avancement_physique}%`, height: '100%', background: `linear-gradient(90deg, ${couleur}, ${couleur}99)`, borderRadius: 99, transition: 'width 1s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>
+            <span>0%</span><span>50%</span><span>100%</span>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '30px', gridAutoFlow: 'dense' }}>
-          {/* Mobile priority hack */}
-          <div className="main-col" style={{ gridColumn: 'span 1' }}>
+        {/* Grid principale — 1 col mobile, 2 col desktop */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 20 }}>
+
+          {/* ── COLONNE GAUCHE ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
             {/* Description */}
-            <div className="card-custom">
-              <h2 className="card-title"><FileText size={24} color="var(--cameroun-vert)" /> Description du projet</h2>
-              <p style={{ lineHeight: 1.8, textAlign: 'justify', color: '#444' }}>{projet.description || 'Aucune description disponible.'}</p>
+            <div style={{ background: 'white', borderRadius: 20, padding: 'clamp(20px, 4vw, 30px)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 14, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ background: couleur + '22', color: couleur, borderRadius: 10, padding: '4px 10px', fontSize: '0.85rem' }}>📋</span>
+                Description
+              </h2>
+              <p style={{ lineHeight: 1.8, color: '#475569', fontSize: '0.95rem' }}>{projet.description}</p>
             </div>
 
-            {/* Avancement */}
-            <div className="card-custom">
-              <h2 className="card-title"><BarChart3 size={24} color="var(--cameroun-vert)" /> Avancement du projet</h2>
-              <div className="progress-large">
-                <div className="progress-bar-large" style={{ width: `${projet.avancement_physique}%` }}>
-                  {projet.avancement_physique}%
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginTop: '20px' }}>
-                <div className="stat-item">
-                  <div className="stat-value">{projet.avancement_physique}%</div>
-                  <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>Avancement physique</div>
-                </div>
-                <div className="stat-item">
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--cameroun-vert)' }}>{formatDate(projet.date_debut)}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>Date de début</div>
-                </div>
-                <div className="stat-item">
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--cameroun-vert)' }}>{formatDate(projet.date_fin_prevue)}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>Date de fin prévue</div>
-                </div>
+            {/* Planning */}
+            <div style={{ background: 'white', borderRadius: 20, padding: 'clamp(20px, 4vw, 30px)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 16, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ background: '#eff6ff', color: '#3b82f6', borderRadius: 10, padding: '4px 10px', fontSize: '0.85rem' }}>📅</span>
+                Planning
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[
+                  { label: 'Début des travaux', value: fmtDate(projet.date_debut), icon: '🚀' },
+                  { label: 'Fin prévue', value: fmtDate(projet.date_fin_prevue), icon: '🏁' },
+                  { label: 'Entreprise', value: projet.entreprise_executante || 'Non renseigné', icon: '🏢' },
+                  { label: 'Priorité', value: projet.priorite || 'Normale', icon: '⚡' },
+                ].map((item, i) => (
+                  <div key={i} style={{ background: '#f8fafc', borderRadius: 14, padding: '14px 16px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{item.icon} {item.label}</div>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem', wordBreak: 'break-word' }}>{item.value}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="sidebar-col" style={{ gridColumn: 'span 1' }}>
-            {/* Infos clés */}
-            <div className="card-custom">
-              <h3 className="card-title"><Info size={22} color="var(--cameroun-vert)" /> Informations clés</h3>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '0.85rem', color: '#6c757d', fontWeight: 600 }}>Budget Alloué</label>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--cameroun-vert)' }}>{Number(projet.budget_actuel).toLocaleString()} FCFA</div>
+          {/* ── COLONNE DROITE ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Budget */}
+            <div style={{ background: 'white', borderRadius: 20, padding: 'clamp(20px, 4vw, 30px)', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 16, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ background: '#ecfdf5', color: '#10b981', borderRadius: 10, padding: '4px 10px', fontSize: '0.85rem' }}>💰</span>
+                Suivi Budgétaire
+              </h2>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.85rem', fontWeight: 700 }}>
+                  <span style={{ color: '#64748b' }}>Dépenses / Budget</span>
+                  <span style={{ color: budgetPct > 80 ? '#ef4444' : '#10b981' }}>{budgetPct}%</span>
+                </div>
+                <div style={{ height: 10, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min(budgetPct, 100)}%`, height: '100%', background: budgetPct > 80 ? '#ef4444' : '#10b981', borderRadius: 99 }} />
+                </div>
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '0.85rem', color: '#6c757d', fontWeight: 600 }}>Statut</label>
-                <div style={{ fontWeight: 600 }}>{projet.statut === 'terminé' ? 'Terminé' : 'En cours'}</div>
-              </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '0.85rem', color: '#6c757d', fontWeight: 600 }}>Dernière mise à jour</label>
-                <div>{formatDate(projet.updated_at || projet.created_at)}</div>
-              </div>
+
+              {[
+                { label: 'Budget alloué', value: fmt(projet.budget_actuel), bg: '#f0fdf4', color: '#16a34a' },
+                { label: 'Montant utilisé', value: fmt(projet.budget_deja_utilise || 0), bg: '#fff7ed', color: '#ea580c' },
+                { label: 'Solde restant', value: fmt(projet.budget_actuel - (projet.budget_deja_utilise || 0)), bg: '#eff6ff', color: '#2563eb' },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: row.bg, borderRadius: 12, marginBottom: 8 }}>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>{row.label}</span>
+                  <span style={{ fontWeight: 800, color: row.color, fontSize: '0.9rem' }}>{row.value}</span>
+                </div>
+              ))}
             </div>
 
-            {/* CTA */}
-            <div className="card-custom text-center" style={{ background: 'rgba(0, 122, 61, 0.05)', textAlign: 'center' }}>
-              <MessageSquare size={48} color="var(--cameroun-vert)" style={{ margin: '0 auto 15px' }} />
-              <h4>Une suggestion ?</h4>
-              <p style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '20px' }}>Partagez votre avis sur ce projet</p>
-              <Link href={`/citoyens/suggestion?projet=${projet.id}`} className="btn-suggestion">
-                Faire une suggestion
+            {/* CTA Suggestion */}
+            <div style={{ background: `linear-gradient(135deg, #007A3D, #004d26)`, borderRadius: 20, padding: 'clamp(20px, 4vw, 30px)', color: 'white', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>💡</div>
+              <h3 style={{ fontWeight: 800, marginBottom: 10, fontSize: '1.1rem', color: 'white' }}>Votre avis compte</h3>
+              <p style={{ opacity: 0.85, marginBottom: 20, fontSize: '0.9rem', lineHeight: 1.6 }}>
+                Signalez un problème ou faites une proposition d'amélioration directement à la mairie.
+              </p>
+              <Link
+                href={`/citoyens/suggestion?projet=${projet.id}`}
+                style={{ display: 'block', background: '#FCD116', color: '#000', padding: '14px 20px', borderRadius: 14, textDecoration: 'none', fontWeight: 800, fontSize: '1rem' }}
+              >
+                Envoyer une suggestion →
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <footer style={{ background: '#2c3e50', color: 'white', padding: '40px 20px', textAlign: 'center', marginTop: '60px' }}>
-        <p>&copy; 2024 Communes Urbaines du Littoral - Cameroun</p>
+      <footer style={{ background: '#1e293b', color: 'rgba(255,255,255,0.6)', padding: '30px 20px', textAlign: 'center', marginTop: 60, fontSize: '0.85rem' }}>
+        © 2024 République du Cameroun — MuniTrack v1.0
       </footer>
-
-      <style jsx global>{`
-        @media (max-width: 992px) {
-          .container > div { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   )
 }

@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
 
 import dynamic from 'next/dynamic'
-import { MapPin, Search, Navigation, RefreshCw } from 'lucide-react'
+// import { MapPin, Search, Navigation, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 
@@ -51,7 +51,7 @@ export default function CartePage() {
         </div>
         <div className="flex align-center gap-2 w-full-mobile">
           <div className="flex align-center gap-2" style={{ background: 'white', padding: '0.625rem 1rem', borderRadius: 8, border: '1px solid var(--border)', flex: 1 }}>
-            <Search size={18} color="var(--muted)" />
+            🔍
             <input 
               type="text" 
               placeholder="Rechercher..." 

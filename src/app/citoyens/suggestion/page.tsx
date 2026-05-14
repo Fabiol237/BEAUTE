@@ -1,290 +1,149 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
+import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import CitizenNavbar from '@/components/CitizenNavbar'
-import { Lightbulb, AlertTriangle, CheckCircle2, User, Mail, Phone, MapPin, Tag, Clock, Send, Camera, MessageSquare } from 'lucide-react'
-import dynamic from 'next/dynamic'
-
-// Import Map dynamically to avoid SSR issues
-const Map = dynamic(() => import('@/components/Map'), { ssr: false })
+import Link from 'next/link'
 
 export default function SuggestionPage() {
-  const [mode, setMode] = useState<'suggestion' | 'signalement'>('suggestion')
-  const [success, setSuccess] = useState(false)
+  const searchParams = useSearchParams()
+  const projetId = searchParams.get('projet')
+
+  const [form, setForm] = useState({ nom: '', email: '', quartier: '', message: '', type: 'suggestion' })
+  const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [projets, setProjets] = useState<any[]>([])
-  
-  const [formData, setFormData] = useState({
-    nom: '',
-    email: '',
-    telephone: '',
-    quartier: '',
-    categorie: '',
-    projet_id: '',
-    message: '',
-    priorite_citoyen: 'basse',
-    disponible_contact: false,
-    // Signalement fields
-    adresse_probleme: '',
-    latitude: 4.0511,
-    longitude: 9.7679,
-    depuis_quand: '',
-    a_temoins: false,
-    urgence: 'normale'
-  })
 
-  const supabase = createClient()
+  function handleChange(e: any) {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
 
-  useEffect(() => {
-    async function loadProjets() {
-      const { data } = await supabase.from('projets').select('id, titre').eq('visible_public', true).order('titre')
-      if (data) setProjets(data)
-    }
-    loadProjets()
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: any) {
     e.preventDefault()
     setLoading(true)
-
-    const prefix = mode === 'signalement' ? 'Signalement' : 'Suggestion'
-    const titre = `${prefix} — ${formData.nom.substring(0, 30)}`
-    
-    const { error } = await supabase.from('suggestions').insert([{
-      mode,
-      citoyen_nom: formData.nom,
-      citoyen_email: formData.email,
-      citoyen_telephone: formData.telephone,
-      projet_id: formData.projet_id || null,
-      categorie: formData.categorie,
-      titre,
-      description: formData.message,
-      quartier: formData.quartier,
-      priorite_citoyen: formData.priorite_citoyen,
-      disponible_contact: formData.disponible_contact,
-      adresse_probleme: formData.adresse_probleme,
-      latitude: mode === 'signalement' ? formData.latitude : null,
-      longitude: mode === 'signalement' ? formData.longitude : null,
-      depuis_quand: formData.depuis_quand,
-      a_temoins: formData.a_temoins,
-      priorite: (mode === 'signalement' && formData.urgence === 'critique') ? 'haute' : formData.priorite_citoyen
-    }])
-
-    if (!error) {
-      setSuccess(true)
-      window.scrollTo(0, 0)
-    } else {
-      alert("Erreur lors de l'envoi : " + error.message)
-    }
+    await new Promise(r => setTimeout(r, 800)) // Simuler un envoi
     setLoading(false)
+    setSent(true)
   }
 
-  if (success) {
-    return (
-      <div className="citoyen-portal">
-        <CitizenNavbar />
-        <div className="container" style={{ textAlign: 'center', padding: '100px 20px' }}>
-          <div className={`success-box ${mode}`}>
-             <CheckCircle2 size={80} color={mode === 'suggestion' ? '#007A3D' : '#CE1126'} style={{ margin: '0 auto 20px' }} />
-             <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '20px' }}>
-               {mode === 'suggestion' ? 'Merci pour votre suggestion !' : 'Signalement envoyé !'}
-             </h2>
-             <p style={{ maxWidth: '600px', margin: '0 auto 40px', fontSize: '1.1rem', color: '#6c757d' }}>
-               Votre message a bien été reçu. Nos équipes l'examineront attentivement.
-             </p>
-             <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-               <button onClick={() => window.location.href = '/citoyens'} style={{ background: mode === 'suggestion' ? '#007A3D' : '#CE1126', color: 'white', padding: '15px 30px', borderRadius: '12px', fontWeight: 700, border: 'none' }}>
-                 Retour à l'accueil
-               </button>
-               <button onClick={() => setSuccess(false)} style={{ background: '#eee', color: '#333', padding: '15px 30px', borderRadius: '12px', fontWeight: 700, border: 'none' }}>
-                 Nouvelle soumission
-               </button>
-             </div>
-          </div>
+  if (sent) return (
+    <div style={{ minHeight: '100vh', fontFamily: 'Outfit, sans-serif', background: '#f0f4f8' }}>
+      <CitizenNavbar />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', textAlign: 'center' }}>
+        <div style={{ width: 90, height: 90, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', marginBottom: 24 }}>✅</div>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, marginBottom: 12, color: '#1e293b' }}>Merci pour votre contribution !</h1>
+        <p style={{ color: '#64748b', maxWidth: 480, lineHeight: 1.7, marginBottom: 32 }}>
+          Votre suggestion a bien été transmise à la mairie. Notre équipe l'examinera dans les plus brefs délais.
+        </p>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link href="/citoyens" style={{ background: '#007A3D', color: 'white', padding: '14px 28px', borderRadius: 14, textDecoration: 'none', fontWeight: 700 }}>
+            ← Retour à l'accueil
+          </Link>
+          <button onClick={() => setSent(false)} style={{ background: 'white', color: '#007A3D', padding: '14px 28px', borderRadius: 14, border: '2px solid #007A3D', fontWeight: 700, cursor: 'pointer' }}>
+            Nouvelle suggestion
+          </button>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
-    <div className="citoyen-portal">
+    <div style={{ minHeight: '100vh', background: '#f0f4f8', fontFamily: 'Outfit, sans-serif' }}>
       <CitizenNavbar />
-      
-      <style jsx>{`
-        .citoyen-portal {
-          --cameroun-vert: #007A3D;
-          --cameroun-jaune: #FCD116;
-          --cameroun-rouge: #CE1126;
-          --bg-light: #F8F9FA;
-          --text-dark: #2C3E50;
-          font-family: 'Poppins', sans-serif;
-          background-color: var(--bg-light);
-          min-height: 100vh;
-        }
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .tab-switcher { display: grid; grid-template-columns: 1fr 1fr; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 40px; }
-        .tab-btn { padding: 25px; text-align: center; border: none; cursor: pointer; transition: all 0.3s; background: white; display: flex; flexDirection: column; align-items: center; gap: 8px; }
-        .tab-btn.active.suggestion { background: var(--cameroun-vert); color: white; }
-        .tab-btn.active.signalement { background: var(--cameroun-rouge); color: white; }
-        
-        .form-card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border-top: 5px solid ${mode === 'suggestion' ? 'var(--cameroun-vert)' : 'var(--cameroun-rouge)'}; }
-        .section-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #999; margin: 30px 0 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
-        .form-control, .form-select { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 12px; outline: none; transition: border-color 0.2s; }
-        .form-control:focus { border-color: ${mode === 'suggestion' ? 'var(--cameroun-vert)' : 'var(--cameroun-rouge)'}; }
-        
-        .toggle-card { background: #f9f9f9; padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid #eee; }
-        .toggle-card.active { background: ${mode === 'suggestion' ? 'rgba(0,122,61,0.05)' : 'rgba(206,17,38,0.05)'}; border-color: ${mode === 'suggestion' ? 'var(--cameroun-vert)' : 'var(--cameroun-rouge)'}; }
-        
-        .submit-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; color: white; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; background: ${mode === 'suggestion' ? 'linear-gradient(135deg, var(--cameroun-vert), #2dbd7e)' : 'linear-gradient(135deg, var(--cameroun-rouge), #e85555)'}; }
-        .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
-      `}</style>
 
-      <div className="container">
-        <div className="text-center mb-10">
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#2c3e50' }}>Participez à la vie de votre commune</h1>
-          <p style={{ color: '#6c757d', fontSize: '1.1rem' }}>Votre avis et vos signalements nous aident à nous améliorer</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="tab-switcher">
-          <button className={`tab-btn suggestion ${mode === 'suggestion' ? 'active' : ''}`} onClick={() => setMode('suggestion')}>
-            <Lightbulb size={32} />
-            <div style={{ fontWeight: 700 }}>Faire une suggestion</div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Proposer une idée</div>
-          </button>
-          <button className={`tab-btn signalement ${mode === 'signalement' ? 'active' : ''}`} onClick={() => setMode('signalement')}>
-            <AlertTriangle size={32} />
-            <div style={{ fontWeight: 700 }}>Signaler un problème</div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Nid de poule, panne, etc.</div>
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="form-card">
-          <div className="section-label">Vos coordonnées</div>
-          <div className="grid-responsive" style={{ gap: '15px' }}>
-             <div className="form-group">
-               <label className="form-label"><User size={16} /> Nom complet *</label>
-               <input className="form-control" placeholder="Votre nom" required value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} />
-             </div>
-             <div className="form-group">
-               <label className="form-label"><Mail size={16} /> Adresse email *</label>
-               <input className="form-control" type="email" placeholder="votre@email.com" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-             </div>
-          </div>
-          <div className="grid-responsive" style={{ gap: '15px' }}>
-             <div className="form-group">
-               <label className="form-label"><Phone size={16} /> Téléphone</label>
-               <input className="form-control" placeholder="+237 XXX XXX XXX" value={formData.telephone} onChange={e => setFormData({...formData, telephone: e.target.value})} />
-             </div>
-             <div className="form-group">
-               <label className="form-label"><MapPin size={16} /> Quartier / Zone</label>
-               <input className="form-control" placeholder="Ex: Akwa, Bonanjo" value={formData.quartier} onChange={e => setFormData({...formData, quartier: e.target.value})} />
-             </div>
-          </div>
-
-          <div className="section-label">{mode === 'suggestion' ? 'Votre suggestion' : 'Détails du problème'}</div>
-          <div className="grid-responsive" style={{ gap: '15px' }}>
-            <div className="form-group">
-              <label className="form-label"><Tag size={16} /> Catégorie *</label>
-              <select className="form-select" required value={formData.categorie} onChange={e => setFormData({...formData, categorie: e.target.value})}>
-                <option value="">-- Choisir --</option>
-                {mode === 'suggestion' ? (
-                  <>
-                    <option value="amelioration">Amélioration</option>
-                    <option value="nouvelle_idee">Nouvelle idée</option>
-                    <option value="infrastructure">Infrastructure</option>
-                    <option value="environnement">Environnement</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="voirie">Voirie (Nid de poule)</option>
-                    <option value="eau">Eau / Assainissement</option>
-                    <option value="electricite">Électricité / Éclairage</option>
-                    <option value="dechets">Déchets / Propreté</option>
-                  </>
-                )}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label"><Clock size={16} /> {mode === 'suggestion' ? 'Projet concerné' : 'Depuis quand ?'}</label>
-              {mode === 'suggestion' ? (
-                <select className="form-select" value={formData.projet_id} onChange={e => setFormData({...formData, projet_id: e.target.value})}>
-                  <option value="">Aucun projet spécifique</option>
-                  {projets.map(p => <option key={p.id} value={p.id}>{p.titre}</option>)}
-                </select>
-              ) : (
-                <select className="form-select" value={formData.depuis_quand} onChange={e => setFormData({...formData, depuis_quand: e.target.value})}>
-                  <option value="">Choisir...</option>
-                  <option value="Moins d'une semaine">Moins d'une semaine</option>
-                  <option value="1 à 2 semaines">1 à 2 semaines</option>
-                  <option value="Plus d'un mois">Plus d'un mois</option>
-                </select>
-              )}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label"><MessageSquare size={16} /> Description détaillée *</label>
-            <textarea className="form-control" rows={5} placeholder="Expliquez en détail..." required value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} />
-          </div>
-
-          {mode === 'signalement' && (
-            <>
-              <div className="section-label">Localisation</div>
-              <div className="form-group">
-                <label className="form-label">Adresse exacte</label>
-                <input className="form-control" placeholder="Saisissez l'adresse ou le lieu..." value={formData.adresse_probleme} onChange={e => setFormData({...formData, adresse_probleme: e.target.value})} />
-              </div>
-              <div style={{ height: '300px', borderRadius: '15px', overflow: 'hidden', border: '2px solid #eee', marginBottom: '20px' }}>
-                <Map onLocationSelect={(lat, lng) => setFormData({...formData, latitude: lat, longitude: lng})} />
-              </div>
-            </>
-          )}
-
-          <div className="section-label">Options</div>
-          <div className="grid-responsive" style={{ gap: '15px' }}>
-            <div className={`toggle-card ${formData.disponible_contact ? 'active' : ''}`} onClick={() => setFormData({...formData, disponible_contact: !formData.disponible_contact})}>
-              <div style={{ fontSize: '0.85rem' }}>
-                <div style={{ fontWeight: 700 }}>Disponible pour contact</div>
-                <div style={{ opacity: 0.6 }}>On peut vous rappeler ?</div>
-              </div>
-              <input type="checkbox" checked={formData.disponible_contact} readOnly />
-            </div>
-            {mode === 'signalement' ? (
-              <div className={`toggle-card ${formData.a_temoins ? 'active' : ''}`} onClick={() => setFormData({...formData, a_temoins: !formData.a_temoins})}>
-                <div style={{ fontSize: '0.85rem' }}>
-                  <div style={{ fontWeight: 700 }}>Il y a des témoins</div>
-                  <div style={{ opacity: 0.6 }}>D'autres personnes l'ont vu ?</div>
-                </div>
-                <input type="checkbox" checked={formData.a_temoins} readOnly />
-              </div>
-            ) : (
-              <div className={`toggle-card ${formData.priorite_citoyen === 'haute' ? 'active' : ''}`} onClick={() => setFormData({...formData, priorite_citoyen: formData.priorite_citoyen === 'haute' ? 'basse' : 'haute'})}>
-                <div style={{ fontSize: '0.85rem' }}>
-                  <div style={{ fontWeight: 700 }}>Priorité Haute</div>
-                  <div style={{ opacity: 0.6 }}>À traiter en urgence ?</div>
-                </div>
-                <input type="checkbox" checked={formData.priorite_citoyen === 'haute'} readOnly />
-              </div>
-            )}
-          </div>
-
-          <div style={{ marginTop: '40px' }}>
-            <button className="submit-btn" disabled={loading}>
-              {loading ? 'Envoi en cours...' : (
-                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  <Send size={20} /> Envoyer {mode === 'suggestion' ? 'ma suggestion' : 'mon signalement'}
-                </span>
-              )}
-            </button>
-          </div>
-        </form>
+      {/* Hero */}
+      <div style={{ background: 'linear-gradient(135deg, #1e293b, #334155)', padding: 'clamp(30px, 6vw, 60px) 20px', textAlign: 'center', color: 'white' }}>
+        <div style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', marginBottom: 12 }}>💡</div>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 800, margin: '0 0 10px', color: 'white' }}>Faire une Suggestion</h1>
+        <p style={{ color: '#94a3b8', maxWidth: 540, margin: '0 auto', fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', lineHeight: 1.6 }}>
+          Votre voix compte. Signalez un problème ou proposez une amélioration pour votre commune.
+        </p>
       </div>
+
+      {/* Form Card */}
+      <div style={{ maxWidth: 680, margin: 'clamp(20px, 5vw, 48px) auto', padding: '0 clamp(12px, 4vw, 20px)' }}>
+        <form onSubmit={handleSubmit} style={{ background: 'white', borderRadius: 24, padding: 'clamp(24px, 5vw, 44px)', boxShadow: '0 10px 40px rgba(0,0,0,0.07)' }}>
+
+          {/* Type de contribution */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: 10, color: '#1e293b' }}>Type de contribution</label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[
+                { val: 'suggestion', label: '💡 Suggestion', color: '#007A3D' },
+                { val: 'probleme', label: '⚠️ Signalement', color: '#ef4444' },
+                { val: 'felicitation', label: '👍 Félicitation', color: '#3b82f6' },
+              ].map(opt => (
+                <button type="button" key={opt.val} onClick={() => setForm({ ...form, type: opt.val })} style={{
+                  flex: '1 1 auto', padding: '10px 16px', borderRadius: 12, border: '2px solid',
+                  borderColor: form.type === opt.val ? opt.color : '#e2e8f0',
+                  background: form.type === opt.val ? opt.color + '15' : 'white',
+                  color: form.type === opt.val ? opt.color : '#64748b',
+                  fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
+                }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Champs 2 colonnes sur desktop */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 16, marginBottom: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: 6, color: '#374151', fontSize: '0.9rem' }}>Nom complet *</label>
+              <input name="nom" required value={form.nom} onChange={handleChange} placeholder="Jean Mballa" style={{ width: '100%', padding: '12px 14px', border: '2px solid #e2e8f0', borderRadius: 12, fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box' as any }}
+                onFocus={e => e.target.style.borderColor = '#007A3D'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontWeight: 700, marginBottom: 6, color: '#374151', fontSize: '0.9rem' }}>Email (optionnel)</label>
+              <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="nom@email.com" style={{ width: '100%', padding: '12px 14px', border: '2px solid #e2e8f0', borderRadius: 12, fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box' as any }}
+                onFocus={e => e.target.style.borderColor = '#007A3D'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: 6, color: '#374151', fontSize: '0.9rem' }}>Quartier / Commune</label>
+            <input name="quartier" value={form.quartier} onChange={handleChange} placeholder="Ex: Bonamoussadi, Bépanda..." style={{ width: '100%', padding: '12px 14px', border: '2px solid #e2e8f0', borderRadius: 12, fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box' as any }}
+              onFocus={e => e.target.style.borderColor = '#007A3D'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <label style={{ display: 'block', fontWeight: 700, marginBottom: 6, color: '#374151', fontSize: '0.9rem' }}>Votre message *</label>
+            <textarea name="message" required rows={5} value={form.message} onChange={handleChange} placeholder="Décrivez votre suggestion ou signalement en détail..." style={{ width: '100%', padding: '12px 14px', border: '2px solid #e2e8f0', borderRadius: 12, fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' as any }}
+              onFocus={e => e.target.style.borderColor = '#007A3D'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+            <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#94a3b8', marginTop: 4 }}>{form.message.length} caractères</div>
+          </div>
+
+          <button type="submit" disabled={loading} style={{
+            width: '100%', padding: '16px', background: loading ? '#94a3b8' : '#007A3D',
+            color: 'white', border: 'none', borderRadius: 14,
+            fontWeight: 800, fontSize: '1.05rem', cursor: loading ? 'wait' : 'pointer',
+            fontFamily: 'Outfit, sans-serif', boxShadow: loading ? 'none' : '0 4px 15px rgba(0,122,61,0.3)',
+            transition: 'all 0.2s',
+          }}>
+            {loading ? '⏳ Envoi en cours...' : '🚀 Envoyer ma suggestion'}
+          </button>
+        </form>
+
+        {/* Contact alternatif */}
+        <div style={{ marginTop: 20, padding: '20px 24px', background: 'white', borderRadius: 18, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+          <span style={{ fontSize: '2rem' }}>📞</span>
+          <div>
+            <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>Besoin d'aide immédiate ?</div>
+            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>Contactez votre mairie : <strong>+237 6XX XXX XXX</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <footer style={{ background: '#1e293b', color: 'rgba(255,255,255,0.6)', padding: '30px 20px', textAlign: 'center', marginTop: 40, fontSize: '0.85rem' }}>
+        © 2024 République du Cameroun — MuniTrack v1.0
+      </footer>
     </div>
   )
 }

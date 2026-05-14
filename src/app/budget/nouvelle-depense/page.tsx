@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ArrowLeft, Save, Banknote, Tag, FileText } from 'lucide-react'
+// import { ArrowLeft, Save, Banknote, Tag, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NouvelleDepensePage() {
@@ -51,7 +51,7 @@ export default function NouvelleDepensePage() {
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
       <header className="mb-6">
         <Link href="/budget" className="flex items-center gap-2 text-muted hover:text-primary mb-4 transition-colors">
-          <ArrowLeft size={20} />
+          ←
           Retour au budget
         </Link>
         <h1>Enregistrer une Dépense</h1>
@@ -124,7 +124,7 @@ export default function NouvelleDepensePage() {
           className="btn btn-primary" 
           style={{ padding: '1rem', marginTop: '1rem' }}
         >
-          {loading ? 'Enregistrement...' : <><Save size={20} /> Enregistrer la dépense</>}
+          {loading ? 'Enregistrement...' : <>💾 Enregistrer la dépense</>}
         </button>
       </form>
     </div>

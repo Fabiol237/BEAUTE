@@ -1,13 +1,11 @@
-import { LucideIcon } from 'lucide-react'
-
 interface StatCardProps {
   label: string
   value: string | number
-  icon: LucideIcon
+  icon: string  // Emoji string
   color: 'primary' | 'success' | 'warning' | 'danger'
 }
 
-export default function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
+export default function StatCard({ label, value, icon, color }: StatCardProps) {
   const colors = {
     primary: { bg: 'var(--primary-light)', text: 'var(--primary)' },
     success: { bg: 'var(--success-light)', text: 'var(--success)' },
@@ -28,9 +26,10 @@ export default function StatCard({ label, value, icon: Icon, color }: StatCardPr
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        flexShrink: 0
+        flexShrink: 0,
+        fontSize: '1.75rem'
       }}>
-        <Icon size={28} />
+        {icon}
       </div>
       <div>
         <span style={{ fontSize: '0.875rem', color: 'var(--muted)', fontWeight: 600, display: 'block', marginBottom: '2px' }}>

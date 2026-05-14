@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { MessageSquare, MapPin, Clock, CheckCircle, AlertTriangle, Filter, Search, Eye } from 'lucide-react'
+// import { MessageSquare, MapPin, Clock, CheckCircle, AlertTriangle, Filter, Search, Eye } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
@@ -123,7 +123,7 @@ export default function AdminSuggestionsPage({ searchParams }: { searchParams: P
                       </td>
                       <td>
                         <button className="btn btn-outline" style={{ padding: '0.4rem' }}>
-                          <Eye size={16} />
+                          👁️
                         </button>
                       </td>
                     </tr>
