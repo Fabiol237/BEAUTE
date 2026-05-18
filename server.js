@@ -36,7 +36,7 @@ app.use(attachLocals);
 
 
 app.get('/', (req, res) => {
-  res.redirect('/dashboard');
+  res.redirect('/portail-citoyen');
 });
 
 app.use('/', authRoutes);

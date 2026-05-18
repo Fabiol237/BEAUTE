@@ -29,16 +29,17 @@ router.post('/login', guestOnly, async (req, res) => {
   }
 
   try {
-    const user = await queryOne(
+    let user = await queryOne(
       `SELECT u.*, r.nom AS role_nom
        FROM utilisateurs u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = ?
          AND u.statut = 'actif'
-         AND u.actif = 1`,
+         AND u.actif = true`,
       [email]
     );
 
+    // Vérification Utilisateur normal (Agent Commune)
     if (user && (await comparePassword(password, user.password_hash))) {
       req.session.utilisateur_id = user.id;
       req.session.utilisateur_nom = user.nom;
@@ -48,9 +49,27 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.role_nom = user.role_nom;
       req.session.utilisateur_role = user.role;
 
-      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [
-        user.id,
-      ]);
+      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [user.id]);
+      return res.redirect('/dashboard');
+    }
+
+    // Si pas trouvé, Vérification Super Admin (MuniPro)
+    const superAdmin = await queryOne(
+      `SELECT * FROM munipro_admins WHERE email = ? AND statut = 'actif'`,
+      [email]
+    );
+
+    if (superAdmin && (await comparePassword(password, superAdmin.password_hash))) {
+      req.session.utilisateur_id = superAdmin.id;
+      req.session.utilisateur_nom = superAdmin.nom;
+      req.session.utilisateur_prenom = 'Super';
+      req.session.utilisateur_email = superAdmin.email;
+      req.session.role_id = 0; // Super admin
+      req.session.role_nom = 'super_admin';
+      req.session.utilisateur_role = 'super_admin';
+      req.session.is_super_admin = true;
+
+      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = ?', [superAdmin.id]);
       return res.redirect('/dashboard');
     }
 
