@@ -1,0 +1,14 @@
+<%- include('../partials/header', { page_title: 'Modifier le projet' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4 pb-5">
+<%- getFlash() %>
+<div class="page-header mb-4 d-flex justify-content-between">
+<div><h1><i class="bi bi-pencil-square me-2"></i>Modifier le projet</h1></div>
+<a href="<%= siteUrl %>/projets/details/<%= projet_id %>" class="btn btn-outline-secondary">Annuler</a>
+</div>
+<% if (erreurs && erreurs.length) { %>
+<div class="alert alert-danger"><ul class="mb-0"><% erreurs.forEach(err => { %><li><%= e(err) %></li><% }); %></ul></div>
+<% } %>
+<%- include('../partials/projet-form', { body, projet_id, types_projets, communes, phases_list, risques_list, kpis_list, budget_source, source_financement: (budget_source && budget_source.source_financement) || '' }) %>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,14 @@
+<%- include('../partials/header', { page_title: 'Créer un projet' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4 pb-5">
+<%- getFlash() %>
+<div class="page-header mb-4 d-flex justify-content-between">
+<div><h1><i class="bi bi-plus-circle me-2"></i>Créer un projet</h1></div>
+<a href="<%= siteUrl %>/projets/liste" class="btn btn-outline-secondary">Retour</a>
+</div>
+<% if (erreurs && erreurs.length) { %>
+<div class="alert alert-danger"><ul class="mb-0"><% erreurs.forEach(err => { %><li><%= e(err) %></li><% }); %></ul></div>
+<% } %>
+<%- include('../partials/projet-form', { body, types_projets, communes, phases_list, risques_list, kpis_list, budget_source: null, source_financement: body.source_financement }) %>
+</div>
+<%- include('../partials/footer') %>

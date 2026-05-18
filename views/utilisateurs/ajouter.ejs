@@ -1,0 +1,22 @@
+<%- include('../partials/header', { page_title: 'Ajouter un utilisateur' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<div class="d-flex justify-content-between mb-4">
+<h1>Ajouter un utilisateur</h1>
+<a href="<%= siteUrl %>/utilisateurs/liste" class="btn btn-secondary">Retour</a>
+</div>
+<% if (erreurs && erreurs.length) { %><div class="alert alert-danger"><ul><% erreurs.forEach(er=>{ %><li><%= e(er) %></li><% }); %></ul></div><% } %>
+<div class="col-lg-6"><div class="card"><div class="card-body">
+<form method="POST">
+<div class="mb-3"><label>Email *</label><input type="email" name="email" class="form-control" value="<%= e(body.email||'') %>" required></div>
+<div class="mb-3"><label>Prénom *</label><input name="prenom" class="form-control" value="<%= e(body.prenom||'') %>" required></div>
+<div class="mb-3"><label>Nom *</label><input name="nom" class="form-control" value="<%= e(body.nom||'') %>" required></div>
+<div class="mb-3"><label>Rôle</label><select name="role" class="form-select">
+<% ['admin','gestionnaire','lecteur'].forEach(r=>{ %><option value="<%= r %>" <%= (body.role||'lecteur')===r?'selected':'' %>><%= r %></option><% }); %>
+</select></div>
+<div class="mb-3"><label>Mot de passe *</label><input type="password" name="mot_de_passe" class="form-control" required></div>
+<div class="mb-3"><label>Confirmer *</label><input type="password" name="confirmer_mdp" class="form-control" required></div>
+<div class="form-check mb-3"><input type="checkbox" name="actif" class="form-check-input" id="actif" checked><label for="actif">Compte actif</label></div>
+<button class="btn btn-primary">Créer</button>
+</form></div></div></div></div>
+<%- include('../partials/footer') %>

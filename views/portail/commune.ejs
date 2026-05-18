@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= commune.nom %> — Portail Citoyen · MuniPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --green:#007A3D; --yellow:#FCD116; --red:#CE1126;
+      --blue:#003F88; --dark:#0D1B2A; --text:#1A2332;
+      --muted:#64748B; --border:#E2E8F0; --bg:#F0F5FF;
+      --card:#FFFFFF; --radius:16px; --shadow:0 2px 8px rgba(0,0,0,.07);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+
+    /* ── TOP BAR ────────────────────────────── */
+    .topnav {
+      position:fixed;top:0;left:0;right:0;z-index:1000;
+      background:rgba(13,27,42,0.95);backdrop-filter:blur(12px);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;height:60px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .topnav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .topnav-logo img{height:36px;filter:brightness(1.1);}
+    .topnav-logo span{color:#FCD116;font-weight:800;font-size:16px;}
+    .topnav-commune{color:rgba(255,255,255,.9);font-size:13px;font-weight:600;}
+    .btn-changer{
+      display:flex;align-items:center;gap:6px;
+      color:rgba(255,255,255,.6);font-size:11px;font-weight:600;
+      text-decoration:none;border:1px solid rgba(255,255,255,.15);
+      padding:5px 12px;border-radius:20px;transition:all .2s;letter-spacing:.5px;
+    }
+    .btn-changer:hover{color:#fff;border-color:rgba(255,255,255,.4);text-decoration:none;}
+
+    /* ── HERO ───────────────────────────────── */
+    .hero {
+      min-height: 520px;
+      background: linear-gradient(135deg, <%= heroBg[0] %> 0%, <%= heroBg[1] %> 100%);
+      display:flex;align-items:center;padding:80px 24px 64px;
+      position:relative;overflow:hidden;
+    }
+    .hero::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(to bottom, rgba(0,0,0,.1) 0%, rgba(0,0,0,.55) 100%);
+    }
+    .hero-content{position:relative;z-index:1;max-width:900px;margin:0 auto;width:100%;}
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(252,209,22,.15);border:1px solid rgba(252,209,22,.4);
+      color:#FCD116;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;
+    }
+    .hero h1{color:#fff;font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.1;margin-bottom:12px;}
+    .hero-sub{color:rgba(255,255,255,.8);font-size:16px;margin-bottom:36px;max-width:560px;line-height:1.7;}
+    .hero-flag{display:flex;height:5px;border-radius:3px;overflow:hidden;width:120px;margin-bottom:36px;}
+    .hero-flag span{flex:1;}
+
+    /* ── HERO KPI BAND ──────────────────────── */
+    .kpi-band{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+      background:rgba(255,255,255,.15);border-radius:12px;overflow:hidden;
+      backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);
+      max-width:700px;
+    }
+    .kpi-cell{
+      padding:18px 16px;text-align:center;
+      background:rgba(13,27,42,.4);
+    }
+    .kpi-cell .val{font-size:26px;font-weight:900;color:#FCD116;line-height:1;}
+    .kpi-cell .lbl{font-size:10px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.7px;margin-top:4px;font-weight:600;}
+
+    /* ── HERO NAV BUTTONS ─────────────────── */
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;}
+    .btn-hero{
+      display:inline-flex;align-items:center;gap:8px;padding:12px 24px;
+      border-radius:10px;font-weight:700;font-size:14px;transition:all .2s;cursor:pointer;text-decoration:none;border:none;
+    }
+    .btn-hero-primary{background:#FCD116;color:#002A5C;}
+    .btn-hero-primary:hover{background:#fff;color:#002A5C;text-decoration:none;}
+    .btn-hero-outline{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);}
+    .btn-hero-outline:hover{background:rgba(255,255,255,.2);color:#fff;text-decoration:none;}
+
+    /* ── MAIN CONTENT ────────────────────── */
+    .main{max-width:1200px;margin:0 auto;padding:48px 24px 80px;}
+    .section-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+    .section-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+    .mb-section{margin-bottom:56px;}
+
+    /* ── PROJECT CARDS ───────────────────── */
+    .projets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
+    .projet-card{
+      background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+      border:1px solid var(--border);overflow:hidden;transition:transform .25s,box-shadow .25s;
+      display:flex;flex-direction:column;
+    }
+    .projet-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.1);}
+    .projet-img{height:160px;background:linear-gradient(135deg,#1e3a5f,#003F88);position:relative;overflow:hidden;}
+    .projet-img img{width:100%;height:100%;object-fit:cover;}
+    .projet-statut{
+      position:absolute;top:12px;left:12px;padding:4px 10px;border-radius:20px;
+      font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    }
+    .s-en_cours{background:rgba(0,63,136,.9);color:#fff;}
+    .s-terminé{background:rgba(0,122,61,.9);color:#fff;}
+    .s-planifié{background:rgba(14,165,233,.9);color:#fff;}
+    .s-suspendu{background:rgba(252,209,22,.9);color:#002A5C;}
+    .projet-body{padding:16px;flex:1;}
+    .projet-type{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .projet-titre{font-size:15px;font-weight:700;margin-bottom:10px;line-height:1.3;}
+    .projet-progress{margin-bottom:10px;}
+    .projet-progress-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;}
+    .progress-bar{height:6px;background:#E2E8F0;border-radius:10px;overflow:hidden;}
+    .progress-fill{height:100%;border-radius:10px;background:var(--blue);transition:width .6s;}
+    .projet-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);}
+    .btn-detail{color:var(--blue);font-weight:700;font-size:12px;text-decoration:none;display:flex;align-items:center;gap:4px;}
+    .btn-detail:hover{text-decoration:underline;}
+
+    /* ── INFOS COMMUNE ───────────────────── */
+    .info-card{background:var(--card);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .info-item strong{display:block;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;}
+    .info-item span{font-size:14px;font-weight:600;}
+
+    /* ── SUGGESTION BANNER ───────────────── */
+    .suggest-banner{
+      background:linear-gradient(135deg,var(--blue),#0052B4);
+      border-radius:var(--radius);padding:36px;display:flex;
+      align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;
+    }
+    .suggest-banner h3{color:#FCD116;font-size:18px;font-weight:800;margin-bottom:6px;}
+    .suggest-banner p{color:rgba(255,255,255,.8);font-size:14px;}
+
+    /* ── FOOTER ──────────────────────────── */
+    footer{text-align:center;padding:32px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);background:var(--card);}
+
+    /* ── RESPONSIVE ──────────────────────── */
+    @media(max-width:768px){
+      .kpi-band{grid-template-columns:repeat(2,1fr);}
+      .info-grid{grid-template-columns:1fr;}
+      .suggest-banner{flex-direction:column;text-align:center;}
+      .hero-actions{justify-content:center;}
+    }
+    @media(max-width:480px){
+      .kpi-band{grid-template-columns:repeat(2,1fr);}
+      .projets-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
+    <img src="<%= siteUrl %>/assets/images/logo.png" alt="MuniPro">
+    <span>MuniPro</span>
+  </a>
+  <div class="topnav-commune"><i class="bi bi-building" style="color:#FCD116;margin-right:6px;"></i><%= commune.nom %></div>
+  <a href="<%= siteUrl %>/portail-citoyen" class="btn-changer">
+    <i class="bi bi-arrow-left-circle"></i> Autre commune
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><i class="bi bi-broadcast-pin"></i> Suivi en temps réel</div>
+    <h1><%= commune.nom %></h1>
+    <p class="hero-sub">Transparence et développement communautaire au cœur de la gestion municipale du Littoral camerounais.</p>
+    <div class="hero-flag">
+      <span style="background:var(--green);"></span>
+      <span style="background:var(--red);"></span>
+      <span style="background:var(--yellow);"></span>
+    </div>
+
+    <div class="kpi-band">
+      <div class="kpi-cell">
+        <div class="val"><%= stats.total %></div>
+        <div class="lbl">Projets</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="val"><%= stats.en_cours %></div>
+        <div class="lbl">En cours</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="val"><%= stats.termines %></div>
+        <div class="lbl">Terminés</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="val"><%= stats.taux_moyen %>%</div>
+        <div class="lbl">Réalisation</div>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <a href="#projets" class="btn-hero btn-hero-primary"><i class="bi bi-folder-fill"></i> Voir les projets</a>
+      <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-hero btn-hero-outline"><i class="bi bi-chat-dots"></i> Faire une suggestion</a>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- PROJETS RECENTS -->
+  <div class="mb-section" id="projets">
+    <div class="section-title"><i class="bi bi-folder-fill" style="color:var(--blue);"></i> Projets de la commune</div>
+    <div class="section-sub"><%= projets.length %> projet(s) public(s) · Dernières mises à jour</div>
+    <% if (projets.length === 0) { %>
+    <div style="text-align:center;padding:48px;color:var(--muted);">
+      <i class="bi bi-folder-x" style="font-size:48px;display:block;margin-bottom:12px;opacity:.3;"></i>
+      <p>Aucun projet public disponible pour le moment.</p>
+    </div>
+    <% } else { %>
+    <div class="projets-grid">
+      <% projets.forEach(p => { %>
+      <div class="projet-card">
+        <div class="projet-img">
+          <% if (p.photo) { %>
+            <img src="<%= siteUrl %>/assets/uploads/<%= p.photo %>" alt="<%= p.titre %>">
+          <% } %>
+          <span class="projet-statut s-<%= p.statut.replace(' ','_') %>"><%= p.statut.replace('_',' ') %></span>
+        </div>
+        <div class="projet-body">
+          <div class="projet-type"><%= p.type_nom || 'Projet' %></div>
+          <div class="projet-titre"><%= p.titre %></div>
+          <div class="projet-progress">
+            <div class="projet-progress-top">
+              <span>Avancement physique</span>
+              <span style="font-weight:700;color:var(--blue);"><%= p.avancement_physique %>%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:<%= p.avancement_physique %>%;background:<%= p.avancement_physique>70 ? 'var(--green)' : p.avancement_physique>40 ? '#F59E0B' : 'var(--red)' %>;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="projet-footer">
+          <span><i class="bi bi-calendar3"></i> <%= p.date_fin_prevue ? new Date(p.date_fin_prevue).toLocaleDateString('fr-FR') : '—' %></span>
+          <a href="<%= siteUrl %>/portail-citoyen/projet/<%= p.id %>" class="btn-detail"><i class="bi bi-arrow-right-circle"></i> Détails</a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- INFOS COMMUNE -->
+  <div class="mb-section">
+    <div class="section-title"><i class="bi bi-info-circle-fill" style="color:var(--blue);"></i> Informations sur la commune</div>
+    <div class="section-sub">Données institutionnelles officielles</div>
+    <div class="info-card">
+      <div class="info-grid">
+        <div class="info-item"><strong>Commune</strong><span><%= commune.nom %></span></div>
+        <div class="info-item"><strong>Région</strong><span><%= commune.region %>, Cameroun</span></div>
+        <div class="info-item"><strong>Responsable</strong><span><%= commune.responsable || '—' %></span></div>
+        <div class="info-item"><strong>Contact Email</strong><span><%= commune.email %></span></div>
+        <div class="info-item"><strong>Téléphone</strong><span><%= commune.telephone || '—' %></span></div>
+        <div class="info-item"><strong>Budget total des projets</strong><span style="color:var(--blue);font-weight:800;"><%= formatMontant(commune.budget_total) %></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUGGESTION BANNER -->
+  <div class="suggest-banner">
+    <div>
+      <h3><i class="bi bi-chat-quote-fill"></i> Votre avis compte !</h3>
+      <p>Signalez un problème ou suggérez un nouveau projet pour votre commune.<br>Votre participation contribue au développement local.</p>
+    </div>
+    <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-hero btn-hero-primary" style="padding:14px 28px;font-size:15px;">
+      <i class="bi bi-send-fill"></i> Soumettre une suggestion
+    </a>
+  </div>
+
+</div>
+
+<footer>
+  <strong style="color:#FCD116;">MuniPro</strong> — Portail Citoyen · <%= commune.nom %><br>
+  <small>Projet de Suivi Numérique des Communes Urbaines du Littoral © <%= new Date().getFullYear() %></small>
+</footer>
+
+</body>
+</html>

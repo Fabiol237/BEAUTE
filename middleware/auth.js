@@ -1,0 +1,37 @@
+const { estConnecte, peutFaire } = require('../lib/helpers');
+const { setFlash } = require('./flash');
+const config = require('../config');
+
+function requireConnexion(req, res, next) {
+  if (!estConnecte(req.session)) {
+    return res.redirect('/login');
+  }
+  next();
+}
+
+function requireRole(role) {
+  return (req, res, next) => {
+    if (!peutFaire(req.session, role)) {
+      setFlash(req, 'danger', 'Accès refusé.');
+      return res.redirect('/dashboard');
+    }
+    next();
+  };
+}
+
+function requireAdmin(req, res, next) {
+  if ((req.session.utilisateur_role || '') !== 'admin') {
+    setFlash(req, 'danger', 'Accès refusé. Cette page est réservée aux administrateurs.');
+    return res.redirect('/dashboard');
+  }
+  next();
+}
+
+function guestOnly(req, res, next) {
+  if (estConnecte(req.session)) {
+    return res.redirect('/dashboard');
+  }
+  next();
+}
+
+module.exports = { requireConnexion, requireRole, requireAdmin, guestOnly };

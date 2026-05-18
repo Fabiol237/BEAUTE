@@ -1,0 +1,24 @@
+<%- include('../partials/header', { page_title: 'Gestion Budgétaire' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<%- getFlash() %>
+<h1 class="mb-4"><i class="bi bi-wallet2 me-2"></i>Gestion Budgétaire</h1>
+<% if (stats_budget.depenses_attente>0) { %><div class="alert alert-warning"><%= stats_budget.depenses_attente %> dépense(s) en attente</div><% } %>
+<div class="row mb-4">
+<div class="col-md-3"><div class="card p-3"><small>Budget total</small><h3><%= (stats_budget.budget_total/1e6).toFixed(1) %>M</h3></div></div>
+<div class="col-md-3"><div class="card p-3"><small>Dépenses validées</small><h3 class="text-danger"><%= (stats_budget.depenses_total/1e6).toFixed(1) %>M</h3></div></div>
+<div class="col-md-3"><div class="card p-3"><small>Restant</small><h3 class="text-success"><%= (stats_budget.restant/1e6).toFixed(1) %>M</h3></div></div>
+<div class="col-md-3"><div class="card p-3"><small>Utilisation</small><h3><%= stats_budget.pourcentage %>%</h3></div></div>
+</div>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+<thead><tr><th>Projet</th><th>Budget</th><th>Dépensé</th><th>Restant</th><th>%</th><th></th></tr></thead>
+<tbody>
+<% projets.forEach(p=>{ const rest=p.budget_actuel-p.total_depenses; const pct=p.budget_actuel>0?Math.round(p.total_depenses/p.budget_actuel*1000)/10:0; %>
+<tr>
+<td><%= e(p.titre) %></td>
+<td><%= formatMontant(p.budget_actuel) %></td><td><%= formatMontant(p.total_depenses) %></td>
+<td><%= formatMontant(rest) %></td><td><span class="badge bg-secondary"><%= pct %>%</span></td>
+<td><a href="<%= siteUrl %>/budget/depenses?projet_id=<%= p.id %>" class="btn btn-sm btn-outline-primary">Détails</a></td>
+</tr><% }); %>
+</tbody></table></div></div></div>
+<%- include('../partials/footer') %>

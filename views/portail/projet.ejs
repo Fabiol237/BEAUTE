@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= projet.titre %> — Portail Citoyen · MuniPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --green:#007A3D; --yellow:#FCD116; --red:#CE1126;
+      --blue:#003F88; --dark:#0D1B2A; --text:#1A2332;
+      --muted:#64748B; --border:#E2E8F0; --bg:#F0F5FF; --card:#FFFFFF;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+
+    /* ── TOP NAV ───────────────────────────── */
+    .topnav{
+      position:fixed;top:0;left:0;right:0;z-index:1000;
+      background:rgba(13,27,42,0.97);backdrop-filter:blur(12px);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;height:60px;border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .topnav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .topnav-logo img{height:36px;}
+    .topnav-logo span{color:#FCD116;font-weight:800;font-size:16px;}
+    .topnav-breadcrumb{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.6);font-size:12px;}
+    .topnav-breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s;}
+    .topnav-breadcrumb a:hover{color:#FCD116;}
+    .topnav-breadcrumb .sep{opacity:.3;}
+    .topnav-breadcrumb .current{color:rgba(255,255,255,.9);font-weight:600;}
+    .btn-back{
+      display:flex;align-items:center;gap:6px;
+      color:rgba(255,255,255,.6);font-size:11px;font-weight:600;
+      text-decoration:none;border:1px solid rgba(255,255,255,.15);
+      padding:5px 12px;border-radius:20px;transition:all .2s;
+    }
+    .btn-back:hover{color:#fff;border-color:rgba(255,255,255,.4);text-decoration:none;}
+
+    /* ── HERO ─────────────────────────────── */
+    .hero{
+      margin-top:60px;
+      min-height:340px;
+      background:<%= heroColor %>;
+      position:relative;overflow:hidden;
+      display:flex;align-items:flex-end;padding:48px 24px 36px;
+    }
+    .hero::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.2) 60%, transparent 100%);
+    }
+    <% if (projet.photo) { %>
+    .hero{background-image:url('<%= siteUrl %>/assets/uploads/<%= projet.photo %>');background-size:cover;background-position:center;}
+    <% } %>
+    .hero-content{position:relative;z-index:1;max-width:900px;width:100%;}
+    .hero-type{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;
+      background:rgba(252,209,22,.2);border:1px solid rgba(252,209,22,.5);color:#FCD116;
+    }
+    .hero h1{color:#fff;font-size:clamp(22px,4vw,38px);font-weight:900;line-height:1.2;margin-bottom:10px;}
+    .hero-commune{color:rgba(255,255,255,.75);font-size:14px;display:flex;align-items:center;gap:6px;}
+
+    /* ── STATUS BAR ───────────────────────── */
+    .status-bar{
+      background:#fff;border-bottom:1px solid var(--border);
+      padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .status-pill{
+      display:inline-flex;align-items:center;gap:5px;
+      padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;
+    }
+    .sp-en_cours{background:rgba(0,63,136,.1);color:var(--blue);}
+    .sp-terminé{background:rgba(0,122,61,.1);color:var(--green);}
+    .sp-planifié{background:rgba(14,165,233,.1);color:#0284C7;}
+    .sp-suspendu{background:rgba(252,209,22,.2);color:#854d0e;}
+    .sp-annulé{background:rgba(206,17,38,.1);color:var(--red);}
+    .status-meta{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;}
+
+    /* ── MAIN LAYOUT ─────────────────────── */
+    .main{max-width:1100px;margin:0 auto;padding:36px 24px 80px;display:grid;grid-template-columns:1fr 360px;gap:28px;}
+
+    /* ── LEFT COLUMN ─────────────────────── */
+    .card{background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;margin-bottom:24px;}
+    .card-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .card-header h3{font-size:15px;font-weight:700;margin:0;}
+    .card-body{padding:24px;}
+    .description{font-size:14px;line-height:1.8;color:var(--text);}
+
+    /* Progress */
+    .progress-section{padding:24px;}
+    .progress-label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;}
+    .progress-label span:last-child{font-weight:800;color:var(--blue);}
+    .prog-bar{height:12px;background:#E2E8F0;border-radius:10px;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:10px;transition:width .8s;}
+
+    /* Photos */
+    .photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:16px;}
+    .photo-item{border-radius:10px;overflow:hidden;aspect-ratio:4/3;}
+    .photo-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+    .photo-item:hover img{transform:scale(1.05);}
+
+    /* ── RIGHT COLUMN ────────────────────── */
+    .sidebar-card{background:#fff;border-radius:16px;border:1px solid var(--border);padding:22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+    .sidebar-card h4{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:6px;color:var(--text);}
+    .kpi-stack{display:flex;flex-direction:column;gap:10px;}
+    .kpi-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#F8FAFC;border-radius:10px;border:1px solid var(--border);}
+    .kpi-row .lbl{font-size:12px;color:var(--muted);font-weight:500;}
+    .kpi-row .val{font-size:16px;font-weight:800;color:var(--text);}
+    .timeline{display:flex;flex-direction:column;gap:0;}
+    .tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .tl-item:last-child{border-bottom:none;}
+    .tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+    .tl-dot.green{background:rgba(0,122,61,.1);color:var(--green);}
+    .tl-dot.blue{background:rgba(0,63,136,.1);color:var(--blue);}
+    .tl-dot.yellow{background:rgba(252,209,22,.2);color:#854d0e;}
+    .tl-info .lbl{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;}
+    .tl-info .val{font-size:13px;font-weight:700;}
+
+    /* CTA */
+    .btn-cta{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:700;
+      text-decoration:none;transition:all .2s;border:none;cursor:pointer;
+    }
+    .btn-primary-cta{background:var(--blue);color:#fff;}
+    .btn-primary-cta:hover{background:#0052B4;color:#fff;text-decoration:none;transform:translateY(-1px);}
+    .btn-yellow-cta{background:var(--yellow);color:var(--dark);}
+    .btn-yellow-cta:hover{background:#E6BC00;color:var(--dark);text-decoration:none;transform:translateY(-1px);}
+
+    @media(max-width:900px){
+      .main{grid-template-columns:1fr;}
+    }
+    @media(max-width:480px){
+      .photos-grid{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
+    <img src="<%= siteUrl %>/assets/images/logo.png" alt="MuniPro">
+    <span>MuniPro</span>
+  </a>
+  <div class="topnav-breadcrumb">
+    <a href="<%= siteUrl %>/portail-citoyen">Communes</a>
+    <span class="sep">›</span>
+    <a href="<%= siteUrl %>/portail-citoyen/commune/<%= projet.commune_id %>"><%= projet.commune_nom %></a>
+    <span class="sep">›</span>
+    <span class="current"><%= projet.titre.length > 30 ? projet.titre.substring(0,30)+'…' : projet.titre %></span>
+  </div>
+  <a href="javascript:history.back()" class="btn-back"><i class="bi bi-arrow-left"></i> Retour</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-type"><i class="bi bi-folder-fill"></i> <%= projet.type_nom || 'Projet' %></div>
+    <h1><%= projet.titre %></h1>
+    <div class="hero-commune"><i class="bi bi-geo-alt-fill"></i> <%= projet.commune_nom %> — Région du Littoral</div>
+  </div>
+</section>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span class="status-pill sp-<%= projet.statut.replace(' ','_') %>">
+    <i class="bi bi-circle-fill" style="font-size:8px;"></i> <%= projet.statut.replace('_',' ').toUpperCase() %>
+  </span>
+  <% if (projet.date_debut) { %>
+  <span class="status-meta"><i class="bi bi-calendar-event"></i> Début : <strong><%= new Date(projet.date_debut).toLocaleDateString('fr-FR') %></strong></span>
+  <% } %>
+  <% if (projet.date_fin_prevue) { %>
+  <span class="status-meta"><i class="bi bi-calendar-check"></i> Fin prévue : <strong><%= new Date(projet.date_fin_prevue).toLocaleDateString('fr-FR') %></strong></span>
+  <% } %>
+  <span class="status-meta" style="margin-left:auto;"><i class="bi bi-clock"></i> Mis à jour : <%= new Date(projet.updated_at || projet.created_at).toLocaleDateString('fr-FR') %></span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT -->
+  <div>
+    <!-- AVANCEMENT -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bar-chart-fill" style="color:var(--blue);"></i><h3>Avancement des travaux</h3></div>
+      <div class="progress-section">
+        <div class="progress-label">
+          <span>Progression physique globale</span>
+          <span><%= projet.avancement_physique %>%</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill" style="width:<%= projet.avancement_physique %>%;background:<%= projet.avancement_physique>70 ? '#007A3D' : projet.avancement_physique>40 ? '#F59E0B' : '#CE1126' %>;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <% if (projet.description) { %>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-file-text-fill" style="color:var(--blue);"></i><h3>Description du projet</h3></div>
+      <div class="card-body">
+        <p class="description"><%= projet.description %></p>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- PHOTOS -->
+    <% if (photos_list && photos_list.length > 0) { %>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-images" style="color:var(--blue);"></i><h3>Photos du chantier (<%= photos_list.length %>)</h3></div>
+      <div class="photos-grid">
+        <% photos_list.forEach(ph => { %>
+        <div class="photo-item">
+          <img src="<%= siteUrl %>/assets/uploads/<%= ph.fichier_url || ph.fichier %>" alt="Photo chantier">
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div>
+    <!-- BUDGET & CHIFFRES -->
+    <div class="sidebar-card">
+      <h4><i class="bi bi-graph-up" style="color:var(--blue);"></i> Indicateurs clés</h4>
+      <div class="kpi-stack">
+        <div class="kpi-row">
+          <span class="lbl">Budget du projet</span>
+          <span class="val" style="color:var(--blue)"><%= formatMontant(projet.budget_actuel) %></span>
+        </div>
+        <div class="kpi-row">
+          <span class="lbl">Avancement physique</span>
+          <span class="val"><%= projet.avancement_physique %>%</span>
+        </div>
+        <div class="kpi-row">
+          <span class="lbl">Secteur d'activité</span>
+          <span class="val" style="font-size:13px;"><%= projet.type_nom || '—' %></span>
+        </div>
+        <div class="kpi-row">
+          <span class="lbl">Commune bénéficiaire</span>
+          <span class="val" style="font-size:13px;"><%= projet.commune_nom %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDRIER -->
+    <div class="sidebar-card">
+      <h4><i class="bi bi-calendar3" style="color:var(--blue);"></i> Calendrier</h4>
+      <div class="timeline">
+        <% if (projet.date_debut) { %>
+        <div class="tl-item">
+          <div class="tl-dot green"><i class="bi bi-play-fill"></i></div>
+          <div class="tl-info">
+            <div class="lbl">Date de début</div>
+            <div class="val"><%= new Date(projet.date_debut).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}) %></div>
+          </div>
+        </div>
+        <% } %>
+        <% if (projet.date_fin_prevue) { %>
+        <div class="tl-item">
+          <div class="tl-dot yellow"><i class="bi bi-flag-fill"></i></div>
+          <div class="tl-info">
+            <div class="lbl">Fin prévue</div>
+            <div class="val"><%= new Date(projet.date_fin_prevue).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}) %></div>
+          </div>
+        </div>
+        <% } %>
+        <% if (projet.date_fin_reelle) { %>
+        <div class="tl-item">
+          <div class="tl-dot blue"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="tl-info">
+            <div class="lbl">Livraison effective</div>
+            <div class="val"><%= new Date(projet.date_fin_reelle).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}) %></div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <a href="<%= siteUrl %>/portail-citoyen/suggestion?projet_id=<%= projet.id %>" class="btn-cta btn-yellow-cta">
+        <i class="bi bi-chat-dots-fill"></i> Faire une suggestion
+      </a>
+      <a href="<%= siteUrl %>/portail-citoyen/commune/<%= projet.commune_id %>" class="btn-cta btn-primary-cta">
+        <i class="bi bi-building"></i> Voir tous les projets de la commune
+      </a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

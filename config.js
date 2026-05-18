@@ -1,0 +1,18 @@
+require('dotenv').config();
+const path = require('path');
+
+module.exports = {
+  port: parseInt(process.env.PORT || '3000', 10),
+  siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+  siteName: process.env.SITE_NAME || 'Suivi Projets Municipaux',
+  sessionSecret: process.env.SESSION_SECRET || 'suivi-projets-dev-secret',
+  db: {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'suivi_projets_municipaux',
+  },
+  rootDir: __dirname,
+  uploadsDir: path.join(__dirname, 'assets', 'uploads'),
+  signalementsDir: path.join(__dirname, 'assets', 'uploads', 'signalements'),
+};

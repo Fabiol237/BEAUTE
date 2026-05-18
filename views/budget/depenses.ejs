@@ -1,0 +1,37 @@
+<%- include('../partials/header', { page_title: 'Gestion des Dépenses' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<%- getFlash() %>
+<div class="page-header mb-4 d-flex justify-content-between">
+<div><h1><i class="bi bi-receipt me-2"></i>Dépenses</h1><p><strong><%= e(projet.titre) %></strong></p></div>
+<a href="<%= siteUrl %>/projets/liste" class="btn btn-secondary">Retour</a>
+</div>
+<% if (erreurs && erreurs.length) { %><div class="alert alert-danger"><ul><% erreurs.forEach(er=>{ %><li><%= e(er) %></li><% }); %></ul></div><% } %>
+<div class="row mb-4">
+<div class="col-md-4"><div class="card p-3">Budget: <strong><%= (projet.budget_actuel/1e6).toFixed(1) %>M</strong></div></div>
+<div class="col-md-4"><div class="card p-3">Dépensé: <strong class="text-danger"><%= (total_depenses/1e6).toFixed(1) %>M</strong> (<%= pourcentage_utilise %>%)</div></div>
+<div class="col-md-4"><div class="card p-3">Restant: <strong><%= (budget_restant/1e6).toFixed(1) %>M</strong></div></div>
+</div>
+<div class="row">
+<div class="col-lg-5 mb-4"><div class="card"><div class="card-header">Nouvelle dépense</div><div class="card-body">
+<form method="POST" action="<%= siteUrl %>/budget/depenses?projet_id=<%= projet_id %>">
+<input type="hidden" name="action" value="ajouter">
+<input type="hidden" name="projet_id" value="<%= projet_id %>">
+<div class="mb-2"><label>Libellé *</label><input name="libelle" class="form-control" required></div>
+<div class="mb-2"><label>Montant *</label><input name="montant" type="number" class="form-control" min="1" required></div>
+<div class="mb-2"><label>Date</label><input name="date_depense" type="date" class="form-control" value="<%= todayIso() %>"></div>
+<div class="mb-2"><label>Fournisseur</label><input name="fournisseur" class="form-control"></div>
+<div class="mb-2"><label>N° facture</label><input name="numero_facture" class="form-control"></div>
+<div class="mb-2"><label>Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+<button class="btn btn-primary w-100">Enregistrer</button>
+</form></div></div></div>
+<div class="col-lg-7"><div class="card"><div class="card-header">Liste</div><table class="table mb-0">
+<thead><tr><th>Date</th><th>Libellé</th><th>Montant</th><th>Validée</th></tr></thead>
+<tbody>
+<% depenses_list.forEach(d=>{ %>
+<tr><td><%= formatDate(d.date_depense) %></td><td><%= e(d.libelle) %></td><td><%= formatMontant(d.montant) %></td>
+<td><%= d.validee ? 'Oui' : 'Non' %></td></tr>
+<% }); %>
+</tbody></table></div></div>
+</div></div>
+<%- include('../partials/footer') %>

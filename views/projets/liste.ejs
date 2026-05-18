@@ -1,0 +1,31 @@
+<%- include('../partials/header', { page_title: 'Liste des projets' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<%- getFlash() %>
+<div class="page-header mb-4 d-flex justify-content-between">
+<div><h1><i class="bi bi-folder me-2"></i>Projets</h1></div>
+<a href="<%= siteUrl %>/projets/creer" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Nouveau projet</a>
+</div>
+<div class="card mb-4"><div class="card-body">
+<form method="GET" class="row g-3">
+<div class="col-md-4"><input type="text" name="search" class="form-control" placeholder="Rechercher..." value="<%= e(search) %>"></div>
+<div class="col-md-3"><select name="statut" class="form-select"><option value="">Tous statuts</option>
+<% ['planifié','en_cours','suspendu','terminé','annulé'].forEach(s => { %><option value="<%= s %>" <%= filtre_statut===s?'selected':'' %>><%= s %></option><% }); %>
+</select></div>
+
+<div class="col-md-2"><button class="btn btn-primary w-100">Filtrer</button></div>
+</form></div></div>
+<div class="row">
+<% projets.forEach(projet => { %>
+<div class="col-lg-4 col-md-6 mb-4"><div class="card h-100 project-card">
+<div class="card-body">
+<div class="d-flex justify-content-between mb-2"><h5 class="card-title"><%= e(projet.titre) %></h5><%- getStatutBadge(projet.statut) %></div>
+<p class="text-muted small"><%= e((projet.description||'').substring(0,100)) %>...</p>
+<div class="progress mb-2" style="height:8px"><div class="progress-bar <%= getProgressClass(projet.avancement_physique) %>" style="width:<%= projet.avancement_physique %>%"></div></div>
+<small><%= (projet.budget_actuel/1e6).toFixed(1) %>M FCFA — <%= projet.avancement_physique %>% avancement</small>
+<div class="mt-2"><a href="<%= siteUrl %>/projets/details/<%= projet.id %>" class="btn btn-sm btn-primary">Voir</a></div>
+</div></div></div>
+<% }); %>
+<% if (!projets.length) { %><div class="col-12 text-center py-5 text-muted">Aucun projet trouvé</div><% } %>
+</div></div>
+<%- include('../partials/footer') %>

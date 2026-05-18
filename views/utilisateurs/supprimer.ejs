@@ -1,0 +1,13 @@
+<%- include('../partials/header', { page_title: 'Supprimer utilisateur' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<div class="col-lg-6 mx-auto card border-danger">
+<div class="card-header bg-danger text-white">Supprimer l'utilisateur</div>
+<div class="card-body">
+<p>Confirmer la suppression de <strong><%= e(user.prenom+' '+user.nom) %></strong> (<%= e(user.email) %>) ?</p>
+<form method="POST">
+<button type="submit" name="confirmer" value="1" class="btn btn-danger w-100 mb-2">Supprimer</button>
+<a href="<%= siteUrl %>/utilisateurs/liste" class="btn btn-outline-secondary w-100">Annuler</a>
+</form>
+</div></div></div>
+<%- include('../partials/footer') %>

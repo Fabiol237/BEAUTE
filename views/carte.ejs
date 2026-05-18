@@ -1,0 +1,42 @@
+<%- include('partials/header', { page_title: 'Carte des Projets' }) %>
+<%- include('partials/navbar') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>#map{height:600px;width:100%;border-radius:1rem}</style>
+<div class="container-fluid mt-4">
+<div class="page-header mb-4 d-flex justify-content-between">
+<h1><i class="bi bi-geo-alt-fill me-2"></i>Carte des Projets</h1>
+<a href="<%= siteUrl %>/dashboard" class="btn btn-secondary">Retour</a>
+</div>
+<div class="row mb-3">
+<% [['total',stats_carte.total,'#2563eb'],['en_cours',stats_carte.en_cours,'#3b82f6'],['planifie',stats_carte.planifie,'#64748b'],['termine',stats_carte.termine,'#10b981']].forEach(([k,v,c])=>{ %>
+<div class="col-md-3"><div class="p-3 rounded text-white text-center" style="background:<%= c %>"><h3><%= v %></h3><small><%= k %></small></div></div>
+<% }); %>
+</div>
+<div class="row mb-3">
+
+<div class="col-md-4"><select id="statutFilter" class="form-select"><option value="">Tous statuts</option>
+<option value="planifié">Planifié</option><option value="en_cours">En cours</option><option value="terminé">Terminé</option><option value="suspendu">Suspendu</option>
+</select></div>
+<div class="col-md-4"><button id="resetFilters" class="btn btn-outline-secondary w-100">Réinitialiser</button></div>
+</div>
+<div id="map"></div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const projetsData=<%- JSON.stringify(projets) %>;
+const statusColors={'en_cours':'#3b82f6','planifié':'#64748b','terminé':'#10b981','suspendu':'#f59e0b'};
+const map=L.map('map').setView([4.0511,9.7679],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(map);
+let markers=[];
+function addMarkers(list=projetsData){markers.forEach(m=>map.removeLayer(m));markers=[];
+list.forEach(p=>{if(!p.latitude||!p.longitude)return;
+const m=L.marker([p.latitude,p.longitude]).addTo(map).bindPopup('<b>'+p.titre+'</b><br><a href="<%= siteUrl %>/projets/details/'+p.id+'">Détails</a>');
+markers.push(m);});
+if(markers.length){const g=L.featureGroup(markers);map.fitBounds(g.getBounds().pad(0.1));}}
+addMarkers();
+document.getElementById('statutFilter').onchange=()=>{
+const s=document.getElementById('statutFilter').value;
+addMarkers(projetsData.filter(p=>(!s||p.statut===s)));};
+document.getElementById('resetFilters').onclick=()=>{document.getElementById('statutFilter').value='';addMarkers();};
+</script>
+<%- include('partials/footer') %>

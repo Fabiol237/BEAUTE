@@ -1,0 +1,45 @@
+<%- include('partials/header', { page_title: 'Connexion' }) %>
+<div class="login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card login-card">
+                    <div class="login-header">
+                        <img src="<%= siteUrl %>/assets/images/logo.png" alt="Logo" style="height:35px;width:35px;object-fit:contain;margin-right:10px;background:white;padding:5px;border-radius:8px;">
+                        <h3 class="mb-0">Suivi Projets Municipaux</h3>
+                        <p class="mb-0 opacity-75">Communes Urbaines du Littoral</p>
+                    </div>
+                    <div class="login-body">
+                        <h4 class="text-center mb-4">Connexion</h4>
+                        <% if (erreur) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-circle me-2"></i><%= e(erreur) %>
+                        </div>
+                        <% } %>
+                        <form method="POST" action="/login">
+                            <div class="mb-3">
+                                <label for="email" class="form-label"><i class="bi bi-envelope me-1"></i> Email</label>
+                                <input type="email" class="form-control form-control-lg" id="email" name="email"
+                                       placeholder="votre@email.com" value="<%= e(body.email || '') %>" required autofocus>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label"><i class="bi bi-lock me-1"></i> Mot de passe</label>
+                                <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="••••••••" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center text-muted bg-light">
+                        <small><i class="bi bi-shield-check me-1"></i>Connexion sécurisée</small>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <p class="text-white"><i class="bi bi-info-circle me-1"></i>Compte de test : admin@commune-littoral.cm / admin123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('partials/footer') %>

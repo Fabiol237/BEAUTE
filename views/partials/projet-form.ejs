@@ -1,0 +1,115 @@
+<% const b = body || {}; const isEdit = typeof projet_id !== 'undefined' && projet_id; %>
+<form method="POST" id="formProjet">
+<div class="row g-4">
+<div class="col-lg-8">
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Informations générales</h5></div>
+<div class="card-body">
+<div class="mb-3"><label class="form-label fw-semibold">Nom du projet *</label>
+<input type="text" name="titre" class="form-control form-control-lg" value="<%= e(b.titre || '') %>" required></div>
+<div class="mb-3"><label class="form-label fw-semibold">Description</label>
+<textarea name="description" class="form-control" rows="4"><%= e(b.description || '') %></textarea></div>
+<div class="row g-3">
+<div class="col-md-6"><label class="form-label fw-semibold">Type *</label>
+<select name="type_projet_id" class="form-select" required><option value="">Choisir...</option>
+<% types_projets.forEach(t => { %><option value="<%= t.id %>" <%= String(b.type_projet_id)===String(t.id)?'selected':'' %>><%= e(t.nom) %></option><% }); %>
+</select></div>
+
+<div class="col-12"><label class="form-label fw-semibold">Adresse</label><input type="text" name="adresse" class="form-control" value="<%= e(b.adresse || '') %>"></div>
+<div class="col-md-6"><label class="form-label">Latitude</label><input type="text" name="latitude" class="form-control" value="<%= e(b.latitude || '') %>"></div>
+<div class="col-md-6"><label class="form-label">Longitude</label><input type="text" name="longitude" class="form-control" value="<%= e(b.longitude || '') %>"></div>
+<div class="col-12"><div class="form-check form-switch">
+<input class="form-check-input" type="checkbox" name="visible_public" id="visible_public" <%= (b.visible_public===undefined||b.visible_public==1||b.visible_public===true)?'checked':'' %>>
+<label class="form-check-label" for="visible_public">Visible sur le portail citoyen</label></div></div>
+</div></div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-success text-white"><h5 class="mb-0"><i class="bi bi-cash-stack me-2"></i> Finances</h5></div>
+<div class="card-body row g-3">
+<div class="col-md-6"><label class="form-label fw-semibold"><%= isEdit ? 'Budget actuel' : 'Budget total' %> (FCFA) *</label>
+<input type="number" name="<%= isEdit ? 'budget_actuel' : 'budget_initial' %>" class="form-control" min="1" value="<%= e(isEdit ? b.budget_actuel : b.budget_initial || '') %>" required></div>
+<div class="col-md-6"><label class="form-label">Budget déjà utilisé</label>
+<input type="number" name="budget_deja_utilise" class="form-control" min="0" value="<%= e(b.budget_deja_utilise || '0') %>"></div>
+<div class="col-12"><label class="form-label">Source de financement</label>
+<input type="text" name="source_financement" class="form-control" value="<%= e(typeof source_financement !== 'undefined' ? source_financement : (budget_source && budget_source.source_financement) || '') %>"></div>
+</div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-info text-white"><h5 class="mb-0"><i class="bi bi-calendar-range me-2"></i> Planning</h5></div>
+<div class="card-body row g-3">
+<div class="col-md-6"><label class="form-label">Date début *</label><input type="date" name="date_debut" id="date_debut" class="form-control" value="<%= e(b.date_debut ? String(b.date_debut).slice(0,10) : '') %>" required></div>
+<div class="col-md-6"><label class="form-label">Date fin prévue *</label><input type="date" name="date_fin_prevue" id="date_fin_prevue" class="form-control" value="<%= e(b.date_fin_prevue ? String(b.date_fin_prevue).slice(0,10) : '') %>" required></div>
+<% if (isEdit) { %><div class="col-md-6"><label class="form-label">Date fin réelle</label><input type="date" name="date_fin_reelle" class="form-control" value="<%= e(b.date_fin_reelle ? String(b.date_fin_reelle).slice(0,10) : '') %>"></div><% } %>
+</div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-warning text-dark"><h5 class="mb-0"><i class="bi bi-graph-up me-2"></i> Suivi</h5></div>
+<div class="card-body row g-3">
+<div class="col-md-4"><label class="form-label">Statut</label><select name="statut" class="form-select">
+<% ['planifié','en_cours','suspendu','terminé','annulé'].forEach(s => { %><option value="<%= s %>" <%= (b.statut||'planifié')===s?'selected':'' %>><%= s %></option><% }); %>
+</select></div>
+<div class="col-md-4"><label class="form-label">Priorité</label><select name="priorite" class="form-select">
+<% [['basse','Basse'],['normale','Normale'],['haute','Haute'],['critique','Critique']].forEach(([v,l]) => { %><option value="<%= v %>" <%= (b.priorite||'normale')===v?'selected':'' %>><%= l %></option><% }); %>
+</select></div>
+<div class="col-md-4"><label class="form-label">Avancement : <span id="pctLabel"><%= b.avancement_physique || 0 %></span>%</label>
+<input type="range" name="avancement_physique" class="form-range" min="0" max="100" step="5" value="<%= b.avancement_physique || 0 %>" oninput="document.getElementById('pctLabel').textContent=this.value"></div>
+</div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header text-white d-flex justify-content-between" style="background:#6f42c1;">
+<h5 class="mb-0"><i class="bi bi-layers me-2"></i> Phases</h5><button type="button" class="btn btn-sm btn-light" onclick="ajouterPhase()">Ajouter</button></div>
+<div class="card-body" id="phasesContainer">
+<% phases_list.forEach((ph, idx) => { %>
+<div class="phase-ligne d-flex gap-2 mb-2 p-2 bg-light rounded flex-wrap">
+<input type="text" name="phase_titre[]" class="form-control form-control-sm flex-grow-1" placeholder="Phase" value="<%= e(ph[0]||'') %>">
+<select name="phase_statut[]" class="form-select form-select-sm" style="width:140px;">
+<% [['non_commencé','Non commencé'],['en_cours','En cours'],['réalisé','Réalisé'],['en_retard','Retard']].forEach(([v,l]) => { %>
+<option value="<%= v %>" <%= (ph[1]||'non_commencé')===v?'selected':'' %>><%= l %></option><% }); %>
+</select>
+<input type="number" name="phase_pct[]" class="form-control form-control-sm" style="width:65px" min="0" max="100" value="<%= ph[2]||0 %>">
+<input type="date" name="phase_date_prevue[]" class="form-control form-control-sm" style="width:145px" value="<%= e(ph[3]||'') %>">
+<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.phase-ligne').remove()"><i class="bi bi-trash"></i></button>
+</div><% }); %>
+</div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-secondary text-white"><h5 class="mb-0"><i class="bi bi-journal-text me-2"></i> Consignes</h5></div>
+<div class="card-body"><textarea name="consignes" class="form-control" rows="3"><%= e(b.consignes || '') %></textarea></div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-danger text-white d-flex justify-content-between"><h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i> Risques</h5>
+<button type="button" class="btn btn-sm btn-light" onclick="ajouterRisque()">Ajouter</button></div>
+<div class="card-body" id="risquesContainer">
+<% risques_list.forEach(rq => { %>
+<div class="risque-ligne d-flex gap-2 mb-2">
+<input type="text" name="risque_desc[]" class="form-control form-control-sm flex-grow-1" value="<%= e(rq[0]||'') %>">
+<select name="risque_niveau[]" class="form-select form-select-sm" style="width:130px;">
+<% [['faible','Faible'],['moyen','Moyen'],['élevé','Élevé'],['critique','Critique']].forEach(([v,l]) => { %>
+<option value="<%= v %>" <%= (rq[1]||'moyen')===v?'selected':'' %>><%= l %></option><% }); %>
+</select>
+<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.risque-ligne').remove()"><i class="bi bi-trash"></i></button>
+</div><% }); %>
+</div></div>
+<div class="card mb-4 border-0 shadow-sm">
+<div class="card-header bg-primary text-white d-flex justify-content-between"><h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i> KPIs</h5>
+<button type="button" class="btn btn-sm btn-light" onclick="ajouterKPI()">Ajouter</button></div>
+<div class="card-body" id="kpisContainer">
+<% kpis_list.forEach(kp => { %>
+<div class="kpi-ligne d-flex gap-2 mb-2">
+<input type="text" name="kpi_libelle[]" class="form-control form-control-sm flex-grow-1" value="<%= e(kp[0]||'') %>">
+<input type="text" name="kpi_cible[]" class="form-control form-control-sm" style="width:180px" value="<%= e(kp[1]||'') %>">
+<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.kpi-ligne').remove()"><i class="bi bi-trash"></i></button>
+</div><% }); %>
+</div></div>
+</div>
+<div class="col-lg-4">
+<div class="card border-0 shadow-sm sticky-top" style="top:20px;">
+<div class="card-header bg-dark text-white"><h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Gestion</h5></div>
+<div class="card-body">
+<div class="mb-3 p-2 bg-light rounded"><strong><%= e(session.utilisateur_prenom + ' ' + session.utilisateur_nom) %></strong><br><small class="text-muted"><%= e(session.role_nom || '') %></small></div>
+<div class="mb-3"><label class="form-label">Entreprise exécutante</label>
+<input type="text" name="entreprise_executante" class="form-control" value="<%= e(b.entreprise_executante || '') %>"></div>
+<div class="d-grid gap-2">
+<button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle me-2"></i><%= isEdit ? 'Enregistrer' : 'Créer le projet' %></button>
+<a href="<%= siteUrl %>/projets/liste" class="btn btn-outline-secondary">Annuler</a>
+</div></div></div></div></div>
+</form>
+<script>
+function ajouterPhase(){const c=document.getElementById('phasesContainer');const d=document.createElement('div');d.className='phase-ligne d-flex gap-2 mb-2 p-2 bg-light rounded';d.innerHTML='<input type="text" name="phase_titre[]" class="form-control form-control-sm flex-grow-1"><select name="phase_statut[]" class="form-select form-select-sm" style="width:140px"><option value="non_commencé">Non commencé</option><option value="en_cours">En cours</option><option value="réalisé">Réalisé</option><option value="en_retard">Retard</option></select><input type="number" name="phase_pct[]" class="form-control form-control-sm" style="width:65px" min="0" max="100"><input type="date" name="phase_date_prevue[]" class="form-control form-control-sm" style="width:145px"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.phase-ligne\').remove()"><i class="bi bi-trash"></i></button>';c.appendChild(d);}
+function ajouterRisque(){const c=document.getElementById('risquesContainer');const d=document.createElement('div');d.className='risque-ligne d-flex gap-2 mb-2';d.innerHTML='<input type="text" name="risque_desc[]" class="form-control form-control-sm flex-grow-1"><select name="risque_niveau[]" class="form-select form-select-sm" style="width:130px"><option value="moyen" selected>Moyen</option><option value="faible">Faible</option><option value="élevé">Élevé</option><option value="critique">Critique</option></select><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.risque-ligne\').remove()"><i class="bi bi-trash"></i></button>';c.appendChild(d);}
+function ajouterKPI(){const c=document.getElementById('kpisContainer');const d=document.createElement('div');d.className='kpi-ligne d-flex gap-2 mb-2';d.innerHTML='<input type="text" name="kpi_libelle[]" class="form-control form-control-sm flex-grow-1"><input type="text" name="kpi_cible[]" class="form-control form-control-sm" style="width:180px"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.kpi-ligne\').remove()"><i class="bi bi-trash"></i></button>';c.appendChild(d);}
+</script>

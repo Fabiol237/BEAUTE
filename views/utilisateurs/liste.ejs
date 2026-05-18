@@ -1,0 +1,33 @@
+<%- include('../partials/header', { page_title: 'Utilisateurs' }) %>
+<%- include('../partials/navbar') %>
+<div class="container-fluid mt-4">
+<%- getFlash() %>
+<div class="d-flex justify-content-between mb-4">
+<h1><i class="bi bi-people-fill me-2"></i>Utilisateurs</h1>
+<a href="<%= siteUrl %>/utilisateurs/ajouter" class="btn btn-primary">Nouvel utilisateur</a>
+</div>
+<div class="row mb-3">
+<div class="col-md-3"><div class="card p-3">Total: <strong><%= stats.total %></strong></div>
+<div class="col-md-3"><div class="card p-3">Actifs: <strong><%= stats.actifs %></strong></div></div>
+<div class="col-md-3"><div class="card p-3">Admins: <strong><%= stats.admins %></strong></div></div>
+<div class="col-md-3"><div class="card p-3">Inactifs: <strong><%= stats.inactifs %></strong></div></div>
+</div>
+<div class="card table-responsive"><table class="table mb-0">
+<thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Créé</th><th></th></tr></thead>
+<tbody>
+<% utilisateurs.forEach(u => { %>
+<tr>
+<td><%= e(u.prenom+' '+u.nom) %></td>
+<td><%= e(u.email) %></td>
+<td><span class="badge bg-secondary"><%= e(u.role) %></span></td>
+<td><% if (u.actif==1) { %><span class="badge bg-success">Actif</span><% } else { %><span class="badge bg-danger">Inactif</span><% } %></td>
+<td><%= formatDate(u.date_inscription || u.created_at) %></td>
+<td>
+<a href="<%= siteUrl %>/utilisateurs/modifier/<%= u.id %>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+<% if (u.id != session.utilisateur_id) { %>
+<a href="<%= siteUrl %>/utilisateurs/supprimer/<%= u.id %>" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+<% } %>
+</td></tr>
+<% }); %>
+</tbody></table></div></div>
+<%- include('../partials/footer') %>
