@@ -58,13 +58,12 @@ app.use((err, req, res, next) => {
 
 async function start() {
   try {
-    const conn = await pool.getConnection();
-    await conn.ping();
-    conn.release();
-    console.log('✅ Base de données connectée.');
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log('✅ Base de données PostgreSQL connectée.');
   } catch (err) {
     console.warn('⚠️  [Attention] Impossible de se connecter à la base de données:', err.message);
-    console.warn('👉 Le serveur démarre quand même, mais les requêtes SQL échoueront jusqu\'à ce que la base soit démarrée.');
   }
   
   app.listen(config.port, () => {
@@ -72,4 +71,8 @@ async function start() {
   });
 }
 
-start();
+if (process.env.NODE_ENV !== 'production') {
+  start();
+}
+
+module.exports = app;
