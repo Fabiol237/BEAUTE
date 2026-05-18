@@ -15,4 +15,8 @@ module.exports = {
   rootDir: __dirname,
   uploadsDir: path.join(__dirname, 'assets', 'uploads'),
   signalementsDir: path.join(__dirname, 'assets', 'uploads', 'signalements'),
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY
+  }
 };
