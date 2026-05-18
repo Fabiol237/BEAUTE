@@ -21,7 +21,7 @@ router.get('/', async (req, res, next) => {
     stats.projets_retard = Number(
       (
         await queryOne(
-          "SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND date_fin_prevue < CURDATE()"
+          "SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND date_fin_prevue < CURRENT_DATE"
         )
       ).c
     );
@@ -53,7 +53,7 @@ router.get('/', async (req, res, next) => {
       SELECT p.*, c.nom AS commune_nom
       FROM projets p
       JOIN communes c ON p.commune_id = c.id
-      WHERE p.statut = 'en_cours' AND p.date_fin_prevue < CURDATE()
+      WHERE p.statut = 'en_cours' AND p.date_fin_prevue < CURRENT_DATE
       ORDER BY p.date_fin_prevue
       LIMIT 5
     `);
@@ -89,10 +89,10 @@ router.get('/', async (req, res, next) => {
     `);
 
     const evolution_projets = await query(`
-      SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS nombre
+      SELECT TO_CHAR(created_at, 'YYYY-MM') AS mois, COUNT(*) AS nombre
       FROM projets
       WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
-      GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM')
       ORDER BY mois ASC
     `);
 
