@@ -282,24 +282,24 @@ router.post(
       });
     }
 
-    const conn = await pool.getConnection();
+    const client = await pool.connect();
     try {
-      await conn.beginTransaction();
+      await client.query('BEGIN');
       const prefix =
         mode === 'signalement' ? 'Signalement' : categorie.replace(/_/g, ' ');
       const titre = `${prefix} — ${nom.slice(0, 30)}`;
       const priorite =
         mode === 'signalement' && urgence === 'urgente' ? 'haute' : priorite_citoyen;
 
-      const [result] = await conn.execute(
-        `INSERT INTO suggestions
+      const pgSql = `INSERT INTO suggestions
           (mode, citoyen_nom, citoyen_email, citoyen_telephone,
            projet_id, categorie, titre, description,
            quartier, priorite_citoyen, disponible_contact,
            adresse_probleme, latitude, longitude,
            depuis_quand, a_temoins, priorite, date_soumission)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())`,
-        [
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW()) RETURNING id`;
+         
+      const result = await client.query(pgSql, [
           mode,
           nom,
           email,
@@ -317,20 +317,20 @@ router.post(
           depuis_quand || null,
           a_temoins,
           priorite,
-        ]
-      );
-      const sid = result.insertId;
+        ]);
+        
+      const sid = result.rows[0].id;
 
       if (mode === 'signalement' && req.files && req.files.length) {
         for (const file of req.files.slice(0, 5)) {
-          await conn.execute(
-            'INSERT INTO signalement_photos (suggestion_id, fichier_url, fichier_nom, taille) VALUES (?,?,?,?)',
+          await client.query(
+            'INSERT INTO signalement_photos (suggestion_id, fichier_url, fichier_nom, taille) VALUES ($1,$2,$3,$4)',
             [sid, file.filename, file.originalname, file.size]
           );
         }
       }
 
-      await conn.commit();
+      await client.query('COMMIT');
       res.render('portail/suggestion', {
         page_title: 'Suggestions & Signalements',
         layout: false,
@@ -342,7 +342,8 @@ router.post(
         body: {},
       });
     } catch (err) {
-      await conn.rollback();
+      await client.query('ROLLBACK');
+      console.error(err);
       res.render('portail/suggestion', {
         page_title: 'Suggestions & Signalements',
         layout: false,

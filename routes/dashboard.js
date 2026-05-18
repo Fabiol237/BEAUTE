@@ -29,10 +29,10 @@ router.get('/', async (req, res, next) => {
       (await queryOne('SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets')).s
     );
     stats.depenses_total = Number(
-      (await queryOne('SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE validee = 1')).s
+      (await queryOne('SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE validee = true')).s
     );
     stats.depenses_attente = Number(
-      (await queryOne('SELECT COUNT(*) AS c FROM depenses WHERE validee = 0')).c
+      (await queryOne('SELECT COUNT(*) AS c FROM depenses WHERE validee = false')).c
     );
     stats.budget_restant = stats.budget_total - stats.depenses_total;
     stats.taux_consommation =
@@ -91,7 +91,7 @@ router.get('/', async (req, res, next) => {
     const evolution_projets = await query(`
       SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS nombre
       FROM projets
-      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
       GROUP BY DATE_FORMAT(created_at, '%Y-%m')
       ORDER BY mois ASC
     `);

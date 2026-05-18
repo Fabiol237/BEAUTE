@@ -15,13 +15,13 @@ router.get('/liste', async (req, res, next) => {
       (await queryOne('SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets')).s
     );
     stats_budget.depenses_total = Number(
-      (await queryOne('SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE validee = 1')).s
+      (await queryOne('SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE validee = true')).s
     );
     stats_budget.nb_projets = Number(
       (await queryOne('SELECT COUNT(*) AS c FROM projets')).c
     );
     stats_budget.depenses_attente = Number(
-      (await queryOne('SELECT COUNT(*) AS c FROM depenses WHERE validee = 0')).c
+      (await queryOne('SELECT COUNT(*) AS c FROM depenses WHERE validee = false')).c
     );
     stats_budget.restant = stats_budget.budget_total - stats_budget.depenses_total;
     stats_budget.pourcentage =
@@ -31,9 +31,9 @@ router.get('/liste', async (req, res, next) => {
 
     const projets = await query(`
       SELECT p.*, t.nom AS type_nom, t.couleur, c.nom AS commune_nom,
-             COALESCE(SUM(CASE WHEN d.validee = 1 THEN d.montant ELSE 0 END), 0) AS total_depenses,
-             COUNT(CASE WHEN d.validee = 1 THEN 1 END) AS nb_depenses,
-             COUNT(CASE WHEN d.validee = 0 AND d.id IS NOT NULL THEN 1 END) AS nb_attente
+             COALESCE(SUM(CASE WHEN d.validee = true THEN d.montant ELSE 0 END), 0) AS total_depenses,
+             COUNT(CASE WHEN d.validee = true THEN 1 END) AS nb_depenses,
+             COUNT(CASE WHEN d.validee = false AND d.id IS NOT NULL THEN 1 END) AS nb_attente
       FROM projets p
       LEFT JOIN types_projets t ON p.type_projet_id = t.id
       LEFT JOIN communes c ON p.commune_id = c.id

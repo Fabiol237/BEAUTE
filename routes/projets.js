@@ -236,17 +236,17 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
 
   if (erreurs.length) return renderForm();
 
-  const conn = await pool.getConnection();
+  const client = await pool.connect();
   try {
-    await conn.beginTransaction();
-    const [result] = await conn.execute(
-      `INSERT INTO projets (
+    await client.query('BEGIN');
+    const pgSql = `INSERT INTO projets (
         titre, description, consignes, type_projet_id, commune_id, responsable_id,
         entreprise_executante, budget_initial, budget_actuel, budget_deja_utilise,
         date_debut, date_fin_prevue, statut, priorite, avancement_physique,
         latitude, longitude, adresse, visible_public
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING id`;
+      
+    const result = await client.query(pgSql, [
         titre,
         (body.description || '').trim() || null,
         (body.consignes || '').trim() || null,
@@ -265,29 +265,58 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
         body.latitude || null,
         body.longitude || null,
         (body.adresse || '').trim() || null,
-        body.visible_public ? 1 : 0,
-      ]
-    );
-    const projet_id = result.insertId;
+        body.visible_public ? true : false,
+      ]);
+      
+    const projet_id = result.rows[0].id;
 
     const source = (body.source_financement || '').trim();
     if (source) {
-      await conn.execute(
-        'INSERT INTO budgets (projet_id, montant_initial, source_financement, exercice_budgetaire) VALUES (?, ?, ?, ?)',
+      await client.query(
+        'INSERT INTO budgets (projet_id, montant_initial, source_financement, exercice_budgetaire) VALUES ($1, $2, $3, $4)',
         [projet_id, budget_initial, source, new Date().getFullYear()]
       );
     }
 
-    await insertPhasesRisquesKpis(conn, projet_id, body, date_fin_prevue);
-    await conn.commit();
+    // Phases, risques, KPIs
+    const phases = buildPhaseList(body);
+    for (let i = 0; i < phases.length; i++) {
+      const [pTitre, pStatut, pPct, pDatePrev] = phases[i];
+      if (!String(pTitre || '').trim()) continue;
+      await client.query(
+        `INSERT INTO jalons (projet_id, titre, date_prevue, statut, pourcentage_completion, ordre)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [projet_id, String(pTitre).trim(), pDatePrev || date_fin_prevue, pStatut || 'non_commencé', parseInt(pPct, 10) || 0, i + 1]
+      );
+    }
+    const risques = buildRisqueList(body);
+    for (let i = 0; i < risques.length; i++) {
+      const [desc, niveau] = risques[i];
+      if (!String(desc || '').trim()) continue;
+      await client.query(
+        'INSERT INTO risques (projet_id, description, niveau, ordre) VALUES ($1, $2, $3, $4)',
+        [projet_id, String(desc).trim(), niveau || 'moyen', i + 1]
+      );
+    }
+    const kpis = buildKpiList(body);
+    for (let i = 0; i < kpis.length; i++) {
+      const [lib, cible] = kpis[i];
+      if (!String(lib || '').trim()) continue;
+      await client.query(
+        'INSERT INTO indicateurs (projet_id, libelle, valeur_cible, ordre) VALUES ($1, $2, $3, $4)',
+        [projet_id, String(lib).trim(), String(cible || '').trim(), i + 1]
+      );
+    }
+
+    await client.query('COMMIT');
     setFlash(req, 'success', `Projet « ${titre} » créé avec succès !`);
     res.redirect(`/projets/details/${projet_id}`);
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     erreurs.push(`Erreur : ${err.message}`);
     await renderForm();
   } finally {
-    conn.release();
+    client.release();
   }
 });
 
@@ -313,7 +342,7 @@ router.get('/details/:id', async (req, res, next) => {
     }
 
     const depRow = await queryOne(
-      'SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE projet_id = ? AND validee = 1',
+      'SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE projet_id = ? AND validee = true',
       [projet_id]
     );
     const depenses = Number(depRow.s);
