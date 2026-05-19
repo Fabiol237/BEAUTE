@@ -1,42 +1,149 @@
 <%- include('partials/header', { page_title: 'Carte des Projets' }) %>
 <%- include('partials/navbar') %>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>#map{height:600px;width:100%;border-radius:1rem}</style>
-<div class="container-fluid mt-4">
-<div class="page-header mb-4 d-flex justify-content-between">
-<h1><i class="bi bi-geo-alt-fill me-2"></i>Carte des Projets</h1>
-<a href="<%= siteUrl %>/dashboard" class="btn btn-secondary">Retour</a>
-</div>
-<div class="row mb-3">
-<% [['total',stats_carte.total,'#2563eb'],['en_cours',stats_carte.en_cours,'#3b82f6'],['planifie',stats_carte.planifie,'#64748b'],['termine',stats_carte.termine,'#10b981']].forEach(([k,v,c])=>{ %>
-<div class="col-md-3"><div class="p-3 rounded text-white text-center" style="background:<%= c %>"><h3><%= v %></h3><small><%= k %></small></div></div>
-<% }); %>
-</div>
-<div class="row mb-3">
 
-<div class="col-md-4"><select id="statutFilter" class="form-select"><option value="">Tous statuts</option>
-<option value="planifié">Planifié</option><option value="en_cours">En cours</option><option value="terminé">Terminé</option><option value="suspendu">Suspendu</option>
-</select></div>
-<div class="col-md-4"><button id="resetFilters" class="btn btn-outline-secondary w-100">Réinitialiser</button></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+  #map { height: calc(100vh - 200px); min-height: 550px; width: 100%; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .map-controls { background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 16px; }
+  .layer-btn { padding: 8px 16px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s; }
+  .layer-btn.active { border-color: #003F88; background: #003F88; color: white; }
+  .layer-btn:hover:not(.active) { border-color: #003F88; color: #003F88; }
+  .stat-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); border: none; }
+  .leaflet-popup-content { margin: 0; padding: 0; }
+  .popup-inner { padding: 14px 16px; min-width: 220px; }
+  .popup-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+  .popup-meta { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+  .popup-progress { height: 6px; background: #e2e8f0; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
+  .popup-progress-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #007A3D, #FCD116); }
+  .popup-btn { display: block; text-align: center; background: #003F88; color: white; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; margin-top: 8px; }
+  .popup-btn:hover { background: #005CC8; color: white; }
+</style>
+
+<div class="container-fluid mt-3">
+  <!-- Contrôles -->
+  <div class="map-controls d-flex align-items-center gap-3 flex-wrap">
+    <div>
+      <strong style="font-size:14px;color:#1e293b;">🗺️ Carte Satellite</strong>
+      <small class="text-muted ms-2">Cliquez sur un projet pour les détails</small>
+    </div>
+    <div class="d-flex gap-2 ms-auto flex-wrap">
+      <button class="layer-btn active" onclick="setLayer('satellite')" id="btn-sat">🛰️ Satellite</button>
+      <button class="layer-btn" onclick="setLayer('topo')" id="btn-topo">🗺️ Topographique</button>
+      <button class="layer-btn" onclick="setLayer('street')" id="btn-street">🏙️ Rue</button>
+    </div>
+    <select id="statutFilter" class="form-select" style="width:auto;min-width:150px;font-size:13px;">
+      <option value="">Tous les statuts</option>
+      <option value="planifié">📋 Planifié</option>
+      <option value="en_cours">🔨 En cours</option>
+      <option value="terminé">✅ Terminé</option>
+      <option value="suspendu">⏸️ Suspendu</option>
+    </select>
+  </div>
+
+  <!-- Stats rapides -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <span class="stat-badge" style="background:#eff6ff;color:#1d4ed8;"><span id="count-total"><%= stats_carte.total %></span> projets</span>
+    <span class="stat-badge" style="background:#fef3c7;color:#d97706;">🔨 <span><%= stats_carte.en_cours %></span> en cours</span>
+    <span class="stat-badge" style="background:#dcfce7;color:#15803d;">✅ <span><%= stats_carte.termine %></span> terminés</span>
+    <span class="stat-badge" style="background:#f1f5f9;color:#475569;">📋 <span><%= stats_carte.planifie %></span> planifiés</span>
+  </div>
+
+  <!-- Carte -->
+  <div id="map"></div>
 </div>
-<div id="map"></div>
-</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
-const projetsData=<%- JSON.stringify(projets) %>;
-const statusColors={'en_cours':'#3b82f6','planifié':'#64748b','terminé':'#10b981','suspendu':'#f59e0b'};
-const map=L.map('map').setView([4.0511,9.7679],11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(map);
-let markers=[];
-function addMarkers(list=projetsData){markers.forEach(m=>map.removeLayer(m));markers=[];
-list.forEach(p=>{if(!p.latitude||!p.longitude)return;
-const m=L.marker([p.latitude,p.longitude]).addTo(map).bindPopup('<b>'+p.titre+'</b><br><a href="<%= siteUrl %>/projets/details/'+p.id+'">Détails</a>');
-markers.push(m);});
-if(markers.length){const g=L.featureGroup(markers);map.fitBounds(g.getBounds().pad(0.1));}}
-addMarkers();
-document.getElementById('statutFilter').onchange=()=>{
-const s=document.getElementById('statutFilter').value;
-addMarkers(projetsData.filter(p=>(!s||p.statut===s)));};
-document.getElementById('resetFilters').onclick=()=>{document.getElementById('statutFilter').value='';addMarkers();};
+const projetsData = <%- JSON.stringify(projets) %>;
+const siteUrl = '<%= siteUrl %>';
+
+// Couches de carte
+const layers = {
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Esri, Maxar, Earthstar Geographics', maxZoom: 19
+  }),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenTopoMap contributors', maxZoom: 17
+  }),
+  street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  })
+};
+
+const map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([4.0511, 9.7679], 11);
+layers.satellite.addTo(map);
+
+// Couleurs par statut
+const statusColors = {
+  'en_cours': '#2563eb',
+  'planifié': '#64748b',
+  'terminé': '#10b981',
+  'suspendu': '#f59e0b',
+  'annulé': '#ef4444'
+};
+const statusEmoji = { 'en_cours':'🔨','planifié':'📋','terminé':'✅','suspendu':'⏸️','annulé':'❌' };
+
+function makeIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
+             <div style="width:10px;height:10px;border-radius:50%;background:white;"></div>
+           </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18]
+  });
+}
+
+let clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50, showCoverageOnHover: false });
+
+function addMarkers(list) {
+  clusterGroup.clearLayers();
+  list.forEach(p => {
+    if (!p.latitude || !p.longitude) return;
+    const color = statusColors[p.statut] || '#64748b';
+    const emoji = statusEmoji[p.statut] || '📍';
+    const budget = p.budget_actuel ? Math.round(Number(p.budget_actuel)/1000000) + 'M FCFA' : '—';
+    const popup = L.popup({ maxWidth: 260 }).setContent(`
+      <div class="popup-inner">
+        <div class="popup-title">${p.titre}</div>
+        <div class="popup-meta">
+          <span style="background:${color}18;color:${color};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">${emoji} ${p.statut}</span>
+          <span style="margin-left:6px;font-size:11px;">💰 ${budget}</span>
+        </div>
+        ${p.commune_nom ? `<div style="font-size:11px;color:#64748b;margin-bottom:8px;"><i>🏛️ ${p.commune_nom}</i></div>` : ''}
+        <div class="popup-progress"><div class="popup-progress-bar" style="width:${p.avancement_physique||0}%"></div></div>
+        <small style="color:#64748b;">${p.avancement_physique||0}% réalisé</small>
+        <a href="${siteUrl}/projets/details/${p.id}" class="popup-btn">Voir les détails →</a>
+      </div>
+    `);
+    const marker = L.marker([p.latitude, p.longitude], { icon: makeIcon(color) }).bindPopup(popup);
+    clusterGroup.addLayer(marker);
+  });
+  map.addLayer(clusterGroup);
+  if (clusterGroup.getLayers().length > 0) {
+    try { map.fitBounds(clusterGroup.getBounds().pad(0.15)); } catch(e) {}
+  }
+}
+
+addMarkers(projetsData);
+
+document.getElementById('statutFilter').onchange = function() {
+  const s = this.value;
+  addMarkers(s ? projetsData.filter(p => p.statut === s) : projetsData);
+};
+
+function setLayer(name) {
+  Object.values(layers).forEach(l => map.removeLayer(l));
+  layers[name].addTo(map);
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + (name === 'satellite' ? 'sat' : name === 'topo' ? 'topo' : 'street')).classList.add('active');
+}
 </script>
+
 <%- include('partials/footer') %>

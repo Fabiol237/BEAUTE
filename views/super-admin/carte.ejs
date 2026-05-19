@@ -1,122 +1,140 @@
-<%- include('partials/header', { page_title: 'Carte Globale' }) %>
+<%- include('partials/header', { page_title: 'Carte Globale — MuniPro' }) %>
 <%- include('partials/sidebar') %>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
 <style>
-  #map { height: 600px; width: 100%; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  #map { height: calc(100vh - 260px); min-height: 500px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .layer-btn { padding: 8px 14px; border-radius: 8px; border: 2px solid var(--border); background: white; cursor: pointer; font-size: 12px; font-weight: 700; transition: all .2s; }
+  .layer-btn.active { border-color: var(--munipro-blue); background: var(--munipro-blue); color: white; }
+  .layer-btn:hover:not(.active) { border-color: var(--munipro-blue); color: var(--munipro-blue); }
+  .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); border: none; }
+  .leaflet-popup-content { margin: 0; padding: 0; min-width: 240px; }
+  .popup-inner { padding: 16px; }
+  .popup-title { font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 6px; line-height: 1.3; }
+  .popup-progress { height: 6px; background: #e2e8f0; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+  .popup-progress-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #003F88, #007A3D); }
+  .popup-btn { display: block; text-align: center; background: var(--munipro-blue); color: white !important; padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none !important; margin-top: 10px; }
+  .popup-btn:hover { background: #005CC8; }
 </style>
 
 <div class="main-content">
   <div class="topbar">
-    <div class="topbar-title"><i class="bi bi-map-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Carte Globale des Projets</div>
+    <div class="topbar-title"><i class="bi bi-map-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Carte Satellitaire Globale</div>
+    <div style="display:flex;gap:8px;">
+      <button class="layer-btn active" onclick="setLayer('satellite')" id="btn-sat">🛰️ Satellite</button>
+      <button class="layer-btn" onclick="setLayer('topo')" id="btn-topo">🗻 Topo</button>
+      <button class="layer-btn" onclick="setLayer('street')" id="btn-street">🏙️ Rue</button>
+    </div>
   </div>
 
   <div class="content-area">
-
-    <!-- KPI ROW -->
-    <div class="stats-grid mb-6">
-      <div class="stat-card blue">
-        <div class="stat-icon blue"><i class="bi bi-folder"></i></div>
-        <div>
-          <div class="stat-value"><%= stats_carte.total %></div>
-          <div class="stat-label">Total projets</div>
-        </div>
-      </div>
-      <div class="stat-card cyan">
-        <div class="stat-icon cyan"><i class="bi bi-play-circle-fill"></i></div>
-        <div>
-          <div class="stat-value"><%= stats_carte.en_cours %></div>
-          <div class="stat-label">En cours</div>
-        </div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
-        <div>
-          <div class="stat-value"><%= stats_carte.termine %></div>
-          <div class="stat-label">Terminés</div>
-        </div>
-      </div>
-      <div class="stat-card red">
-        <div class="stat-icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
-        <div>
-          <div class="stat-value"><%= stats_carte.planifie %></div>
-          <div class="stat-label">Planifiés</div>
-        </div>
-      </div>
+    <!-- STATS -->
+    <div class="stats-grid mb-6" style="grid-template-columns:repeat(4,1fr);">
+      <div class="stat-card blue"><div class="stat-icon blue"><i class="bi bi-folder"></i></div><div><div class="stat-value"><%= stats_carte.total %></div><div class="stat-label">Total projets</div></div></div>
+      <div class="stat-card cyan"><div class="stat-icon cyan"><i class="bi bi-play-circle-fill"></i></div><div><div class="stat-value"><%= stats_carte.en_cours %></div><div class="stat-label">En cours</div></div></div>
+      <div class="stat-card green"><div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div><div><div class="stat-value"><%= stats_carte.termine %></div><div class="stat-label">Terminés</div></div></div>
+      <div class="stat-card yellow"><div class="stat-icon yellow"><i class="bi bi-pencil-square"></i></div><div><div class="stat-value"><%= stats_carte.planifie %></div><div class="stat-label">Planifiés</div></div></div>
     </div>
 
     <!-- FILTRES -->
-    <div class="card mb-6">
-      <div class="card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div style="flex:1;min-width:180px;">
-          <select id="statutFilter" class="form-select">
-            <option value="">Tous les statuts</option>
-            <option value="planifié">Planifié</option>
-            <option value="en_cours">En cours</option>
-            <option value="terminé">Terminé</option>
-            <option value="suspendu">Suspendu</option>
-          </select>
-        </div>
-        <div>
-          <button id="resetFilters" class="btn btn-outline"><i class="bi bi-x"></i> Réinitialiser</button>
-        </div>
+    <div class="card mb-4">
+      <div class="card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;">
+        <label class="form-label" style="margin:0;font-weight:600;font-size:13px;">Filtrer :</label>
+        <select id="statutFilter" class="form-select" style="width:auto;min-width:160px;font-size:13px;">
+          <option value="">Tous les statuts</option>
+          <option value="planifié">📋 Planifié</option>
+          <option value="en_cours">🔨 En cours</option>
+          <option value="terminé">✅ Terminé</option>
+          <option value="suspendu">⏸️ Suspendu</option>
+        </select>
+        <button id="resetFilters" class="btn btn-outline btn-sm"><i class="bi bi-x"></i> Tout afficher</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-muted);"><i class="bi bi-info-circle"></i> <span id="markerCount">0</span> projet(s) géolocalisé(s)</span>
       </div>
     </div>
 
     <!-- CARTE -->
-    <div id="map" class="mb-6"></div>
-
+    <div id="map"></div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 const projetsData = <%- JSON.stringify(projets) %>;
+
+const layers = {
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Esri, Maxar, Earthstar Geographics', maxZoom: 19
+  }),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap', maxZoom: 17 }),
+  street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM', maxZoom: 19 })
+};
+
 const map = L.map('map').setView([4.0511, 9.7679], 10);
+layers.satellite.addTo(map);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+const statusColors = { 'en_cours':'#003F88','planifié':'#64748b','terminé':'#007A3D','suspendu':'#f59e0b','annulé':'#ef4444' };
+const statusEmoji = { 'en_cours':'🔨','planifié':'📋','terminé':'✅','suspendu':'⏸️','annulé':'❌' };
 
-let markers = [];
-
-function addMarkers(list = projetsData) {
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-  
-  list.forEach(p => {
-    if (!p.latitude || !p.longitude) return;
-    
-    // Custom popup
-    const popupContent = `
-      <div style="font-family:'Inter',sans-serif;padding:4px;">
-        <strong style="color:var(--munipro-blue);font-size:14px;">${p.titre}</strong><br>
-        <small style="color:var(--text-muted);display:block;margin-top:2px;">Commune : ${p.commune_nom || '—'}</small>
-        <span class="badge badge-${p.statut.replace('é','e').replace(' ','_')}" style="margin-top:6px;font-size:10px;">${p.statut}</span>
-      </div>
-    `;
-    
-    const m = L.marker([p.latitude, p.longitude]).addTo(map).bindPopup(popupContent);
-    markers.push(m);
+function makeIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 4px 14px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;">
+             <div style="width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.85);"></div>
+           </div>`,
+    iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20]
   });
-  
-  if (markers.length) {
-    const g = L.featureGroup(markers);
-    map.fitBounds(g.getBounds().pad(0.1));
-  }
 }
 
-addMarkers();
+let cluster = L.markerClusterGroup({ maxClusterRadius: 60, showCoverageOnHover: false });
 
-document.getElementById('statutFilter').onchange = () => {
-  const s = document.getElementById('statutFilter').value;
-  addMarkers(projetsData.filter(p => (!s || p.statut === s)));
+function addMarkers(list) {
+  cluster.clearLayers();
+  let count = 0;
+  list.forEach(p => {
+    if (!p.latitude || !p.longitude) return;
+    count++;
+    const color = statusColors[p.statut] || '#64748b';
+    const budget = p.budget_actuel ? Math.round(Number(p.budget_actuel)/1000000) + 'M FCFA' : '—';
+    const popup = `
+      <div class="popup-inner">
+        <div class="popup-title">${p.titre}</div>
+        <div style="font-size:11px;margin-bottom:4px;">
+          <span style="background:${color}18;color:${color};padding:2px 8px;border-radius:10px;font-weight:700;">${statusEmoji[p.statut]||'📍'} ${p.statut}</span>
+          ${p.commune_nom ? `<span style="margin-left:6px;color:#64748b;">🏛️ ${p.commune_nom}</span>` : ''}
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:6px;">💰 ${budget} &nbsp;|&nbsp; 📊 ${p.avancement_physique||0}% réalisé</div>
+        <div class="popup-progress"><div class="popup-progress-bar" style="width:${p.avancement_physique||0}%"></div></div>
+        <a href="/projets/details/${p.id}" class="popup-btn">Voir le projet →</a>
+      </div>`;
+    cluster.addLayer(L.marker([p.latitude, p.longitude], { icon: makeIcon(color) }).bindPopup(popup, { maxWidth: 260 }));
+  });
+  map.addLayer(cluster);
+  document.getElementById('markerCount').textContent = count;
+  if (count > 0) { try { map.fitBounds(cluster.getBounds().pad(0.15)); } catch(e) {} }
+}
+
+addMarkers(projetsData);
+
+document.getElementById('statutFilter').onchange = function() {
+  const s = this.value;
+  addMarkers(s ? projetsData.filter(p => p.statut === s) : projetsData);
 };
 
-document.getElementById('resetFilters').onclick = () => {
+document.getElementById('resetFilters').onclick = function() {
   document.getElementById('statutFilter').value = '';
-  addMarkers();
+  addMarkers(projetsData);
 };
+
+function setLayer(name) {
+  Object.values(layers).forEach(l => map.removeLayer(l));
+  layers[name].addTo(map);
+  ['sat','topo','street'].forEach(k => document.getElementById('btn-'+k).classList.remove('active'));
+  document.getElementById('btn-' + (name==='satellite'?'sat':name==='topo'?'topo':'street')).classList.add('active');
+}
 </script>
 
 <%- include('partials/footer') %>

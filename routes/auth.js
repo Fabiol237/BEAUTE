@@ -57,9 +57,32 @@ router.post('/login', guestOnly, async (req, res) => {
       return res.redirect('/dashboard');
     }
 
-    // Si pas trouvé, Vérification Super Admin (MuniPro)
+    res.render('login', {
+      page_title: 'Connexion',
+      erreur: 'Email ou mot de passe incorrect',
+      body: { email },
+    });
+  } catch (err) {
+    console.error(err);
+    res.render('login', {
+      page_title: 'Connexion',
+      erreur: 'Erreur serveur. Réessayez.',
+      body: { email },
+    });
+  }
+});
+
+router.get('/admin/login', guestOnly, (req, res) => {
+  res.render('admin-login', { page_title: 'Super Admin — MuniPro', erreur: null, body: {} });
+});
+
+router.post('/admin/login', guestOnly, async (req, res) => {
+  const email = (req.body.email || '').trim();
+  const password = req.body.password || '';
+
+  try {
     const superAdmin = await queryOne(
-      `SELECT * FROM munipro_admins WHERE email = ? AND statut = 'actif'`,
+      `SELECT * FROM munipro_admins WHERE email = $1 AND statut = 'actif'`,
       [email]
     );
 
@@ -78,15 +101,15 @@ router.post('/login', guestOnly, async (req, res) => {
       return res.redirect('/dashboard');
     }
 
-    res.render('login', {
-      page_title: 'Connexion',
-      erreur: 'Email ou mot de passe incorrect',
+    res.render('admin-login', {
+      page_title: 'Super Admin — MuniPro',
+      erreur: 'Identifiants incorrects. Accès refusé.',
       body: { email },
     });
   } catch (err) {
     console.error(err);
-    res.render('login', {
-      page_title: 'Connexion',
+    res.render('admin-login', {
+      page_title: 'Super Admin — MuniPro',
       erreur: 'Erreur serveur. Réessayez.',
       body: { email },
     });
