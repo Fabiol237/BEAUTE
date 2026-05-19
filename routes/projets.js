@@ -493,11 +493,10 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
         statut = $9, avancement_physique = $10,
         latitude = $11, longitude = $12, localisation = $13,
         visible_public = $14, updated_at = NOW()
-      WHERE id = $15`,[
+      WHERE id = $15`,
       [
         titre,
         (body.description || '').trim() || null,
-        (body.consignes || '').trim() || null,
         type_projet_id,
         commune_id,
         budget_actuel,
