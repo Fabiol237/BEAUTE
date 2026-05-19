@@ -13,12 +13,6 @@ const ddl = `
   CREATE OR REPLACE FUNCTION curdate() RETURNS date AS 'SELECT CURRENT_DATE;' LANGUAGE SQL IMMUTABLE;
 
   CREATE OR REPLACE FUNCTION date_format(ts timestamp, format text)
-  RETURNS text AS \\$\\$
-  DECLARE
-    res text := format;
-  BEGIN
-    res := replace(res, '%Y', 'YYYY');
-    res := replace(res, '%m', 'MM');
   RETURNS text AS $$
   DECLARE
     res text := format;
