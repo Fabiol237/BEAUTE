@@ -49,6 +49,7 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.role_id = user.role_id;
       req.session.role_nom = user.role_nom;
       req.session.utilisateur_role = user.role;
+      req.session.commune_id = user.commune_id;
 
       await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [user.id]);
       return res.redirect('/dashboard');
@@ -65,7 +66,7 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.utilisateur_nom = superAdmin.nom;
       req.session.utilisateur_prenom = 'Super';
       req.session.utilisateur_email = superAdmin.email;
-      req.session.role_id = 0; // Super admin
+      req.session.role_id = 0;
       req.session.role_nom = 'super_admin';
       req.session.utilisateur_role = 'super_admin';
       req.session.is_super_admin = true;
@@ -204,12 +205,12 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
     req.session.utilisateur_nom = nom;
     req.session.utilisateur_prenom = prenom;
     req.session.utilisateur_email = email;
-    req.session.role_id = 1; // admin
+    req.session.role_id = 1;
     req.session.role_nom = 'admin';
     req.session.utilisateur_role = 'admin';
+    req.session.commune_id = commune_id;
 
     await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [insertResult[0].id]);
-
     res.redirect('/dashboard');
   } catch (err) {
     next(err);

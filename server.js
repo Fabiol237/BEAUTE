@@ -13,6 +13,7 @@ const projetsRoutes = require('./routes/projets');
 const budgetRoutes = require('./routes/budget');
 const utilisateursRoutes = require('./routes/utilisateurs');
 const portailRoutes = require('./routes/portail');
+const superAdminRoutes = require('./routes/superAdmin');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/projets', projetsRoutes);
 app.use('/budget', budgetRoutes);
 app.use('/utilisateurs', utilisateursRoutes);
 app.use('/portail-citoyen', portailRoutes);
+app.use('/super-admin', superAdminRoutes);
 
 app.use((req, res) => {
   res.status(404).send('Page non trouvée');
@@ -53,7 +55,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).send('Erreur serveur');
+  res.status(500).send(`<h1>Erreur serveur</h1><pre style="background:#f4f4f4;padding:15px;border:1px solid #ddd;white-space:pre-wrap;">${err.stack || err.message || err}</pre>`);
 });
 
 async function start() {

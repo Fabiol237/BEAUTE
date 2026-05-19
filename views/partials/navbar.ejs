@@ -15,6 +15,7 @@
                         <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
                 </li>
+                <% if ((session.utilisateur_role || '') !== 'super_admin') { %>
                 <li class="nav-item">
                     <a class="nav-link <%= req.path.startsWith('/projets') ? 'active' : '' %>" href="<%= siteUrl %>/projets/liste">
                         <i class="bi bi-folder"></i> Projets
@@ -30,6 +31,7 @@
                         <i class="bi bi-geo-alt-fill"></i> Carte
                     </a>
                 </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" href="<%= siteUrl %>/portail-citoyen" target="_blank">
                         <i class="bi bi-globe"></i> Portail Citoyen

@@ -28,6 +28,14 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function requireSuperAdmin(req, res, next) {
+  if ((req.session.utilisateur_role || '') !== 'super_admin') {
+    setFlash(req, 'danger', 'Accès refusé. Section réservée au Super Administrateur MuniPro.');
+    return res.redirect('/dashboard');
+  }
+  next();
+}
+
 function guestOnly(req, res, next) {
   if (estConnecte(req.session)) {
     return res.redirect('/dashboard');
@@ -35,4 +43,4 @@ function guestOnly(req, res, next) {
   next();
 }
 
-module.exports = { requireConnexion, requireRole, requireAdmin, guestOnly };
+module.exports = { requireConnexion, requireRole, requireAdmin, requireSuperAdmin, guestOnly };

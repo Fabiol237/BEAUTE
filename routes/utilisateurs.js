@@ -1,6 +1,5 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const { query, queryOne } = require('../db');
 const { requireConnexion, requireAdmin } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
@@ -27,19 +26,10 @@ router.get('/liste', async (req, res, next) => {
       if (u.role === 'admin') stats.admins++;
     });
 
-    // Fetch communes for Super Admin link generation
-    const communes = await query(`SELECT * FROM communes ORDER BY nom ASC`);
-    communes.forEach(c => {
-      const secret = process.env.SESSION_SECRET || 'changez-moi-en-production';
-      const token = crypto.createHash('md5').update(`${c.id}-${secret}`).digest('hex');
-      c.inscription_link = `${req.protocol}://${req.get('host')}/inscription?commune_id=${c.id}&token=${token}`;
-    });
-
     res.render('utilisateurs/liste', {
       page_title: 'Gestion des Utilisateurs',
       utilisateurs,
       stats,
-      communes,
     });
   } catch (err) {
     next(err);

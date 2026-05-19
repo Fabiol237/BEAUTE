@@ -7,15 +7,28 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+                <h1>
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    <% if (is_super_admin) { %>
+                    <span class="badge ms-2" style="background:#7c3aed;font-size:0.65rem;vertical-align:middle;"><i class="bi bi-shield-fill-check me-1"></i>Super Admin MuniPro</span>
+                    <% } else if (commune_info) { %>
+                    <span class="badge bg-primary ms-2" style="font-size:0.65rem;vertical-align:middle;"><i class="bi bi-building me-1"></i><%= e(commune_info.nom) %></span>
+                    <% } %>
+                </h1>
                 <p class="text-muted mb-0">
                     Bienvenue, <strong><%= typeof session !== 'undefined' ? e(session.utilisateur_prenom) : 'Admin' %></strong> !
                     <span class="ms-2"><i class="bi bi-calendar3 me-1"></i><%= typeof todayFr === 'function' ? todayFr() : new Date().toLocaleDateString('fr-FR') %></span>
                 </p>
             </div>
+            <% if (!is_super_admin) { %>
             <a href="<%= siteUrl %>/projets/creer" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Nouveau projet
             </a>
+            <% } else { %>
+            <a href="<%= siteUrl %>/utilisateurs/liste" class="btn btn-outline-secondary">
+                <i class="bi bi-people-fill me-2"></i>Gérer les utilisateurs
+            </a>
+            <% } %>
         </div>
     </div>
 
@@ -89,6 +102,48 @@
             </div>
         </div>
     </div>
+
+    <% if (is_super_admin) { %>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card" style="border-left:4px solid #7c3aed;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 text-uppercase small">Communes</p>
+                            <h3 class="fw-bold mb-0" style="color:#7c3aed;"><%= stats.total_communes || 0 %></h3>
+                        </div>
+                        <div class="stat-icon" style="color:#7c3aed;"><i class="bi bi-building"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card" style="border-left:4px solid #0891b2;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 text-uppercase small">Admins Actifs</p>
+                            <h3 class="fw-bold mb-0 text-info"><%= stats.total_admins || 0 %></h3>
+                        </div>
+                        <div class="stat-icon text-info"><i class="bi bi-person-badge-fill"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-md-12 mb-4">
+            <div class="card" style="border-left:4px solid #7c3aed;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="bi bi-shield-fill-check me-3" style="font-size:2rem;color:#7c3aed;"></i>
+                    <div>
+                        <p class="mb-1 fw-bold" style="color:#7c3aed;">Mode Super Administrateur MuniPro</p>
+                        <small class="text-muted">Vous supervisez l'ensemble de la plateforme. Les données couvrent toutes les communes. Le tableau de gestion et les liens d'inscription sont en bas de cette page.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
 
     <!-- Ligne 2 : stats financières -->
     <div class="row mb-4">
@@ -249,6 +304,95 @@
         </div>
     </div>
 </div>
+
+<% if (is_super_admin && communes_stats && communes_stats.length > 0) { %>
+<div class="container-fluid mb-5">
+    <div class="card shadow-sm" style="border-top:4px solid #7c3aed;">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;">
+            <h5 class="mb-0"><i class="bi bi-building me-2"></i>Gestion des Communes — Liens d'Inscription Administrateurs</h5>
+            <span class="badge bg-light text-dark px-3 py-2"><%= communes_stats.length %> communes</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Commune</th>
+                            <th>Région</th>
+                            <th class="text-center">Projets</th>
+                            <th class="text-center">Budget</th>
+                            <th class="text-center">Admin</th>
+                            <th class="text-center">Dern. connexion</th>
+                            <th style="width:340px;">Lien d'Inscription</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <% communes_stats.forEach(c => { %>
+                    <tr>
+                        <td class="fw-bold"><i class="bi bi-building me-2 text-primary"></i><%= e(c.nom) %></td>
+                        <td><span class="badge bg-secondary"><%= e(c.region) %></span></td>
+                        <td class="text-center">
+                            <span class="badge bg-primary"><%= Number(c.projets_en_cours) %> en cours</span>
+                            <small class="text-muted ms-1">/ <%= Number(c.nb_projets) %></small>
+                        </td>
+                        <td class="text-center text-nowrap fw-bold text-warning">
+                            <%= ((Number(c.budget_total)||0)/1000000).toFixed(1) %>M FCFA
+                        </td>
+                        <td class="text-center">
+                            <% if (c.has_admin) { %>
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i><%= Number(c.nb_admins) %> admin(s)</span>
+                            <% } else { %>
+                            <span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>Aucun admin</span>
+                            <% } %>
+                        </td>
+                        <td class="text-center">
+                            <small class="text-muted">
+                                <% if (c.derniere_connexion_admin) { %>
+                                    <%= formatDate(c.derniere_connexion_admin) %>
+                                <% } else { %>
+                                    <span class="text-danger">Jamais</span>
+                                <% } %>
+                            </small>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control font-monospace bg-light text-muted"
+                                    id="lnk-<%= c.id %>" value="<%= c.inscription_link %>" readonly>
+                                <button class="btn btn-outline-primary" type="button"
+                                    onclick="copyInscriptionLink('<%= c.id %>')" title="Copier le lien">
+                                    <i class="bi bi-clipboard" id="ico-<%= c.id %>"></i>
+                                </button>
+                                <a href="<%= c.inscription_link %>" target="_blank"
+                                    class="btn btn-outline-success" title="Tester le lien">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-muted small bg-light">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+            Copiez et envoyez le lien correspondant au responsable de chaque commune. Ce lien sécurisé crée directement un compte Administrateur lié à la commune.
+        </div>
+    </div>
+</div>
+
+<script>
+function copyInscriptionLink(id) {
+    const el = document.getElementById('lnk-' + id);
+    el.select(); el.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(el.value).then(() => {
+        const ico = document.getElementById('ico-' + id);
+        ico.className = 'bi bi-check-lg text-success';
+        setTimeout(() => { ico.className = 'bi bi-clipboard'; }, 2000);
+    });
+}
+</script>
+<% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
