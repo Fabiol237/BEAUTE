@@ -1,9 +1,9 @@
 const { Client } = require('pg');
 
 const client = new Client({
-  host: 'db.somzygvplcazfytxalsd.supabase.co',
+  host: 'aws-0-eu-west-3.pooler.supabase.com',
   port: 5432,
-  user: 'postgres',
+  user: 'postgres.aewdvkgozowfypbyliwt',
   password: 'Z0kof@ro123',
   database: 'postgres',
   ssl: { rejectUnauthorized: false }
