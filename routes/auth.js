@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { query, queryOne } = require('../db');
 const { guestOnly } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
+const { logAction } = require('../middleware/journal');
 const crypto = require('crypto');
 
 const router = express.Router();
@@ -51,7 +52,8 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = user.role;
       req.session.commune_id = user.commune_id;
 
-      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [user.id]);
+      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = $1', [user.id]);
+      await logAction(req, 'CONNEXION', `Connexion réussie : ${user.email} (${user.role}) — Commune ID: ${user.commune_id}`);
       return res.redirect('/dashboard');
     }
 
@@ -71,7 +73,8 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = 'super_admin';
       req.session.is_super_admin = true;
 
-      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = ?', [superAdmin.id]);
+      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = $1', [superAdmin.id]);
+      await logAction(req, 'CONNEXION', `Connexion Super Admin : ${superAdmin.email}`);
       return res.redirect('/dashboard');
     }
 
@@ -217,7 +220,10 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
   }
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', async (req, res) => {
+  try {
+    await logAction(req, 'DECONNEXION', `Déconnexion : ${req.session.utilisateur_email || '—'}`);
+  } catch(e) {}
   req.session.destroy(() => {
     res.redirect('/login');
   });

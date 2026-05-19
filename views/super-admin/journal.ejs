@@ -1,0 +1,95 @@
+<%- include('../partials/header', { page_title: 'Journal des Actions' }) %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-clock-history" style="color:var(--munipro-blue);margin-right:10px;"></i>Journal Global des Actions</div>
+    <span class="topbar-badge"><i class="bi bi-shield-check"></i> Traçabilité</span>
+  </div>
+
+  <div class="content-area">
+
+    <!-- FILTRES -->
+    <div class="card mb-6">
+      <div class="card-body">
+        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="min-width:180px;">
+            <label class="form-label">Commune</label>
+            <select name="commune_id" class="form-select">
+              <option value="">Toutes</option>
+              <% communes.forEach(c => { %><option value="<%= c.id %>" <%= filtre.commune_id==c.id?'selected':'' %>><%= e(c.nom) %></option><% }); %>
+            </select>
+          </div>
+          <div style="min-width:180px;">
+            <label class="form-label">Action</label>
+            <input type="text" name="action" class="form-control" placeholder="ex: CREATE_PROJET" value="<%= e(filtre.action||'') %>">
+          </div>
+          <div style="min-width:160px;">
+            <label class="form-label">Depuis le</label>
+            <input type="date" name="depuis" class="form-control" value="<%= e(filtre.depuis||'') %>">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
+            <a href="/super-admin/journal" class="btn btn-outline"><i class="bi bi-x"></i> Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TABLEAU -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-list-check" style="color:var(--munipro-blue);"></i> <%= entrees.length %> entrée(s)</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date & Heure</th>
+                <th>Agent</th>
+                <th>Commune</th>
+                <th style="text-align:center;">Action</th>
+                <th>Description</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!entrees.length) { %>
+              <tr><td colspan="6" class="empty-state"><i class="bi bi-clock-history"></i> Aucune action enregistrée</td></tr>
+              <% } %>
+              <% entrees.forEach(j => { %>
+              <tr>
+                <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;"><%= formatDatetime(j.created_at) %></td>
+                <td>
+                  <div class="fw-600" style="font-size:13px;"><%= e(j.agent_nom || '—') %></div>
+                  <div style="font-size:11px;color:var(--text-muted);"><%= e(j.agent_email || '') %></div>
+                </td>
+                <td><span style="font-size:12px;font-weight:600;"><%= e(j.commune_nom || 'MuniPro') %></span></td>
+                <td style="text-align:center;">
+                  <% 
+                    const actionColors = {
+                      CREATE_PROJET: '#10b981', CREATE_UTILISATEUR: '#2563eb', CREATE_COMPTE: '#2563eb',
+                      MODIFY_UTILISATEUR: '#f59e0b', TOGGLE_COMPTE: '#f97316', CHANGE_ROLE: '#8b5cf6',
+                      DELETE_COMPTE: '#ef4444', DELETE_UTILISATEUR: '#ef4444', DELETE_PROJET: '#ef4444',
+                      CONNEXION: '#6b7280', DECONNEXION: '#6b7280',
+                    };
+                    const actionColor = actionColors[j.action] || '#64748b';
+                  %>
+                  <span style="background:<%= actionColor %>18;color:<%= actionColor %>;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;font-family:monospace;">
+                    <%= e(j.action) %>
+                  </span>
+                </td>
+                <td style="font-size:12px;max-width:300px;"><%= e(j.description || '—') %></td>
+                <td style="font-size:11px;color:var(--text-muted);font-family:monospace;"><%= e(j.ip || '—') %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<%- include('../partials/footer') %>

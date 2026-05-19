@@ -1,0 +1,71 @@
+<%- include('../partials/header', { page_title: 'Journal des Actions' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid mt-4">
+  <%- getFlash() %>
+
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1><i class="bi bi-clock-history me-2"></i>Journal des Actions
+          <% if (commune_info) { %>
+          <span class="badge bg-primary ms-2" style="font-size:0.65rem;vertical-align:middle;"><i class="bi bi-building me-1"></i><%= e(commune_info.nom) %></span>
+          <% } %>
+        </h1>
+        <p class="text-muted">Traçabilité de toutes les opérations effectuées sur les données de la commune.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between">
+      <h5 class="mb-0"><i class="bi bi-list-check me-2"></i><%= entrees.length %> action(s)</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Date & Heure</th>
+              <th>Agent</th>
+              <th style="text-align:center;">Action</th>
+              <th>Description</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!entrees.length) { %>
+            <tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-clock-history fs-1 d-block mb-2"></i>Aucune action enregistrée</td></tr>
+            <% } %>
+            <% entrees.forEach(j => { %>
+            <tr>
+              <td style="white-space:nowrap;font-size:13px;" class="text-muted"><%= formatDatetime(j.created_at) %></td>
+              <td>
+                <div class="fw-bold"><%= e(j.agent_nom || '—') %></div>
+                <small class="text-muted"><%= e(j.agent_email || '') %></small>
+              </td>
+              <td style="text-align:center;">
+                <%
+                  const actionColors = {
+                    CREATE_PROJET: '#10b981', MODIFY_PROJET: '#f59e0b',
+                    CREATE_UTILISATEUR: '#2563eb', MODIFY_UTILISATEUR: '#8b5cf6',
+                    DELETE_UTILISATEUR: '#ef4444', CONNEXION: '#6b7280', DECONNEXION: '#94a3b8',
+                  };
+                  const ac = actionColors[j.action] || '#64748b';
+                %>
+                <span style="background:<%= ac %>18;color:<%= ac %>;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;font-family:monospace;">
+                  <%= e(j.action) %>
+                </span>
+              </td>
+              <td style="font-size:13px;max-width:300px;"><%= e(j.description || '—') %></td>
+              <td style="font-size:11px;font-family:monospace;" class="text-muted"><%= e(j.ip || '—') %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+<%- include('../partials/footer') %>

@@ -39,9 +39,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { 
-      maxAge: 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+      maxAge: 24 * 60 * 60 * 1000
     },
   })
 );
@@ -63,7 +61,7 @@ app.use('/utilisateurs', utilisateursRoutes);
 app.use('/portail-citoyen', portailRoutes);
 app.use('/super-admin', superAdminRoutes);
 app.use('/communes', communesRoutes);
-app.use('/comptes', comptesRoutes);
+app.use('/comptes', (req, res) => res.redirect('/super-admin/comptes' + (req.path !== '/' ? req.path : '') + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '')));
 app.use('/alertes', alertesRoutes);
 app.use('/rapports', rapportsRoutes);
 

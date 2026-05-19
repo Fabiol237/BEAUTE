@@ -17,20 +17,53 @@
                 </h1>
                 <p class="text-muted mb-0">
                     Bienvenue, <strong><%= typeof session !== 'undefined' ? e(session.utilisateur_prenom) : 'Admin' %></strong> !
+                    <% if (!is_super_admin && commune_info) { %>
+                    <span class="badge ms-2" style="background:<%= session.utilisateur_role === 'admin' ? '#7c3aed' : session.utilisateur_role === 'gestionnaire' ? '#0891b2' : '#6b7280' %>;font-size:0.65rem;">
+                      <% if (session.utilisateur_role === 'admin') { %>👑 Administrateur<% } else if (session.utilisateur_role === 'gestionnaire') { %>🛠️ Gestionnaire<% } else { %>👁️ Lecteur<% } %>
+                    </span>
+                    <% } %>
                     <span class="ms-2"><i class="bi bi-calendar3 me-1"></i><%= typeof todayFr === 'function' ? todayFr() : new Date().toLocaleDateString('fr-FR') %></span>
                 </p>
             </div>
-            <% if (!is_super_admin) { %>
-            <a href="<%= siteUrl %>/projets/creer" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Nouveau projet
-            </a>
-            <% } else { %>
-            <a href="<%= siteUrl %>/utilisateurs/liste" class="btn btn-outline-secondary">
-                <i class="bi bi-people-fill me-2"></i>Gérer les utilisateurs
-            </a>
-            <% } %>
+            <div style="display:flex;gap:8px;">
+              <% if (!is_super_admin && commune_info) { %>
+              <a href="/utilisateurs/journal" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-clock-history me-1"></i>Journal
+              </a>
+              <% } %>
+              <% if (!is_super_admin && session.utilisateur_role !== 'lecteur') { %>
+              <a href="<%= siteUrl %>/projets/creer" class="btn btn-primary">
+                  <i class="bi bi-plus-circle me-2"></i>Nouveau projet
+              </a>
+              <% } else if (is_super_admin) { %>
+              <a href="/super-admin/comptes" class="btn btn-outline-secondary">
+                  <i class="bi bi-people-fill me-2"></i>Gérer les comptes
+              </a>
+              <% } %>
+            </div>
         </div>
     </div>
+
+    <% if (!is_super_admin && commune_info) { %>
+    <!-- BANNIÈRE COMMUNE -->
+    <div style="background:linear-gradient(135deg,#003F88,#0a5ebd);border-radius:12px;padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;">
+      <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:12px;">
+        <i class="bi bi-building" style="font-size:28px;color:white;"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Espace de Travail</div>
+        <div style="color:white;font-size:20px;font-weight:800;"><%= e(commune_info.nom) %></div>
+        <div style="color:rgba(255,255,255,0.8);font-size:13px;">Région <%= e(commune_info.region) %> · Responsable : <%= e(commune_info.responsable || '—') %></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:rgba(255,255,255,0.7);font-size:11px;">Connecté en tant que</div>
+        <div style="color:white;font-weight:700;"><%= e(session.utilisateur_prenom) %> <%= e(session.utilisateur_nom) %></div>
+        <div style="background:rgba(255,255,255,0.2);color:white;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:4px;display:inline-block;">
+          <% if (session.utilisateur_role === 'admin') { %>👑 Administrateur<% } else if (session.utilisateur_role === 'gestionnaire') { %>🛠️ Gestionnaire<% } else { %>👁️ Lecteur<% } %>
+        </div>
+      </div>
+    </div>
+    <% } %>
 
     <% if (stats && stats.depenses_attente > 0) { %>
     <div class="alert alert-warning d-flex align-items-center mb-4">

@@ -3,14 +3,45 @@
 
 <div class="main-content">
   <div class="topbar">
-    <div class="topbar-title"><i class="bi bi-people-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Comptes Agents des Communes</div>
+    <div class="topbar-title"><i class="bi bi-people-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Comptes Responsables des Communes</div>
+    <a href="/super-admin/comptes/creer" class="btn btn-primary btn-sm">
+      <i class="bi bi-person-plus-fill"></i> Créer un Compte
+    </a>
   </div>
 
   <div class="content-area">
+    <%- getFlash() %>
 
-    <div class="alert alert-warning" style="margin-bottom:24px;">
-      <i class="bi bi-shield-exclamation" style="font-size:18px;"></i>
-      <div><strong>Droits MuniPro limités</strong> — Vous pouvez uniquement <strong>suspendre ou réactiver</strong> les comptes. La modification des informations personnelles (nom, email, mot de passe) reste la responsabilité de chaque commune.</div>
+    <!-- STATS RAPIDES -->
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= utilisateurs.length %></div>
+          <div class="stat-label">Comptes Totaux</div>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-person-check-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= utilisateurs.filter(u => u.statut === 'actif').length %></div>
+          <div class="stat-label">Actifs</div>
+        </div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon yellow"><i class="bi bi-shield-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= utilisateurs.filter(u => u.role === 'admin').length %></div>
+          <div class="stat-label">Administrateurs</div>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-pause-circle-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= utilisateurs.filter(u => u.statut === 'suspendu').length %></div>
+          <div class="stat-label">Suspendus</div>
+        </div>
+      </div>
     </div>
 
     <!-- FILTRES -->
@@ -20,68 +51,101 @@
           <div style="min-width:180px;">
             <label class="form-label">Commune</label>
             <select name="commune_id" class="form-select">
-              <option value="">Toutes les communes</option>
+              <option value="">Toutes</option>
               <% communes.forEach(c => { %><option value="<%= c.id %>" <%= filtre.commune_id==c.id?'selected':'' %>><%= e(c.nom) %></option><% }); %>
             </select>
           </div>
           <div style="min-width:150px;">
+            <label class="form-label">Rôle</label>
+            <select name="role" class="form-select">
+              <option value="">Tous</option>
+              <option value="admin" <%= filtre.role==='admin'?'selected':'' %>>👑 Administrateur</option>
+              <option value="gestionnaire" <%= filtre.role==='gestionnaire'?'selected':'' %>>🛠️ Gestionnaire</option>
+              <option value="lecteur" <%= filtre.role==='lecteur'?'selected':'' %>>👁️ Lecteur</option>
+            </select>
+          </div>
+          <div style="min-width:130px;">
             <label class="form-label">Statut</label>
             <select name="statut" class="form-select">
               <option value="">Tous</option>
               <option value="actif" <%= filtre.statut==='actif'?'selected':'' %>>✅ Actif</option>
-              <option value="suspendu" <%= filtre.statut==='suspendu'?'selected':'' %>>⚠️ Suspendu</option>
+              <option value="suspendu" <%= filtre.statut==='suspendu'?'selected':'' %>>⛔ Suspendu</option>
             </select>
           </div>
-          <div style="display:flex; gap: 8px;">
+          <div style="display:flex;gap:8px;">
             <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-            <a href="<%= siteUrl %>/comptes" class="btn btn-outline"><i class="bi bi-x"></i> Réinitialiser</a>
+            <a href="/super-admin/comptes" class="btn btn-outline"><i class="bi bi-x"></i> Reset</a>
           </div>
         </form>
       </div>
     </div>
 
+    <!-- TABLEAU -->
     <div class="card">
       <div class="card-header">
-        <h5><i class="bi bi-people-fill" style="color:var(--munipro-blue);"></i> Liste des Agents (<%= utilisateurs.length %>)</h5>
+        <h5><i class="bi bi-table" style="color:var(--munipro-blue);"></i> <%= utilisateurs.length %> compte(s)</h5>
+        <a href="/super-admin/journal" class="btn btn-outline btn-sm"><i class="bi bi-clock-history"></i> Journal</a>
       </div>
       <div class="card-body p-0">
         <div class="table-wrapper">
           <table>
             <thead>
-              <tr><th>Agent</th><th>Email</th><th>Commune</th><th>Rôle</th><th>Statut</th><th>Créé le</th><th>Actions MuniPro</th></tr>
+              <tr>
+                <th>Agent</th>
+                <th>Email</th>
+                <th>Commune</th>
+                <th style="text-align:center;">Rôle</th>
+                <th style="text-align:center;">Statut</th>
+                <th>Dernière Connexion</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
-              <% if (utilisateurs.length === 0) { %>
-              <tr><td colspan="7" class="empty-state"><i class="bi bi-people"></i>Aucun compte trouvé</td></tr>
+              <% if (!utilisateurs.length) { %>
+              <tr><td colspan="7" class="empty-state"><i class="bi bi-people"></i> Aucun compte trouvé</td></tr>
               <% } %>
               <% utilisateurs.forEach(u => { %>
               <tr>
                 <td>
                   <div style="display:flex;align-items:center;gap:10px;">
-                    <div style="width:34px;height:34px;border-radius:50%;background:var(--munipro-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">
-                      <%= (u.prenom[0]||'') + (u.nom[0]||'') %>
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--munipro-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">
+                      <%= ((u.prenom||'').charAt(0) + (u.nom||'').charAt(0)).toUpperCase() %>
                     </div>
                     <div>
                       <div class="fw-600"><%= e(u.prenom) %> <%= e(u.nom) %></div>
+                      <% if (u.doit_changer_mdp) { %><div style="font-size:10px;color:var(--munipro-yellow);font-weight:600;"><i class="bi bi-exclamation-triangle"></i> Doit changer son MDP</div><% } %>
                     </div>
                   </div>
                 </td>
                 <td style="color:var(--text-muted);font-size:13px;"><%= e(u.email) %></td>
-                <td><a href="<%= siteUrl %>/communes/<%= u.commune_id %>" class="table-link"><%= e(u.commune_nom) %></a></td>
-                <td>
-                  <span style="background:rgba(0,63,136,.08);color:var(--munipro-blue);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">
-                    <%= u.role === 'admin' ? '👑 Administrateur' : '👤 Agent' %>
-                  </span>
-                </td>
-                <td><span class="badge badge-<%= u.statut %>"><%= u.statut %></span></td>
-                <td style="font-size:12px;color:var(--text-muted);"><%= u.created_at %></td>
-                <td>
-                  <form method="POST" action="<%= siteUrl %>/comptes/<%= u.id %>/toggle" style="margin:0;">
-                    <button type="submit" class="btn btn-sm <%= u.statut==='actif'?'btn-warning':'btn-success' %>">
-                      <i class="bi bi-<%= u.statut==='actif'?'pause':'play' %>-circle"></i>
-                      <%= u.statut==='actif'?'Suspendre':'Réactiver' %>
-                    </button>
+                <td><a href="/communes/<%= u.commune_id %>" class="table-link"><i class="bi bi-building me-1"></i><%= e(u.commune_nom || '—') %></a></td>
+                <td style="text-align:center;">
+                  <form method="POST" action="/super-admin/comptes/<%= u.id %>/role" style="margin:0;display:inline-flex;gap:4px;align-items:center;">
+                    <select name="role" class="form-select" style="font-size:11px;padding:3px 6px;width:auto;" onchange="this.form.submit()">
+                      <option value="admin" <%= u.role==='admin'?'selected':'' %>>👑 Admin</option>
+                      <option value="gestionnaire" <%= u.role==='gestionnaire'?'selected':'' %>>🛠️ Gestionnaire</option>
+                      <option value="lecteur" <%= u.role==='lecteur'?'selected':'' %>>👁️ Lecteur</option>
+                    </select>
                   </form>
+                </td>
+                <td style="text-align:center;"><span class="badge badge-<%= u.statut %>"><%= u.statut %></span></td>
+                <td style="font-size:12px;color:var(--text-muted);">
+                  <% if (u.derniere_connexion) { %><%= formatDatetime(u.derniere_connexion) %><% } else { %><span style="color:var(--munipro-red);">Jamais</span><% } %>
+                </td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <form method="POST" action="/super-admin/comptes/<%= u.id %>/toggle" style="margin:0;">
+                      <button type="submit" class="btn btn-sm <%= u.statut==='actif'?'btn-warning':'btn-success' %>" title="<%= u.statut==='actif'?'Suspendre':'Réactiver' %>">
+                        <i class="bi bi-<%= u.statut==='actif'?'pause':'play' %>-circle"></i>
+                      </button>
+                    </form>
+                    <form method="POST" action="/super-admin/comptes/<%= u.id %>/supprimer" style="margin:0;" onsubmit="return confirm('Supprimer ce compte ? Cette action est irréversible.')">
+                      <input type="hidden" name="confirmer" value="1">
+                      <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
               <% }); %>

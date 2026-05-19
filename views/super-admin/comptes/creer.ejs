@@ -1,0 +1,99 @@
+<%- include('../partials/header', { page_title: 'Créer un Compte Responsable' }) %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-person-plus-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Créer un Compte Responsable</div>
+    <a href="/super-admin/comptes" class="btn btn-outline btn-sm"><i class="bi bi-arrow-left"></i> Retour</a>
+  </div>
+
+  <div class="content-area">
+    <%- getFlash() %>
+
+    <div class="alert alert-warning" style="margin-bottom:24px;">
+      <i class="bi bi-shield-lock-fill" style="font-size:18px;"></i>
+      <div>
+        <strong>Création sécurisée</strong> — Seul le Super Admin peut créer des comptes administrateurs de communes.
+        Le responsable devra changer son mot de passe à la première connexion.
+      </div>
+    </div>
+
+    <div class="card" style="max-width:600px;">
+      <div class="card-header">
+        <h5><i class="bi bi-person-badge-fill" style="color:var(--munipro-blue);"></i> Informations du Responsable</h5>
+      </div>
+      <div class="card-body">
+        <% if (erreurs.length) { %>
+        <div class="alert alert-danger" style="margin-bottom:20px;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <ul style="margin:0;padding-left:16px;">
+            <% erreurs.forEach(e => { %><li><%= e %></li><% }); %>
+          </ul>
+        </div>
+        <% } %>
+
+        <form method="POST" action="/super-admin/comptes/creer">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label class="form-label">Prénom <span style="color:var(--munipro-red);">*</span></label>
+              <input type="text" name="prenom" class="form-control" value="<%= e(body.prenom||'') %>" required>
+            </div>
+            <div>
+              <label class="form-label">Nom <span style="color:var(--munipro-red);">*</span></label>
+              <input type="text" name="nom" class="form-control" value="<%= e(body.nom||'') %>" required>
+            </div>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Adresse Email <span style="color:var(--munipro-red);">*</span></label>
+            <input type="email" name="email" class="form-control" value="<%= e(body.email||'') %>" required placeholder="ex: jean.dupont@commune-douala2.cm">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Commune <span style="color:var(--munipro-red);">*</span></label>
+            <select name="commune_id" class="form-select" required>
+              <option value="">— Choisir une commune —</option>
+              <% communes.forEach(c => { %>
+              <option value="<%= c.id %>" <%= body.commune_id==c.id?'selected':'' %>><%= e(c.nom) %></option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label class="form-label">Rôle attribué <span style="color:var(--munipro-red);">*</span></label>
+            <select name="role" class="form-select" required>
+              <option value="admin" <%= (body.role||'admin')==='admin'?'selected':'' %>>👑 Administrateur — Accès complet à la commune</option>
+              <option value="gestionnaire" <%= body.role==='gestionnaire'?'selected':'' %>>🛠️ Gestionnaire — Peut créer/modifier projets et dépenses</option>
+              <option value="lecteur" <%= body.role==='lecteur'?'selected':'' %>>👁️ Lecteur — Lecture seule, aucune modification</option>
+            </select>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+              <strong>Admin</strong> : gère les comptes de sa commune, tous les projets, budgets.<br>
+              <strong>Gestionnaire</strong> : ajoute/modifie projets et dépenses, pas de gestion de comptes.<br>
+              <strong>Lecteur</strong> : voit les données mais ne peut rien modifier.
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div>
+              <label class="form-label">Mot de Passe Temporaire <span style="color:var(--munipro-red);">*</span></label>
+              <input type="password" name="mot_de_passe" class="form-control" required minlength="6" placeholder="Min. 6 caractères">
+            </div>
+            <div>
+              <label class="form-label">Confirmer</label>
+              <input type="password" name="confirmer_mdp" class="form-control" placeholder="Répéter le mot de passe">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-person-check-fill"></i> Créer le Compte
+            </button>
+            <a href="/super-admin/comptes" class="btn btn-outline">Annuler</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+<%- include('../partials/footer') %>
