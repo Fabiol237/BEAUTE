@@ -145,7 +145,9 @@
         const color = statusColors[p.statut] || '#64748b';
         const emoji = statusEmoji[p.statut] || '📍';
         const budget = p.budget_actuel ? Math.round(Number(p.budget_actuel) / 1000000) + 'M FCFA' : '—';
+        const photoHtml = p.photo ? `<img src="/uploads/${p.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;" onerror="this.style.display='none'">` : '';
         const popup = `<div class="popup-inner">
+          ${photoHtml}
           <div class="popup-title">${p.titre}</div>
           <span class="popup-badge" style="background:${color}18;color:${color};">${emoji} ${p.statut}</span>
           <div style="font-size:11px;color:#64748b;margin-bottom:8px;">💰 ${budget}</div>

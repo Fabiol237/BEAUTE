@@ -212,7 +212,7 @@ router.get('/carte', async (req, res, next) => {
   try {
     const projets = await query(`
       SELECT p.id, p.titre, p.statut, p.avancement_physique, p.budget_actuel,
-             p.latitude, p.longitude, c.nom AS commune_nom
+             p.latitude, p.longitude, p.photo, c.nom AS commune_nom
       FROM projets p
       LEFT JOIN communes c ON c.id = p.commune_id
       WHERE p.visible_public = TRUE

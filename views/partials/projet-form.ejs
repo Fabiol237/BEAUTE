@@ -15,7 +15,28 @@
 <% types_projets.forEach(t => { %><option value="<%= t.id %>" <%= String(b.type_projet_id)===String(t.id)?'selected':'' %>><%= e(t.nom) %></option><% }); %>
 </select></div>
 
-<div class="col-12"><label class="form-label fw-semibold">Adresse</label><input type="text" name="adresse" class="form-control" value="<%= e(b.adresse || '') %>"></div>
+<%# Commune : select visible si super_admin ou plusieurs communes, sinon hidden %>
+<div class="col-md-6">
+  <label class="form-label fw-semibold">Commune *</label>
+  <% if (session && session.utilisateur_role === 'super_admin') { %>
+    <select name="commune_id" class="form-select" required>
+      <option value="">Choisir...</option>
+      <% (communes||[]).forEach(c => { %><option value="<%= c.id %>" <%= String(b.commune_id)===String(c.id)?'selected':'' %>><%= e(c.nom) %></option><% }); %>
+    </select>
+  <% } else { %>
+    <input type="hidden" name="commune_id" value="<%= e(b.commune_id || session.commune_id || '') %>">
+    <input type="text" class="form-control" value="<%= e((communes||[]).find(c=>String(c.id)===String(b.commune_id||session.commune_id))?.nom || 'Ma commune') %>" readonly style="background:#f8f9fa;">
+  <% } %>
+</div>
+
+<div class="col-12"><label class="form-label fw-semibold">Adresse / Localisation</label><input type="text" name="adresse" class="form-control" value="<%= e(b.adresse || b.localisation || '') %>"></div>
+<div class="col-md-6"><label class="form-label">Latitude</label><input type="text" name="latitude" class="form-control" value="<%= e(b.latitude || '') %>"></div>
+<div class="col-md-6"><label class="form-label">Longitude</label><input type="text" name="longitude" class="form-control" value="<%= e(b.longitude || '') %>"></div>
+<div class="col-12"><div class="form-check form-switch">
+<input class="form-check-input" type="checkbox" name="visible_public" id="visible_public" <%= (b.visible_public===undefined||b.visible_public==1||b.visible_public===true)?'checked':'' %>>
+<label class="form-check-label" for="visible_public">Visible sur le portail citoyen</label></div></div>
+</div></div></div>
+
 <div class="col-md-6"><label class="form-label">Latitude</label><input type="text" name="latitude" class="form-control" value="<%= e(b.latitude || '') %>"></div>
 <div class="col-md-6"><label class="form-label">Longitude</label><input type="text" name="longitude" class="form-control" value="<%= e(b.longitude || '') %>"></div>
 <div class="col-12"><div class="form-check form-switch">

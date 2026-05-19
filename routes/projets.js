@@ -137,30 +137,41 @@ router.get('/liste', async (req, res, next) => {
     const filtre_statut = req.query.statut || '';
     const filtre_commune = req.query.commune || '';
     const search = req.query.search || '';
+    const isSuperAdmin = req.session.utilisateur_role === 'super_admin';
 
-    const where = ['1=1'];
+    const where = [];
     const params = [];
+    let pIdx = 1;
+
+    // Isolation par commune pour les non-super-admins
+    if (!isSuperAdmin && req.session.commune_id) {
+      where.push(`p.commune_id = $${pIdx++}`);
+      params.push(req.session.commune_id);
+    }
     if (filtre_statut) {
-      where.push('p.statut = ?');
+      where.push(`p.statut = $${pIdx++}`);
       params.push(filtre_statut);
     }
-    if (filtre_commune) {
-      where.push('p.commune_id = ?');
+    if (filtre_commune && isSuperAdmin) {
+      where.push(`p.commune_id = $${pIdx++}`);
       params.push(filtre_commune);
     }
     if (search) {
-      where.push('(p.titre LIKE ? OR p.description LIKE ?)');
+      where.push(`(p.titre ILIKE $${pIdx} OR p.description ILIKE $${pIdx + 1})`);
       params.push(`%${search}%`, `%${search}%`);
+      pIdx += 2;
     }
+
+    const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
     const projets = await query(
       `SELECT p.*, c.nom AS commune_nom, tp.nom AS type_nom, tp.couleur,
-              CONCAT(u.prenom, ' ', u.nom) AS responsable_nom
+              CONCAT(u.prenom, ' ', u.nom) AS createur_nom
        FROM projets p
-       JOIN communes c ON p.commune_id = c.id
-       JOIN types_projets tp ON p.type_projet_id = tp.id
-       JOIN utilisateurs u ON p.responsable_id = u.id
-       WHERE ${where.join(' AND ')}
+       LEFT JOIN communes c ON p.commune_id = c.id
+       LEFT JOIN types_projets tp ON p.type_projet_id = tp.id
+       LEFT JOIN utilisateurs u ON p.created_by = u.id
+       ${whereClause}
        ORDER BY p.created_at DESC`,
       params
     );
@@ -184,12 +195,15 @@ router.get('/creer', gestionnaireOnly, async (req, res, next) => {
   try {
     const types_projets = await query('SELECT * FROM types_projets ORDER BY nom');
     const communes = await query('SELECT * FROM communes ORDER BY nom');
+    // Pré-remplir commune pour les admins de commune
+    const defaultBody = {};
+    if (req.session.commune_id) defaultBody.commune_id = req.session.commune_id;
     res.render('projets/creer', {
       page_title: 'Créer un projet',
       types_projets,
       communes,
       erreurs: [],
-      body: {},
+      body: defaultBody,
       phases_list: defaultPhases(),
       risques_list: defaultRisques(),
       kpis_list: defaultKpis(),
@@ -204,16 +218,17 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
   const erreurs = [];
   const titre = (body.titre || '').trim();
   const type_projet_id = parseInt(body.type_projet_id, 10) || 0;
-  const commune_id = parseInt(body.commune_id, 10) || 0;
-  const budget_initial = parseMontantInput(body.budget_initial);
+  // Commune: from form (super admin) or from session (commune admin)
+  const commune_id = parseInt(body.commune_id, 10) || parseInt(req.session.commune_id, 10) || 0;
+  const budget_previsionnel = parseMontantInput(body.budget_initial || body.budget_previsionnel);
   const date_debut = body.date_debut || '';
   const date_fin_prevue = body.date_fin_prevue || '';
 
   if (!titre) erreurs.push('Le titre est requis');
   if (!type_projet_id) erreurs.push('Le type de projet est requis');
-  if (!commune_id) erreurs.push('La commune est requise');
-  if (!budget_initial || budget_initial <= 0)
-    erreurs.push('Le budget doit être un nombre valide supérieur à 0');
+  if (!commune_id) erreurs.push('La commune est requise — veuillez contacter le Super Admin');
+  if (!budget_previsionnel || budget_previsionnel <= 0)
+    erreurs.push('Le budget prévisionnel doit être un nombre valide supérieur à 0');
   if (!date_debut) erreurs.push('La date de début est requise');
   if (!date_fin_prevue) erreurs.push('La date de fin prévue est requise');
   if (date_debut && date_fin_prevue && date_fin_prevue <= date_debut)
@@ -227,7 +242,7 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
       types_projets,
       communes,
       erreurs,
-      body,
+      body: { ...body, commune_id },
       phases_list: buildPhaseList(body),
       risques_list: buildRisqueList(body),
       kpis_list: buildKpiList(body),
@@ -239,81 +254,38 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const pgSql = `INSERT INTO projets (
-        titre, description, consignes, type_projet_id, commune_id, responsable_id,
-        entreprise_executante, budget_initial, budget_actuel, budget_deja_utilise,
-        date_debut, date_fin_prevue, statut, priorite, avancement_physique,
-        latitude, longitude, adresse, visible_public
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING id`;
-      
-    const result = await client.query(pgSql, [
+    const result = await client.query(
+      `INSERT INTO projets (
+          titre, description, type_projet_id, commune_id, created_by,
+          budget_previsionnel, budget_actuel,
+          date_debut, date_fin_prevue, statut,
+          avancement_physique, latitude, longitude, localisation, visible_public
+        ) VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+      [
         titre,
         (body.description || '').trim() || null,
-        (body.consignes || '').trim() || null,
         type_projet_id,
         commune_id,
         req.session.utilisateur_id,
-        (body.entreprise_executante || '').trim() || null,
-        budget_initial,
-        budget_initial,
-        parseMontantInput(body.budget_deja_utilise),
+        budget_previsionnel,
         date_debut,
         date_fin_prevue,
         body.statut || 'planifié',
-        body.priorite || 'normale',
         parseInt(body.avancement_physique, 10) || 0,
         body.latitude || null,
         body.longitude || null,
         (body.adresse || '').trim() || null,
         body.visible_public ? true : false,
-      ]);
-      
+      ]
+    );
     const projet_id = result.rows[0].id;
-
-    const source = (body.source_financement || '').trim();
-    if (source) {
-      await client.query(
-        'INSERT INTO budgets (projet_id, montant_initial, source_financement, exercice_budgetaire) VALUES ($1, $2, $3, $4)',
-        [projet_id, budget_initial, source, new Date().getFullYear()]
-      );
-    }
-
-    // Phases, risques, KPIs
-    const phases = buildPhaseList(body);
-    for (let i = 0; i < phases.length; i++) {
-      const [pTitre, pStatut, pPct, pDatePrev] = phases[i];
-      if (!String(pTitre || '').trim()) continue;
-      await client.query(
-        `INSERT INTO jalons (projet_id, titre, date_prevue, statut, pourcentage_completion, ordre)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [projet_id, String(pTitre).trim(), pDatePrev || date_fin_prevue, pStatut || 'non_commencé', parseInt(pPct, 10) || 0, i + 1]
-      );
-    }
-    const risques = buildRisqueList(body);
-    for (let i = 0; i < risques.length; i++) {
-      const [desc, niveau] = risques[i];
-      if (!String(desc || '').trim()) continue;
-      await client.query(
-        'INSERT INTO risques (projet_id, description, niveau, ordre) VALUES ($1, $2, $3, $4)',
-        [projet_id, String(desc).trim(), niveau || 'moyen', i + 1]
-      );
-    }
-    const kpis = buildKpiList(body);
-    for (let i = 0; i < kpis.length; i++) {
-      const [lib, cible] = kpis[i];
-      if (!String(lib || '').trim()) continue;
-      await client.query(
-        'INSERT INTO indicateurs (projet_id, libelle, valeur_cible, ordre) VALUES ($1, $2, $3, $4)',
-        [projet_id, String(lib).trim(), String(cible || '').trim(), i + 1]
-      );
-    }
 
     await client.query('COMMIT');
     setFlash(req, 'success', `Projet « ${titre} » créé avec succès !`);
     res.redirect(`/projets/details/${projet_id}`);
   } catch (err) {
     await client.query('ROLLBACK');
-    erreurs.push(`Erreur : ${err.message}`);
+    erreurs.push(`Erreur BD : ${err.message}`);
     await renderForm();
   } finally {
     client.release();
@@ -324,15 +296,14 @@ router.get('/details/:id', async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
     const projet = await queryOne(
-      `SELECT p.*, c.nom AS commune_nom, r.nom AS region_nom,
-              tp.nom AS type_nom, tp.couleur AS type_couleur, tp.icone AS type_icone,
+      `SELECT p.*, c.nom AS commune_nom,
+              tp.nom AS type_nom, tp.couleur AS type_couleur,
               CONCAT(u.prenom, ' ', u.nom) AS responsable_nom, u.email AS responsable_email
        FROM projets p
-       JOIN communes c ON p.commune_id = c.id
-       LEFT JOIN regions r ON c.region_id = r.id
-       JOIN types_projets tp ON p.type_projet_id = tp.id
-       JOIN utilisateurs u ON p.responsable_id = u.id
-       WHERE p.id = ?`,
+       LEFT JOIN communes c ON p.commune_id = c.id
+       LEFT JOIN types_projets tp ON p.type_projet_id = tp.id
+       LEFT JOIN utilisateurs u ON p.created_by = u.id
+       WHERE p.id = $1`,
       [projet_id]
     );
 
@@ -408,29 +379,20 @@ router.post('/details/:id', async (req, res, next) => {
     if (req.body.action !== 'update_avancement') {
       return res.redirect(`/projets/details/${projet_id}`);
     }
-
     const pourcentage = parseInt(req.body.pourcentage, 10) || 0;
     const description = (req.body.description || '').trim();
     const observations = (req.body.observations || '').trim();
     const date_constat = req.body.date_constat || new Date().toISOString().slice(0, 10);
-
     if (pourcentage < 0 || pourcentage > 100) {
       setFlash(req, 'danger', 'Le pourcentage doit être entre 0 et 100.');
     } else {
       await query(
         `INSERT INTO avancements (projet_id, utilisateur_id, pourcentage, description, observations, date_constat)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          projet_id,
-          req.session.utilisateur_id,
-          pourcentage,
-          description || null,
-          observations || null,
-          date_constat,
-        ]
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [projet_id, req.session.utilisateur_id, pourcentage, description || null, observations || null, date_constat]
       );
       await query(
-        'UPDATE projets SET avancement_physique = ?, updated_at = NOW() WHERE id = ?',
+        'UPDATE projets SET avancement_physique = $1, updated_at = NOW() WHERE id = $2',
         [pourcentage, projet_id]
       );
       setFlash(req, 'success', `Avancement mis à jour à ${pourcentage}% !`);
@@ -444,48 +406,14 @@ router.post('/details/:id', async (req, res, next) => {
 router.get('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
-    const projet = await queryOne('SELECT * FROM projets WHERE id = ?', [projet_id]);
+    const projet = await queryOne('SELECT * FROM projets WHERE id = $1', [projet_id]);
     if (!projet) {
       setFlash(req, 'danger', 'Projet introuvable.');
       return res.redirect('/projets/liste');
     }
 
-    const phases_bdd = await query(
-      'SELECT * FROM jalons WHERE projet_id = ? ORDER BY ordre',
-      [projet_id]
-    );
-    const risques_bdd = await query(
-      'SELECT * FROM risques WHERE projet_id = ? ORDER BY ordre',
-      [projet_id]
-    );
-    const kpis_bdd = await query(
-      'SELECT * FROM indicateurs WHERE projet_id = ? ORDER BY ordre',
-      [projet_id]
-    );
-    const budget_source = await queryOne(
-      'SELECT * FROM budgets WHERE projet_id = ? LIMIT 1',
-      [projet_id]
-    );
     const types_projets = await query('SELECT * FROM types_projets ORDER BY nom');
     const communes = await query('SELECT * FROM communes ORDER BY nom');
-
-    const phases_list =
-      phases_bdd.length > 0
-        ? phases_bdd.map((p) => [
-            p.titre,
-            p.statut,
-            p.pourcentage_completion,
-            p.date_prevue ? String(p.date_prevue).slice(0, 10) : '',
-          ])
-        : defaultPhases();
-    const risques_list =
-      risques_bdd.length > 0
-        ? risques_bdd.map((r) => [r.description, r.niveau])
-        : defaultRisques();
-    const kpis_list =
-      kpis_bdd.length > 0
-        ? kpis_bdd.map((k) => [k.libelle, k.valeur_cible])
-        : defaultKpis();
 
     res.render('projets/modifier', {
       page_title: 'Modifier le projet',
@@ -493,12 +421,12 @@ router.get('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
       projet_id,
       types_projets,
       communes,
-      budget_source,
+      budget_source: null,
       erreurs: [],
       body: projet,
-      phases_list,
-      risques_list,
-      kpis_list,
+      phases_list: defaultPhases(),
+      risques_list: defaultRisques(),
+      kpis_list: defaultKpis(),
     });
   } catch (err) {
     next(err);
@@ -511,8 +439,8 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
   const erreurs = [];
   const titre = (body.titre || '').trim();
   const type_projet_id = parseInt(body.type_projet_id, 10) || 0;
-  const commune_id = parseInt(body.commune_id, 10) || 0;
-  const budget_actuel = parseMontantInput(body.budget_actuel);
+  const commune_id = parseInt(body.commune_id, 10) || parseInt(req.session.commune_id, 10) || 0;
+  const budget_actuel = parseMontantInput(body.budget_actuel || body.budget_previsionnel);
   const date_debut = body.date_debut || '';
   const date_fin_prevue = body.date_fin_prevue || '';
   const date_fin_reelle = body.date_fin_reelle || null;
@@ -533,118 +461,80 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
     erreurs.push("L'avancement doit être entre 0 et 100");
 
   const renderForm = async () => {
-    const projet = await queryOne('SELECT * FROM projets WHERE id = ?', [projet_id]);
+    const projet = await queryOne('SELECT * FROM projets WHERE id = $1', [projet_id]);
     const types_projets = await query('SELECT * FROM types_projets ORDER BY nom');
     const communes = await query('SELECT * FROM communes ORDER BY nom');
-    const budget_source = await queryOne(
-      'SELECT * FROM budgets WHERE projet_id = ? LIMIT 1',
-      [projet_id]
-    );
     res.render('projets/modifier', {
       page_title: 'Modifier le projet',
       projet,
       projet_id,
       types_projets,
       communes,
-      budget_source,
+      budget_source: null,
       erreurs,
-      body: { ...projet, ...body },
-      phases_list: buildPhaseList(body),
-      risques_list: buildRisqueList(body),
-      kpis_list: buildKpiList(body),
+      body: { ...(projet || {}), ...body },
+      phases_list: defaultPhases(),
+      risques_list: defaultRisques(),
+      kpis_list: defaultKpis(),
     });
   };
 
   if (erreurs.length) return renderForm();
 
-  const conn = await pool.getConnection();
+  const client = await pool.connect();
   try {
-    await conn.beginTransaction();
-    await conn.execute(
+    await client.query('BEGIN');
+    await client.query(
       `UPDATE projets SET
-        titre = ?, description = ?, consignes = ?,
-        type_projet_id = ?, commune_id = ?,
-        entreprise_executante = ?,
-        budget_actuel = ?, budget_deja_utilise = ?,
-        date_debut = ?, date_fin_prevue = ?, date_fin_reelle = ?,
-        statut = ?, priorite = ?, avancement_physique = ?,
-        latitude = ?, longitude = ?, adresse = ?,
-        visible_public = ?, updated_at = NOW()
-      WHERE id = ?`,
+        titre = $1, description = $2,
+        type_projet_id = $3, commune_id = $4,
+        budget_actuel = $5,
+        date_debut = $6, date_fin_prevue = $7, date_fin_reelle = $8,
+        statut = $9, avancement_physique = $10,
+        latitude = $11, longitude = $12, localisation = $13,
+        visible_public = $14, updated_at = NOW()
+      WHERE id = $15`,[
       [
         titre,
         (body.description || '').trim() || null,
         (body.consignes || '').trim() || null,
         type_projet_id,
         commune_id,
-        (body.entreprise_executante || '').trim() || null,
         budget_actuel,
-        parseMontantInput(body.budget_deja_utilise),
         date_debut,
         date_fin_prevue,
         date_fin_reelle,
         body.statut || 'planifié',
-        body.priorite || 'normale',
         avancement_physique,
         body.latitude || null,
         body.longitude || null,
-        (body.adresse || '').trim() || null,
-        body.visible_public ? 1 : 0,
+        (body.adresse || body.localisation || '').trim() || null,
+        body.visible_public ? true : false,
         projet_id,
       ]
     );
 
-    const source = (body.source_financement || '').trim();
-    if (source) {
-      const budget_source = await queryOne(
-        'SELECT id FROM budgets WHERE projet_id = ? LIMIT 1',
-        [projet_id]
-      );
-      if (budget_source) {
-        await conn.execute(
-          'UPDATE budgets SET source_financement = ?, montant_initial = ? WHERE projet_id = ?',
-          [source, budget_actuel, projet_id]
-        );
-      } else {
-        await conn.execute(
-          'INSERT INTO budgets (projet_id, montant_initial, source_financement, exercice_budgetaire) VALUES (?, ?, ?, ?)',
-          [projet_id, budget_actuel, source, new Date().getFullYear()]
-        );
-      }
-    }
-
-    await conn.execute('DELETE FROM jalons WHERE projet_id = ?', [projet_id]);
-    await conn.execute('DELETE FROM risques WHERE projet_id = ?', [projet_id]);
-    await conn.execute('DELETE FROM indicateurs WHERE projet_id = ?', [projet_id]);
-    await insertPhasesRisquesKpis(conn, projet_id, body, date_fin_prevue);
-
-    await conn.commit();
+    await client.query('COMMIT');
     setFlash(req, 'success', 'Projet modifié avec succès !');
     res.redirect(`/projets/details/${projet_id}`);
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     erreurs.push(`Erreur : ${err.message}`);
     await renderForm();
   } finally {
-    conn.release();
+    client.release();
   }
 });
 
 router.get('/supprimer/:id', requireAdmin, async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
-    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = ?', [
-      projet_id,
-    ]);
+    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = $1', [projet_id]);
     if (!projet) {
       setFlash(req, 'danger', 'Projet introuvable');
       return res.redirect('/projets/liste');
     }
-    res.render('projets/supprimer', {
-      page_title: 'Supprimer le projet',
-      projet,
-      projet_id,
-    });
+    res.render('projets/supprimer', { page_title: 'Supprimer le projet', projet, projet_id });
   } catch (err) {
     next(err);
   }
@@ -653,20 +543,9 @@ router.get('/supprimer/:id', requireAdmin, async (req, res, next) => {
 router.post('/supprimer/:id', requireAdmin, async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
-    if (!req.body.confirmer) {
-      return res.redirect(`/projets/details/${projet_id}`);
-    }
-
-    const photos = await query('SELECT fichier_url FROM photos WHERE projet_id = ?', [
-      projet_id,
-    ]);
-    for (const photo of photos) {
-      const fp = path.join(config.uploadsDir, photo.fichier_url);
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    }
-
-    const projet = await queryOne('SELECT titre FROM projets WHERE id = ?', [projet_id]);
-    await query('DELETE FROM projets WHERE id = ?', [projet_id]);
+    if (!req.body.confirmer) return res.redirect(`/projets/details/${projet_id}`);
+    const projet = await queryOne('SELECT titre FROM projets WHERE id = $1', [projet_id]);
+    await query('DELETE FROM projets WHERE id = $1', [projet_id]);
     setFlash(req, 'success', `Le projet "${projet.titre}" a été supprimé avec succès.`);
     res.redirect('/projets/liste');
   } catch (err) {
@@ -678,18 +557,12 @@ router.post('/supprimer/:id', requireAdmin, async (req, res, next) => {
 router.get('/upload-photos/:id', gestionnaireOnly, async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
-    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = ?', [
-      projet_id,
-    ]);
+    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = $1', [projet_id]);
     if (!projet) {
       setFlash(req, 'danger', 'Projet introuvable');
       return res.redirect('/projets/liste');
     }
-    res.render('projets/upload-photos', {
-      page_title: 'Ajouter des photos',
-      projet,
-      projet_id,
-    });
+    res.render('projets/upload-photos', { page_title: 'Ajouter des photos', projet, projet_id });
   } catch (err) {
     next(err);
   }
@@ -756,18 +629,12 @@ router.post(
 router.get('/rapports/:id', async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
-    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = ?', [
-      projet_id,
-    ]);
+    const projet = await queryOne('SELECT id, titre FROM projets WHERE id = $1', [projet_id]);
     if (!projet) {
       setFlash(req, 'danger', 'Projet introuvable');
       return res.redirect('/projets/liste');
     }
-    res.render('projets/rapports', {
-      page_title: 'Générer un rapport',
-      projet,
-      projet_id,
-    });
+    res.render('projets/rapports', { page_title: 'Générer un rapport', projet, projet_id });
   } catch (err) {
     next(err);
   }
