@@ -207,6 +207,26 @@ router.get('/projet/:id', async (req, res, next) => {
 });
 
 
+// ── CARTE SATELLITAIRE CITOYENNE ───────────────────────────────────────────
+router.get('/carte', async (req, res, next) => {
+  try {
+    const projets = await query(`
+      SELECT p.id, p.titre, p.statut, p.avancement_physique, p.budget_actuel,
+             p.latitude, p.longitude, c.nom AS commune_nom
+      FROM projets p
+      LEFT JOIN communes c ON c.id = p.commune_id
+      WHERE p.visible_public = TRUE
+        AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+      ORDER BY p.created_at DESC
+    `);
+    res.render('portail/carte', {
+      page_title: 'Carte Satellitaire — Portail Citoyen',
+      layout: false,
+      projets,
+    });
+  } catch (err) { next(err); }
+});
+
 router.get('/suggestion', async (req, res, next) => {
   try {
     const projets = await query(

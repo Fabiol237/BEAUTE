@@ -359,6 +359,19 @@
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav style="background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);position:sticky;top:0;z-index:1000;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <a href="<%= siteUrl %>/portail-citoyen" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+        <img src="/assets/images/logo.png" style="height:32px;width:32px;object-fit:contain;background:white;padding:4px;border-radius:8px;" alt="Logo">
+        <span style="color:white;font-weight:800;font-size:16px;">Portail Citoyen</span>
+      </a>
+      <div style="display:flex;gap:16px;align-items:center;">
+        <a href="<%= siteUrl %>/portail-citoyen/projets" style="color:rgba(255,255,255,0.85);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s;" onmouseover="this.style.color='#FCD116'" onmouseout="this.style.color='rgba(255,255,255,0.85)'">📁 Projets</a>
+        <a href="<%= siteUrl %>/portail-citoyen/carte" style="color:rgba(255,255,255,0.85);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s;" onmouseover="this.style.color='#FCD116'" onmouseout="this.style.color='rgba(255,255,255,0.85)'">🛰️ Carte Satellite</a>
+        <a href="<%= siteUrl %>/portail-citoyen/suggestion" style="color:rgba(255,255,255,0.85);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s;" onmouseover="this.style.color='#FCD116'" onmouseout="this.style.color='rgba(255,255,255,0.85)'">💬 Suggestion</a>
+      </div>
+    </nav>
+
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="container hero-content">
@@ -370,25 +383,20 @@
                     Projets Municipaux
                 </h1>
                 <p class="hero-subtitle">
-                    Communes Urbaines du Littoral - Cameroun
+                    Communes Urbaines du Littoral — Cameroun 🇨🇲
                 </p>
                 <p class="mt-3" style="font-size: 1.1rem; opacity: 0.9;">
                     Suivez en temps réel les projets de développement de votre commune
                 </p>
                 
-                <!-- Barre de recherche -->
-                <div class="search-box">
-                    <form action="<%= siteUrl %>/portail-citoyen/projets" method="GET" class="d-flex">
-                        <input type="text" 
-                               name="q" 
-                               class="form-control" 
-                               placeholder="Rechercher un projet..." 
-                               style="flex: 1;">
-                        <button type="submit" class="btn ms-2">
-                            <i class="bi bi-search"></i>
-                            Rechercher
-                        </button>
-                    </form>
+                <!-- Actions rapides -->
+                <div style="display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
+                  <a href="<%= siteUrl %>/portail-citoyen/projets" style="background:#007A3D;color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                    📁 Voir tous les projets
+                  </a>
+                  <a href="<%= siteUrl %>/portail-citoyen/carte" style="background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);color:white;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;gap:8px;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    🛰️ Carte Satellitaire
+                  </a>
                 </div>
             </div>
         </div>
