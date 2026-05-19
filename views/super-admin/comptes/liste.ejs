@@ -1,0 +1,97 @@
+<%- include('../partials/header', { page_title: 'Gestion des Comptes' }) %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-people-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Comptes Agents des Communes</div>
+  </div>
+
+  <div class="content-area">
+
+    <div class="alert alert-warning" style="margin-bottom:24px;">
+      <i class="bi bi-shield-exclamation" style="font-size:18px;"></i>
+      <div><strong>Droits MuniPro limités</strong> — Vous pouvez uniquement <strong>suspendre ou réactiver</strong> les comptes. La modification des informations personnelles (nom, email, mot de passe) reste la responsabilité de chaque commune.</div>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="card mb-6">
+      <div class="card-body">
+        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="min-width:180px;">
+            <label class="form-label">Commune</label>
+            <select name="commune_id" class="form-select">
+              <option value="">Toutes les communes</option>
+              <% communes.forEach(c => { %><option value="<%= c.id %>" <%= filtre.commune_id==c.id?'selected':'' %>><%= e(c.nom) %></option><% }); %>
+            </select>
+          </div>
+          <div style="min-width:150px;">
+            <label class="form-label">Statut</label>
+            <select name="statut" class="form-select">
+              <option value="">Tous</option>
+              <option value="actif" <%= filtre.statut==='actif'?'selected':'' %>>✅ Actif</option>
+              <option value="suspendu" <%= filtre.statut==='suspendu'?'selected':'' %>>⚠️ Suspendu</option>
+            </select>
+          </div>
+          <div style="display:flex; gap: 8px;">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
+            <a href="<%= siteUrl %>/comptes" class="btn btn-outline"><i class="bi bi-x"></i> Réinitialiser</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-people-fill" style="color:var(--munipro-blue);"></i> Liste des Agents (<%= utilisateurs.length %>)</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Agent</th><th>Email</th><th>Commune</th><th>Rôle</th><th>Statut</th><th>Créé le</th><th>Actions MuniPro</th></tr>
+            </thead>
+            <tbody>
+              <% if (utilisateurs.length === 0) { %>
+              <tr><td colspan="7" class="empty-state"><i class="bi bi-people"></i>Aucun compte trouvé</td></tr>
+              <% } %>
+              <% utilisateurs.forEach(u => { %>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:34px;height:34px;border-radius:50%;background:var(--munipro-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">
+                      <%= (u.prenom[0]||'') + (u.nom[0]||'') %>
+                    </div>
+                    <div>
+                      <div class="fw-600"><%= e(u.prenom) %> <%= e(u.nom) %></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="color:var(--text-muted);font-size:13px;"><%= e(u.email) %></td>
+                <td><a href="<%= siteUrl %>/communes/<%= u.commune_id %>" class="table-link"><%= e(u.commune_nom) %></a></td>
+                <td>
+                  <span style="background:rgba(0,63,136,.08);color:var(--munipro-blue);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">
+                    <%= u.role === 'admin' ? '👑 Administrateur' : '👤 Agent' %>
+                  </span>
+                </td>
+                <td><span class="badge badge-<%= u.statut %>"><%= u.statut %></span></td>
+                <td style="font-size:12px;color:var(--text-muted);"><%= u.created_at %></td>
+                <td>
+                  <form method="POST" action="<%= siteUrl %>/comptes/<%= u.id %>/toggle" style="margin:0;">
+                    <button type="submit" class="btn btn-sm <%= u.statut==='actif'?'btn-warning':'btn-success' %>">
+                      <i class="bi bi-<%= u.statut==='actif'?'pause':'play' %>-circle"></i>
+                      <%= u.statut==='actif'?'Suspendre':'Réactiver' %>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

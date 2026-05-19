@@ -1,0 +1,282 @@
+<%- include('partials/header', { page_title: 'Tableau de Bord' }) %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-grid-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Tableau de Bord MuniPro</div>
+    <span class="topbar-badge"><i class="bi bi-broadcast"></i> Temps réel</span>
+    <span class="topbar-date"><i class="bi bi-calendar3"></i> <%= new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}) %></span>
+    <a href="<%= siteUrl %>/communes/creer" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg"></i> Nouvelle commune
+    </a>
+  </div>
+
+  <div class="content-area">
+
+    <!-- STATS PRINCIPALES -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-building"></i></div>
+        <div>
+          <div class="stat-value"><%= stats.total %></div>
+          <div class="stat-label">Communes totales</div>
+          <div class="stat-sub"><%= stats.actives %> actives · <%= stats.suspendues %> suspendues</div>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-folder-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats.total_projets %></div>
+          <div class="stat-label">Projets suivis</div>
+          <div class="stat-sub"><%= stats.en_cours %> en cours · <%= stats.termines %> terminés</div>
+        </div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon yellow"><i class="bi bi-cash-stack"></i></div>
+        <div>
+          <div class="stat-value"><%= ((stats.budget_total||0)/1e9).toFixed(2) %>Md</div>
+          <div class="stat-label">Budget Total FCFA</div>
+          <div class="stat-sub">Toutes communes confondues</div>
+        </div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-icon cyan"><i class="bi bi-speedometer2"></i></div>
+        <div>
+          <div class="stat-value"><%= stats.taux_moyen %>%</div>
+          <div class="stat-label">Avancement moyen</div>
+          <div class="stat-sub">Tous projets confondus</div>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats.en_retard %></div>
+          <div class="stat-label">Projets en retard</div>
+          <div class="stat-sub">Dépassement de délai</div>
+        </div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon purple"><i class="bi bi-people-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats.actives %></div>
+          <div class="stat-label">Comptes actifs</div>
+          <div class="stat-sub"><%= stats.suspendues %> suspendus</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRAPHIQUES LIGNE 1 -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="bi bi-bar-chart-fill" style="color:var(--munipro-blue);"></i> Budget par Commune</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="bi bi-pie-chart-fill" style="color:var(--munipro-blue);"></i> Statuts des Projets</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="statutChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP COMMUNES + ALERTES -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="bi bi-trophy-fill" style="color:#D4A017;"></i> Top Communes Performantes</h5>
+          <a href="<%= siteUrl %>/rapports" class="btn btn-outline btn-sm">Voir rapport</a>
+        </div>
+        <div class="card-body">
+          <% const medals = ['gold','silver','bronze']; %>
+          <% top_communes.forEach((c, i) => { %>
+          <div class="rank-item">
+            <div class="rank-num <%= medals[i] || '' %>"><%= i+1 %></div>
+            <div class="rank-info">
+              <div class="name"><a href="<%= siteUrl %>/communes/<%= c.id %>" class="table-link"><%= e(c.nom) %></a></div>
+              <div class="sub"><%= c.total_projets %> projets · <%= formatMontant(c.budget_total) %></div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:800;font-size:16px;color:var(--munipro-green);"><%= c.taux_avancement %>%</div>
+              <div class="progress" style="width:80px;margin-top:4px;">
+                <div class="progress-bar low" style="width:<%= c.taux_avancement %>%;"></div>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+          <% if (!top_communes.length) { %>
+          <div class="empty-state"><i class="bi bi-building"></i>Aucune commune active</div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="bi bi-exclamation-triangle-fill" style="color:var(--munipro-red);"></i> Communes en Alerte Retard</h5>
+          <a href="<%= siteUrl %>/alertes" class="btn btn-outline btn-sm">Voir tout</a>
+        </div>
+        <div class="card-body">
+          <% if (communes_retard.length) { %>
+          <% communes_retard.forEach(c => { %>
+          <div class="alert alert-danger" style="margin-bottom: 12px;">
+            <i class="bi bi-building"></i>
+            <div>
+              <strong><a href="<%= siteUrl %>/communes/<%= c.id %>" style="color:inherit; text-decoration:none;"><%= e(c.nom) %></a></strong><br>
+              <small><%= c.en_retard %> projet(s) dépassent le délai prévu · Avancement moyen : <%= c.taux_avancement %>%</small>
+            </div>
+          </div>
+          <% }); %>
+          <% } else { %>
+          <div class="empty-state"><i class="bi bi-check-circle-fill" style="color:var(--munipro-green);"></i>Aucune commune en alerte</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLEAU RÉSUMÉ TOUTES COMMUNES -->
+    <div class="card mb-6">
+      <div class="card-header">
+        <h5><i class="bi bi-table" style="color:var(--munipro-blue);"></i> Vue d'ensemble — Toutes les Communes</h5>
+        <a href="<%= siteUrl %>/communes" class="btn btn-primary btn-sm"><i class="bi bi-arrow-right"></i> Gérer</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Commune</th>
+                <th>Région</th>
+                <th>Projets</th>
+                <th>Budget Total</th>
+                <th>Avancement</th>
+                <th>Retards</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% communes.forEach(c => { %>
+              <tr>
+                <td><a href="<%= siteUrl %>/communes/<%= c.id %>" class="table-link fw-600"><i class="bi bi-building me-1"></i><%= e(c.nom) %></a></td>
+                <td><span class="text-muted"><%= e(c.region) %></span></td>
+                <td><strong><%= c.total_projets %></strong></td>
+                <td><%= formatMontant(c.budget_total) %></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="progress" style="width:80px;"><div class="progress-bar <%= c.taux_avancement > 70 ? 'low' : c.taux_avancement > 40 ? 'mid' : 'high' %>" style="width:<%= c.taux_avancement %>%;"></div></div>
+                    <span style="font-size:12px;font-weight:600;"><%= c.taux_avancement %>%</span>
+                  </div>
+                </td>
+                <td><% if (c.en_retard > 0) { %><span class="badge badge-alerte"><i class="bi bi-exclamation-circle"></i> <%= c.en_retard %> retard(s)</span><% } else { %><span style="color:var(--munipro-green);font-size:12px;"><i class="bi bi-check-circle"></i> OK</span><% } %></td>
+                <td><span class="badge badge-<%= c.statut %>"><%= c.statut %></span></td>
+                <td><a href="<%= siteUrl %>/communes/<%= c.id %>" class="btn btn-outline btn-sm"><i class="bi bi-eye"></i></a></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLEAU LIENS D'INSCRIPTION SECURE -->
+    <div class="card mb-6">
+      <div class="card-header" style="background: linear-gradient(135deg, var(--munipro-blue), var(--munipro-blue-dark)); border-bottom: none;">
+        <h5 style="color: white; margin: 0;"><i class="bi bi-key-fill" style="color: var(--munipro-yellow);"></i> Générateur de Liens d'Inscription Sécurisés</h5>
+        <span style="background: rgba(255,255,255,0.15); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+          <%= communes.length %> Communes
+        </span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Commune</th>
+                <th>Région</th>
+                <th style="text-align:center;">Administrateur</th>
+                <th style="text-align:center;">Dernière Connexion</th>
+                <th style="width:360px;">Lien d'Inscription unique</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% communes.forEach(c => { %>
+              <tr>
+                <td><strong><%= e(c.nom) %></strong></td>
+                <td><span class="badge badge-inactif"><%= e(c.region) %></span></td>
+                <td style="text-align:center;">
+                  <% if (c.has_admin) { %>
+                  <span class="badge badge-actif"><i class="bi bi-check-circle me-1"></i><%= Number(c.nb_admins) %> admin(s)</span>
+                  <% } else { %>
+                  <span class="badge badge-alerte"><i class="bi bi-exclamation-circle me-1"></i>Aucun admin</span>
+                  <% } %>
+                </td>
+                <td style="text-align:center; color: var(--text-muted); font-size:12px;">
+                  <% if (c.derniere_connexion_admin) { %>
+                    <%= formatDate(c.derniere_connexion_admin) %>
+                  <% } else { %>
+                    <span style="color: var(--munipro-red);">Jamais</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display:flex; gap: 6px; align-items: center;">
+                    <input type="text" class="form-control" style="font-family: monospace; font-size: 11px; padding: 6px; background: #f8fafc;"
+                        id="lnk-<%= c.id %>" value="<%= c.inscription_link %>" readonly>
+                    <button class="btn btn-primary btn-sm btn-icon" type="button"
+                        onclick="copyInscriptionLink('<%= c.id %>')" title="Copier le lien" style="width: 32px; height: 32px;">
+                        <i class="bi bi-clipboard" id="ico-<%= c.id %>"></i>
+                    </button>
+                    <a href="<%= c.inscription_link %>" target="_blank"
+                        class="btn btn-outline btn-sm btn-icon" title="Tester le lien" style="width: 32px; height: 32px;">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="padding:14px; background:#F8FAFC; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted); border-radius: 0 0 var(--radius) var(--radius);">
+        <i class="bi bi-info-circle-fill" style="color: var(--munipro-blue); margin-right: 6px;"></i>
+        Copiez et envoyez le lien correspondant au responsable de chaque commune. Ce lien sécurisé crée directement un compte Administrateur lié à la commune.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const colors = { blue:'#003F88', green:'#007A3D', yellow:'#FCD116', red:'#CE1126', cyan:'#0EA5E9', purple:'#7C3AED' };
+const budgetData = <%- JSON.stringify(budget_communes) %>;
+new Chart(document.getElementById('budgetChart'), {
+  type: 'bar',
+  data: { labels: budgetData.map(x=>x.commune), datasets: [{ label:'Budget (M FCFA)', data: budgetData.map(x=>Math.round(x.budget/1e5)/10), backgroundColor: colors.blue+'CC', borderRadius: 8, borderSkipped: false }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'M'},grid:{color:'#F0F4F8'}},x:{grid:{display:false}}} }
+});
+
+const statutData = <%- JSON.stringify(projet_statuts) %>;
+const statutColors = { 'en_cours': colors.blue, 'terminé': colors.green, 'planifié': colors.cyan, 'suspendu': colors.yellow, 'annulé': '#94A3B8' };
+new Chart(document.getElementById('statutChart'), {
+  type: 'doughnut',
+  data: { labels: statutData.map(x=>x.statut), datasets: [{ data: statutData.map(x=>x.nombre), backgroundColor: statutData.map(x=>statutColors[x.statut]||'#ccc'), borderWidth: 0, hoverOffset: 8 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{padding:16,font:{size:12}}}} }
+});
+
+function copyInscriptionLink(id) {
+    const el = document.getElementById('lnk-' + id);
+    el.select(); el.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(el.value).then(() => {
+        const ico = document.getElementById('ico-' + id);
+        ico.className = 'bi bi-check-lg text-success';
+        setTimeout(() => { ico.className = 'bi bi-clipboard'; }, 2000);
+    });
+}
+</script>
+<%- include('partials/footer') %>

@@ -1,0 +1,51 @@
+<% const currentPath = req.path; %>
+<aside class="sidebar">
+  <a href="<%= siteUrl %>/dashboard" class="sidebar-brand">
+    <div class="sidebar-brand-logo" style="background: white; padding: 4px;">
+      <img src="<%= siteUrl %>/assets/images/logo.png" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo">
+    </div>
+    <div class="sidebar-brand-text">
+      <div class="name">MuniPro</div>
+      <div class="subtitle">Littoral · Super Admin</div>
+    </div>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a href="<%= siteUrl %>/dashboard" class="nav-item <%= currentPath === '/dashboard' || currentPath === '/' ? 'active' : '' %>">
+      <i class="bi bi-grid-fill"></i> Tableau de Bord
+    </a>
+    <a href="<%= siteUrl %>/communes" class="nav-item <%= currentPath.startsWith('/communes') ? 'active' : '' %>">
+      <i class="bi bi-building"></i> Communes
+    </a>
+    <a href="<%= siteUrl %>/comptes" class="nav-item <%= currentPath.startsWith('/comptes') ? 'active' : '' %>">
+      <i class="bi bi-people-fill"></i> Comptes Agents
+    </a>
+
+    <div class="nav-section" style="margin-top:12px;">Analyse</div>
+    <a href="<%= siteUrl %>/rapports" class="nav-item <%= currentPath.startsWith('/rapports') ? 'active' : '' %>">
+      <i class="bi bi-bar-chart-line-fill"></i> Rapports & Analyses
+    </a>
+    <a href="<%= siteUrl %>/carte" class="nav-item <%= currentPath.startsWith('/carte') ? 'active' : '' %>">
+      <i class="bi bi-map-fill"></i> Carte Globale
+    </a>
+    <a href="<%= siteUrl %>/alertes" class="nav-item <%= currentPath.startsWith('/alertes') ? 'active' : '' %>">
+      <i class="bi bi-bell-fill"></i> Alertes
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">
+        <%= (session.utilisateur_prenom ? session.utilisateur_prenom[0] : 'S') + (session.utilisateur_nom ? session.utilisateur_nom[0] : 'A') %>
+      </div>
+      <div class="sidebar-user-info">
+        <div class="name"><%= session.utilisateur_prenom || 'MuniPro' %> <%= session.utilisateur_nom || 'Admin' %></div>
+        <div class="role">Super Administrateur</div>
+      </div>
+    </div>
+    <a href="<%= siteUrl %>/logout" class="logout-btn">
+      <i class="bi bi-box-arrow-left"></i> Déconnexion
+    </a>
+  </div>
+</aside>

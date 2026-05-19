@@ -26,6 +26,15 @@ router.get('/', async (req, res, next) => {
       termine: projets.filter((p) => p.statut === 'terminé').length,
     };
 
+    if (req.session.utilisateur_role === 'super_admin') {
+      return res.render('super-admin/carte', {
+        page_title: 'Carte Globale',
+        projets,
+        communes,
+        stats_carte,
+      });
+    }
+
     res.render('carte', {
       page_title: 'Carte des Projets',
       projets,

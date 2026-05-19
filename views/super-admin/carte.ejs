@@ -1,0 +1,122 @@
+<%- include('partials/header', { page_title: 'Carte Globale' }) %>
+<%- include('partials/sidebar') %>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  #map { height: 600px; width: 100%; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+</style>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-map-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Carte Globale des Projets</div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- KPI ROW -->
+    <div class="stats-grid mb-6">
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-folder"></i></div>
+        <div>
+          <div class="stat-value"><%= stats_carte.total %></div>
+          <div class="stat-label">Total projets</div>
+        </div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-icon cyan"><i class="bi bi-play-circle-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats_carte.en_cours %></div>
+          <div class="stat-label">En cours</div>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats_carte.termine %></div>
+          <div class="stat-label">Terminés</div>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div>
+          <div class="stat-value"><%= stats_carte.planifie %></div>
+          <div class="stat-label">Planifiés</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTRES -->
+    <div class="card mb-6">
+      <div class="card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;">
+          <select id="statutFilter" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="planifié">Planifié</option>
+            <option value="en_cours">En cours</option>
+            <option value="terminé">Terminé</option>
+            <option value="suspendu">Suspendu</option>
+          </select>
+        </div>
+        <div>
+          <button id="resetFilters" class="btn btn-outline"><i class="bi bi-x"></i> Réinitialiser</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARTE -->
+    <div id="map" class="mb-6"></div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const projetsData = <%- JSON.stringify(projets) %>;
+const map = L.map('map').setView([4.0511, 9.7679], 10);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+let markers = [];
+
+function addMarkers(list = projetsData) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  
+  list.forEach(p => {
+    if (!p.latitude || !p.longitude) return;
+    
+    // Custom popup
+    const popupContent = `
+      <div style="font-family:'Inter',sans-serif;padding:4px;">
+        <strong style="color:var(--munipro-blue);font-size:14px;">${p.titre}</strong><br>
+        <small style="color:var(--text-muted);display:block;margin-top:2px;">Commune : ${p.commune_nom || '—'}</small>
+        <span class="badge badge-${p.statut.replace('é','e').replace(' ','_')}" style="margin-top:6px;font-size:10px;">${p.statut}</span>
+      </div>
+    `;
+    
+    const m = L.marker([p.latitude, p.longitude]).addTo(map).bindPopup(popupContent);
+    markers.push(m);
+  });
+  
+  if (markers.length) {
+    const g = L.featureGroup(markers);
+    map.fitBounds(g.getBounds().pad(0.1));
+  }
+}
+
+addMarkers();
+
+document.getElementById('statutFilter').onchange = () => {
+  const s = document.getElementById('statutFilter').value;
+  addMarkers(projetsData.filter(p => (!s || p.statut === s)));
+};
+
+document.getElementById('resetFilters').onclick = () => {
+  document.getElementById('statutFilter').value = '';
+  addMarkers();
+};
+</script>
+
+<%- include('partials/footer') %>

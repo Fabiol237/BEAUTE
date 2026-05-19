@@ -1,0 +1,106 @@
+<%- include('partials/header', { page_title: 'Rapports & Analyses' }) %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-bar-chart-line-fill" style="color:var(--munipro-blue);margin-right:10px;"></i>Rapports & Analyses</div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- RÉSUMÉ GLOBAL -->
+    <div class="stats-grid mb-6">
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-building"></i></div>
+        <div><div class="stat-value"><%= stats.total %></div><div class="stat-label">Communes</div></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+        <div><div class="stat-value"><%= stats.termines %></div><div class="stat-label">Projets terminés</div></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon yellow"><i class="bi bi-cash-stack"></i></div>
+        <div><div class="stat-value"><%= ((stats.budget_total||0)/1e9).toFixed(2) %>Md</div><div class="stat-label">Budget total FCFA</div></div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-icon cyan"><i class="bi bi-graph-up-arrow"></i></div>
+        <div><div class="stat-value"><%= stats.taux_moyen %>%</div><div class="stat-label">Avancement moyen</div></div>
+      </div>
+    </div>
+
+    <!-- GRAPHIQUES -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header"><h5><i class="bi bi-bar-chart-fill" style="color:var(--munipro-blue);"></i> Avancement par Commune</h5></div>
+        <div class="card-body"><div class="chart-container"><canvas id="avancementChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h5><i class="bi bi-pie-chart-fill" style="color:var(--munipro-blue);"></i> Budget par Commune</h5></div>
+        <div class="card-body"><div class="chart-container"><canvas id="budgetPieChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- TABLEAU COMPARATIF -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-table" style="color:var(--munipro-blue);"></i> Tableau Comparatif des Communes</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Rang</th><th>Commune</th><th>Total Projets</th><th>En cours</th><th>Terminés</th><th>Budget Total</th><th>Avancement</th><th>Retards</th></tr>
+            </thead>
+            <tbody>
+              <% const sorted = [...communes].sort((a,b)=>b.taux_avancement-a.taux_avancement); %>
+              <% sorted.forEach((c, i) => { %>
+              <tr>
+                <td>
+                  <span style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:<%= i===0?'#FCD116':i===1?'#C0C0C0':i===2?'#CD853F':'#F0F4F8' %>;color:<%= i<3?'#1A2332':'var(--text-muted)' %>;">
+                    <%= i+1 %>
+                  </span>
+                </td>
+                <td><a href="<%= siteUrl %>/communes/<%= c.id %>" class="table-link fw-600"><%= e(c.nom) %></a></td>
+                <td><%= c.total_projets %></td>
+                <td><%= c.en_cours || 0 %></td>
+                <td style="color:var(--munipro-green);font-weight:600;"><%= c.termines || 0 %></td>
+                <td><%= formatMontant(c.budget_total) %></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="progress" style="width:80px;"><div class="progress-bar <%= c.taux_avancement>70?'low':c.taux_avancement>40?'mid':'high' %>" style="width:<%= c.taux_avancement %>%;"></div></div>
+                    <strong><%= c.taux_avancement %>%</strong>
+                  </div>
+                </td>
+                <td>
+                  <% if ((c.en_retard||0) > 0) { %>
+                  <span class="badge badge-alerte"><i class="bi bi-exclamation-circle"></i> <%= c.en_retard %></span>
+                  <% } else { %>
+                  <span style="color:var(--munipro-green);font-size:12px;"><i class="bi bi-check-circle"></i> OK</span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const communes = <%- JSON.stringify(communes.map(c=>({nom:c.nom,avancement:c.taux_avancement,budget:c.budget_total}))) %>;
+const palette = ['#003F88','#007A3D','#FCD116','#CE1126','#0EA5E9','#7C3AED','#F59E0B','#10B981'];
+new Chart(document.getElementById('avancementChart'), {
+  type: 'bar',
+  data: { labels: communes.map(c=>c.nom), datasets:[{ label:'Avancement (%)', data: communes.map(c=>c.avancement), backgroundColor: palette, borderRadius:8, borderSkipped:false }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#F0F4F8'}},y:{grid:{display:false}}} }
+});
+new Chart(document.getElementById('budgetPieChart'), {
+  type: 'doughnut',
+  data: { labels: communes.map(c=>c.nom), datasets:[{ data: communes.map(c=>Math.round(c.budget/1e6*10)/10), backgroundColor: palette, borderWidth:0, hoverOffset:8 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{padding:12,font:{size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}M FCFA`}}} }
+});
+</script>
+<%- include('partials/footer') %>

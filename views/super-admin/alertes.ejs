@@ -1,0 +1,116 @@
+<%- include('partials/header', { page_title: 'Alertes' }) %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title"><i class="bi bi-bell-fill" style="color:var(--munipro-red);margin-right:10px;"></i>Alertes & Notifications</div>
+    <span style="background:rgba(206,17,38,.1);color:var(--munipro-red);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">
+      <%= en_retard.length + communes_suspendues.length + projets_bloques.length %> alertes actives
+    </span>
+  </div>
+
+  <div class="content-area">
+    <div class="grid-2">
+
+      <!-- PROJETS EN RETARD -->
+      <div>
+        <div class="card mb-6">
+          <div class="card-header" style="background:rgba(206,17,38,.04);border-bottom-color:rgba(206,17,38,.15);">
+            <h5 style="color:var(--munipro-red);"><i class="bi bi-clock-history"></i> Projets en Retard (<%= en_retard.length %>)</h5>
+          </div>
+          <div class="card-body p-0">
+            <% if (en_retard.length === 0) { %>
+            <div class="empty-state"><i class="bi bi-check-circle-fill" style="color:var(--munipro-green);"></i>Aucun projet en retard !</div>
+            <% } %>
+            <% en_retard.forEach(p => { %>
+            <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:36px;height:36px;background:rgba(206,17,38,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-exclamation-triangle-fill" style="color:var(--munipro-red);"></i>
+              </div>
+              <div style="flex:1;">
+                <div class="fw-600" style="font-size:14px;"><%= e(p.titre) %></div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+                  <i class="bi bi-building"></i> <%= e(p.commune_nom) %> ·
+                  Échéance : <strong style="color:var(--munipro-red);"><%= p.date_fin_prevue ? new Date(p.date_fin_prevue).toLocaleDateString('fr-FR') : '—' %></strong>
+                </div>
+                <div style="margin-top:8px;">
+                  <div class="progress" style="height:6px;"><div class="progress-bar high" style="width:<%= p.avancement_physique %>%;"></div></div>
+                  <small style="color:var(--text-muted);">Avancement : <%= p.avancement_physique %>%</small>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- PROJETS BLOQUÉS -->
+        <div class="card">
+          <div class="card-header" style="background:rgba(252,209,22,.08);border-bottom-color:rgba(252,209,22,.3);">
+            <h5 style="color:#7A6100;"><i class="bi bi-pause-circle-fill"></i> Projets Bloqués/Suspendus (<%= projets_bloques.length %>)</h5>
+          </div>
+          <div class="card-body p-0">
+            <% if (projets_bloques.length === 0) { %>
+            <div class="empty-state"><i class="bi bi-check-circle-fill" style="color:var(--munipro-green);"></i>Aucun projet bloqué</div>
+            <% } %>
+            <% projets_bloques.forEach(p => { %>
+            <div style="padding:16px;border-bottom:1px solid var(--border);">
+              <div class="fw-600"><%= e(p.titre) %></div>
+              <div style="font-size:12px;color:var(--text-muted);"><i class="bi bi-building"></i> <%= e(p.commune_nom) %> · Budget : <%= formatMontant(p.budget_actuel) %></div>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMUNES SUSPENDUES / INACTIVES -->
+      <div>
+        <div class="card mb-6">
+          <div class="card-header" style="background:rgba(252,209,22,.08);">
+            <h5 style="color:#7A6100;"><i class="bi bi-building-x"></i> Communes Suspendues (<%= communes_suspendues.length %>)</h5>
+          </div>
+          <div class="card-body p-0">
+            <% if (communes_suspendues.length === 0) { %>
+            <div class="empty-state"><i class="bi bi-check-circle-fill" style="color:var(--munipro-green);"></i>Aucune commune suspendue</div>
+            <% } %>
+            <% communes_suspendues.forEach(c => { %>
+            <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="fw-600"><a href="<%= siteUrl %>/communes/<%= c.id %>" class="table-link"><%= e(c.nom) %></a></div>
+                <div style="font-size:12px;color:var(--text-muted);"><%= e(c.region) %> · <%= c.total_projets %> projet(s)</div>
+              </div>
+              <form method="POST" action="<%= siteUrl %>/communes/<%= c.id %>/toggle">
+                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-play-circle"></i> Réactiver</button>
+              </form>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="background:#F8FAFC;">
+            <h5 style="color:#64748B;"><i class="bi bi-building-slash"></i> Communes Inactives (<%= communes_inactives.length %>)</h5>
+          </div>
+          <div class="card-body p-0">
+            <% if (communes_inactives.length === 0) { %>
+            <div class="empty-state"><i class="bi bi-check-circle-fill" style="color:var(--munipro-green);"></i>Aucune commune inactive</div>
+            <% } %>
+            <% communes_inactives.forEach(c => { %>
+            <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="fw-600" style="color:#64748B;"><%= e(c.nom) %></div>
+                <div style="font-size:12px;color:var(--text-muted);">Créée le : <%= c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—' %> · Jamais activée</div>
+              </div>
+              <form method="POST" action="<%= siteUrl %>/communes/<%= c.id %>/toggle">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-play-circle"></i> Activer</button>
+              </form>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

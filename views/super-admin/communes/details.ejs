@@ -1,0 +1,125 @@
+<%- include('../partials/header', { page_title: commune.nom }) %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <a href="<%= siteUrl %>/communes" style="color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;">Communes</a>
+      <span style="color:var(--text-muted);margin:0 8px;">/</span>
+      <strong><%= e(commune.nom) %></strong>
+    </div>
+    <span class="badge badge-<%= commune.statut %>" style="font-size:13px;padding:6px 14px;"><%= commune.statut %></span>
+    <form method="POST" action="<%= siteUrl %>/communes/<%= commune.id %>/toggle" style="margin:0;">
+      <button type="submit" class="btn btn-sm <%= commune.statut==='actif'?'btn-warning':'btn-success' %>">
+        <i class="bi bi-<%= commune.statut==='actif'?'pause':'play' %>-circle"></i>
+        <%= commune.statut==='actif'?'Suspendre':'Réactiver' %>
+      </button>
+    </form>
+  </div>
+
+  <div class="content-area">
+
+    <!-- FICHE IDENTITÉ -->
+    <div class="grid-2 mb-6">
+      <div class="card">
+        <div class="card-header"><h5><i class="bi bi-building" style="color:var(--munipro-blue);"></i> Identité de la Commune</h5></div>
+        <div class="card-body">
+          <table style="width:100%;border:none;">
+            <tr><td style="color:var(--text-muted);width:140px;padding:8px 0;font-size:13px;border:none;">Commune</td><td style="font-weight:600;padding:8px 0;border:none;"><%= e(commune.nom) %></td></tr>
+            <tr><td style="color:var(--text-muted);padding:8px 0;font-size:13px;border:none;">Région</td><td style="font-weight:600;padding:8px 0;border:none;"><%= e(commune.region) %></td></tr>
+            <tr><td style="color:var(--text-muted);padding:8px 0;font-size:13px;border:none;">Responsable</td><td style="font-weight:600;padding:8px 0;border:none;"><%= e(commune.responsable || '—') %></td></tr>
+            <tr><td style="color:var(--text-muted);padding:8px 0;font-size:13px;border:none;">Email principal</td><td style="padding:8px 0;border:none;"><a href="mailto:<%= e(commune.email) %>" style="color:var(--munipro-blue);"><%= e(commune.email) %></a></td></tr>
+            <tr><td style="color:var(--text-muted);padding:8px 0;font-size:13px;border:none;">Téléphone</td><td style="padding:8px 0;border:none;"><%= e(commune.telephone || '—') %></td></tr>
+            <tr><td style="color:var(--text-muted);padding:8px 0;font-size:13px;border:none;">Date d'enregistrement</td><td style="padding:8px 0;border:none;color:var(--text-muted);"><%= commune.created_at ? new Date(commune.created_at).toLocaleDateString('fr-FR') : '—' %></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h5><i class="bi bi-speedometer2" style="color:var(--munipro-blue);"></i> KPIs de Performance</h5></div>
+        <div class="card-body">
+          <div class="kpi-row" style="margin-bottom:20px;">
+            <div class="kpi-item">
+              <div class="val"><%= commune.total_projets %></div>
+              <div class="lbl">Total projets</div>
+            </div>
+            <div class="kpi-item">
+              <div class="val" style="color:var(--munipro-blue);"><%= commune.en_cours || 0 %></div>
+              <div class="lbl">En cours</div>
+            </div>
+            <div class="kpi-item">
+              <div class="val" style="color:var(--munipro-green);"><%= commune.termines || 0 %></div>
+              <div class="lbl">Terminés</div>
+            </div>
+            <div class="kpi-item">
+              <div class="val" style="color:<%= commune.en_retard>0?'var(--munipro-red)':'var(--munipro-green)' %>;"><%= commune.en_retard || 0 %></div>
+              <div class="lbl">En retard</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+              <span>Taux d'avancement global</span>
+              <strong><%= commune.taux_avancement %>%</strong>
+            </div>
+            <div class="progress" style="height:12px;">
+              <div class="progress-bar <%= commune.taux_avancement>70?'low':commune.taux_avancement>40?'mid':'high' %>" style="width:<%= commune.taux_avancement %>%;"></div>
+            </div>
+          </div>
+
+          <div style="background:#F8FAFC;border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Budget Total Engagé</div>
+            <div style="font-size:24px;font-weight:800;color:var(--munipro-blue);"><%= formatMontant(commune.budget_total) %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTE PROJETS (lecture seule) -->
+    <div class="card mb-6">
+      <div class="card-header">
+        <h5><i class="bi bi-folder-fill" style="color:var(--munipro-blue);"></i> Projets de la Commune (<%= commune.total_projets %>)</h5>
+        <span style="font-size:12px;color:var(--text-muted);background:#FFF3CD;padding:4px 10px;border-radius:6px;border:1px solid #FFC107;">
+          <i class="bi bi-lock-fill"></i> Lecture seule — Modification réservée à la commune
+        </span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Titre du Projet</th><th>Type</th><th>Budget</th><th>Avancement</th><th>Statut</th><th>Échéance</th></tr>
+            </thead>
+            <tbody>
+              <% if (commune.projets && commune.projets.length > 0) { %>
+              <% commune.projets.forEach(p => { %>
+              <tr>
+                <td><span class="fw-600"><%= e(p.titre) %></span></td>
+                <td><span class="text-muted"><%= e(p.type_nom) %></span></td>
+                <td><%= formatMontant(p.budget_actuel) %></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="progress" style="width:80px;"><div class="progress-bar <%= p.avancement_physique>70?'low':p.avancement_physique>40?'mid':'high' %>" style="width:<%= p.avancement_physique %>%;"></div></div>
+                    <span style="font-size:12px;font-weight:600;"><%= p.avancement_physique %>%</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-<%= p.statut.replace(' ','_').replace('é','e') %>"><%= p.statut %></span></td>
+                <td>
+                  <span style="font-size:12px;color:<% if(p.date_fin_prevue && new Date(p.date_fin_prevue)<new Date() && p.statut==='en_cours'){%>var(--munipro-red)<%}else{%>var(--text-muted)<%}%>;">
+                    <%= p.date_fin_prevue ? new Date(p.date_fin_prevue).toLocaleDateString('fr-FR') : '—' %>
+                  </span>
+                </td>
+              </tr>
+              <% }); %>
+              <% } else { %>
+              <tr><td colspan="6" class="empty-state"><i class="bi bi-folder"></i>Aucun projet enregistré</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

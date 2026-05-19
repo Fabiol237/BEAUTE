@@ -14,6 +14,10 @@ const budgetRoutes = require('./routes/budget');
 const utilisateursRoutes = require('./routes/utilisateurs');
 const portailRoutes = require('./routes/portail');
 const superAdminRoutes = require('./routes/superAdmin');
+const communesRoutes = require('./routes/communes');
+const comptesRoutes = require('./routes/comptes');
+const alertesRoutes = require('./routes/alertes');
+const rapportsRoutes = require('./routes/rapports');
 
 const app = express();
 
@@ -48,6 +52,10 @@ app.use('/budget', budgetRoutes);
 app.use('/utilisateurs', utilisateursRoutes);
 app.use('/portail-citoyen', portailRoutes);
 app.use('/super-admin', superAdminRoutes);
+app.use('/communes', communesRoutes);
+app.use('/comptes', comptesRoutes);
+app.use('/alertes', alertesRoutes);
+app.use('/rapports', rapportsRoutes);
 
 app.use((req, res) => {
   res.status(404).send('Page non trouvée');

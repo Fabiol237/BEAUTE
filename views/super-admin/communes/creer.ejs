@@ -1,0 +1,76 @@
+<%- include('../partials/header', { page_title: 'Créer une commune' }) %>
+<%- include('../partials/sidebar') %>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-title">
+      <a href="<%= siteUrl %>/communes" style="color:var(--text-muted);text-decoration:none;">Communes</a>
+      <span style="color:var(--text-muted);margin:0 8px;">/</span>
+      <strong>Créer une commune</strong>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div style="max-width:720px;margin:0 auto;">
+
+      <% if (error) { %>
+      <div class="alert alert-danger" style="margin-bottom:20px;"><i class="bi bi-exclamation-triangle-fill"></i> <%= error %></div>
+      <% } %>
+
+      <div class="alert alert-info" style="margin-bottom:24px;">
+        <i class="bi bi-info-circle-fill" style="font-size:18px;"></i>
+        <div>
+          <strong>Création d'accès institutionnel</strong><br>
+          <small>En enregistrant cette commune, vous pourrez ensuite copier son lien d'inscription unique depuis le tableau de bord pour l'envoyer au maire ou à l'administrateur afin qu'il configure son compte de manière sécurisée.</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h5><i class="bi bi-building-add" style="color:var(--munipro-blue);"></i> Informations de la Commune</h5></div>
+        <div class="card-body">
+          <form method="POST" action="<%= siteUrl %>/communes/creer">
+            <div class="form-row cols-2" style="margin-bottom:18px;">
+              <div class="form-group mb-0">
+                <label class="form-label">Nom de la Commune *</label>
+                <input type="text" name="nom" class="form-control" placeholder="Ex: Douala 6e" value="<%= e(body.nom || '') %>" required>
+              </div>
+              <div class="form-group mb-0">
+                <label class="form-label">Région *</label>
+                <select name="region" class="form-select">
+                  <option value="Littoral" <%= body.region==='Littoral'?'selected':'' %>>Littoral</option>
+                  <option value="Centre" <%= body.region==='Centre'?'selected':'' %>>Centre</option>
+                  <option value="Ouest" <%= body.region==='Ouest'?'selected':'' %>>Ouest</option>
+                  <option value="Sud" <%= body.region==='Sud'?'selected':'' %>>Sud</option>
+                  <option value="Nord" <%= body.region==='Nord'?'selected':'' %>>Nord</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row cols-2" style="margin-bottom:18px;">
+              <div class="form-group mb-0">
+                <label class="form-label">Email de Contact *</label>
+                <input type="email" name="email" class="form-control" placeholder="contact@commune.cm" value="<%= e(body.email || '') %>" required>
+              </div>
+              <div class="form-group mb-0">
+                <label class="form-label">Téléphone</label>
+                <input type="text" name="telephone" class="form-control" placeholder="+237 000 000 000" value="<%= e(body.telephone || '') %>">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+              <label class="form-label">Responsable (Nom & Prénom)</label>
+              <input type="text" name="responsable" class="form-control" placeholder="Ex: M. Jean DUPONT" value="<%= e(body.responsable || '') %>">
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+              <a href="<%= siteUrl %>/communes" class="btn btn-outline"><i class="bi bi-x"></i> Annuler</a>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Enregistrer la commune</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
