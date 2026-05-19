@@ -15,9 +15,9 @@ router.use(requireAdmin);
 router.get('/liste', async (req, res, next) => {
   try {
     const utilisateurs = await query(`
-      SELECT *, COALESCE(created_at, date_creation) AS date_inscription
+      SELECT *, created_at AS date_inscription
       FROM utilisateurs
-      ORDER BY COALESCE(created_at, date_creation) DESC
+      ORDER BY created_at DESC
     `);
 
     const stats = { total: utilisateurs.length, actifs: 0, admins: 0, inactifs: 0 };
