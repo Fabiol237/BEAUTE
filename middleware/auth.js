@@ -20,7 +20,8 @@ function requireRole(role) {
 }
 
 function requireAdmin(req, res, next) {
-  if ((req.session.utilisateur_role || '') !== 'admin') {
+  const role = req.session.utilisateur_role || '';
+  if (role !== 'admin' && role !== 'super_admin') {
     setFlash(req, 'danger', 'Accès refusé. Cette page est réservée aux administrateurs.');
     return res.redirect('/dashboard');
   }

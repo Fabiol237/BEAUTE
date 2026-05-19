@@ -1,0 +1,80 @@
+<%- include('partials/header', { page_title: 'Inscription Commune' }) %>
+<div class="login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card login-card">
+                    <div class="login-header bg-success">
+                        <img src="<%= siteUrl %>/assets/images/logo.png" alt="Logo" style="height:35px;width:35px;object-fit:contain;margin-right:10px;background:white;padding:5px;border-radius:8px;">
+                        <h3 class="mb-0">Suivi Projets Municipaux</h3>
+                        <p class="mb-0 opacity-75">Invitation d'Administration Municipale</p>
+                    </div>
+                    <div class="login-body">
+                        <h4 class="text-center mb-2">Création de Compte</h4>
+                        <p class="text-center text-muted small mb-4">Commune : <strong class="text-success"><%= e(commune.nom) %></strong> (Région <%= e(commune.region) %>)</p>
+                        
+                        <% if (erreurs && erreurs.length > 0) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <ul class="mb-0 ps-3">
+                                <% erreurs.forEach(err => { %>
+                                <li><%= e(err) %></li>
+                                <% }); %>
+                            </ul>
+                        </div>
+                        <% } %>
+                        
+                        <form method="POST" action="/inscription?commune_id=<%= commune.id %>&token=<%= token %>">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="prenom" class="form-label"><i class="bi bi-person me-1"></i> Prénom</label>
+                                    <input type="text" class="form-control" id="prenom" name="prenom" value="<%= e(body.prenom || '') %>" required autofocus>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="nom" class="form-label"><i class="bi bi-person-fill me-1"></i> Nom</label>
+                                    <input type="text" class="form-control" id="nom" name="nom" value="<%= e(body.nom || '') %>" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label"><i class="bi bi-envelope me-1"></i> Adresse Email professionnel</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="nom@commune.cm" value="<%= e(body.email || '') %>" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label"><i class="bi bi-building me-1"></i> Commune Rattachée</label>
+                                <input type="text" class="form-control bg-light" value="<%= e(commune.nom) %>" readonly disabled>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label"><i class="bi bi-shield-lock me-1"></i> Rôle Assigné</label>
+                                <input type="text" class="form-control bg-light" value="Administrateur de Commune" readonly disabled>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label"><i class="bi bi-lock me-1"></i> Mot de passe</label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Min. 6 car." required>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label for="confirmer_mdp" class="form-label"><i class="bi bi-lock-fill me-1"></i> Confirmer</label>
+                                    <input type="password" class="form-control" id="confirmer_mdp" name="confirmer_mdp" placeholder="Min. 6 car." required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                                <i class="bi bi-person-plus me-2"></i>Finaliser l'Inscription
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center text-muted bg-light">
+                        <small><i class="bi bi-shield-check me-1"></i>Lien d'invitation officiel et sécurisé</small>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="/login" class="text-white"><i class="bi bi-arrow-left me-1"></i>Retour à la page de connexion</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('partials/footer') %>

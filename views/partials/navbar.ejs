@@ -35,7 +35,7 @@
                         <i class="bi bi-globe"></i> Portail Citoyen
                     </a>
                 </li>
-                <% if ((session.utilisateur_role || '') === 'admin') { %>
+                <% if ((session.utilisateur_role || '') === 'admin' || (session.utilisateur_role || '') === 'super_admin') { %>
                 <li class="nav-item">
                     <a class="nav-link <%= req.path.startsWith('/utilisateurs') ? 'active' : '' %>" href="<%= siteUrl %>/utilisateurs/liste">
                         <i class="bi bi-people-fill"></i> Utilisateurs
