@@ -52,7 +52,7 @@
       background:linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.2) 60%, transparent 100%);
     }
     <% if (projet.photo) { %>
-    .hero{background-image:url('<%= siteUrl %>/assets/uploads/<%= projet.photo %>');background-size:cover;background-position:center;}
+    .hero{background-image:url('/assets/uploads/<%= projet.photo %>');background-size:cover;background-position:center;}
     <% } %>
     .hero-content{position:relative;z-index:1;max-width:900px;width:100%;}
     .hero-type{
@@ -145,7 +145,7 @@
 <!-- NAV -->
 <nav class="topnav">
   <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
-    <img src="<%= siteUrl %>/assets/images/logo.png" alt="MuniPro">
+    <img src="/assets/images/logo.png" alt="MuniPro">
     <span>MuniPro</span>
   </a>
   <div class="topnav-breadcrumb">
@@ -217,7 +217,7 @@
       <div class="photos-grid">
         <% photos_list.forEach(ph => { %>
         <div class="photo-item">
-          <img src="<%= siteUrl %>/assets/uploads/<%= ph.fichier_url || ph.fichier %>" alt="Photo chantier">
+          <img src="/assets/uploads/<%= ph.fichier_url || ph.fichier %>" alt="Photo chantier">
         </div>
         <% }) %>
       </div>

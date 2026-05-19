@@ -155,7 +155,7 @@
 <!-- TOP NAV -->
 <nav class="topnav">
   <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
-    <img src="<%= siteUrl %>/assets/images/logo.png" alt="MuniPro">
+    <img src="/assets/images/logo.png" alt="MuniPro">
     <span>MuniPro</span>
   </a>
   <div class="topnav-commune"><i class="bi bi-building" style="color:#FCD116;margin-right:6px;"></i><%= commune.nom %></div>
@@ -220,7 +220,7 @@
       <div class="projet-card">
         <div class="projet-img">
           <% if (p.photo) { %>
-            <img src="<%= siteUrl %>/assets/uploads/<%= p.photo %>" alt="<%= p.titre %>">
+            <img src="/assets/uploads/<%= p.photo %>" alt="<%= p.titre %>">
           <% } %>
           <span class="projet-statut s-<%= p.statut.replace(' ','_') %>"><%= p.statut.replace('_',' ') %></span>
         </div>

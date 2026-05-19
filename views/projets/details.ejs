@@ -47,7 +47,7 @@
 </div></div>
 <div class="card mb-4"><div class="card-header">Photos</div><div class="card-body">
 <% if (liste_photos.length) { %><div class="row g-2"><% liste_photos.forEach(ph => { %>
-<div class="col-md-4"><img src="<%= siteUrl %>/assets/uploads/<%= e(ph.fichier_url) %>" class="img-fluid rounded" alt=""></div>
+<div class="col-md-4"><img src="/assets/uploads/<%= e(ph.fichier_url) %>" class="img-fluid rounded" alt=""></div>
 <% }); %></div><% } else { %><p class="text-muted">Aucune photo</p><% } %>
 <a href="<%= siteUrl %>/projets/upload-photos/<%= projet.id %>" class="btn btn-primary mt-2">Ajouter photos</a>
 </div></div>

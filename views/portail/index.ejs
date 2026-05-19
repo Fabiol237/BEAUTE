@@ -35,7 +35,7 @@
         
         /* Hero avec IMAGE DE FOND PERSONNALISABLE + DÉGRADÉ CAMEROUNAIS */
         .hero-section {
-            background-image: url('<%= siteUrl %>/assets/images/hero-bg.jpg');
+            background-image: url('/assets/images/hero-bg.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -364,7 +364,7 @@
         <div class="container hero-content">
             <div class="text-center">
                 <h1 class="hero-title">
-                    <img src="<%= siteUrl %>/assets/images/logo.png"
+                    <img src="/assets/images/logo.png"
                          alt="Logo Communes" 
                          style="height: 60px; width: 60px; object-fit: contain; vertical-align: middle; margin-right: 15px; background: white; padding: 8px; border-radius: 12px;">
                     Projets Municipaux
@@ -461,13 +461,13 @@
                 <div class="project-card">
                     <% if (projet.photo) { %>
                         <div class="project-card-image has-photo" 
-                             style="background-image: url('<%= siteUrl %>/assets/uploads/<%= e(projet.photo) %>');">
+                             style="background-image: url('/assets/uploads/<%= e(projet.photo) %>');">
                             <div class="project-overlay"></div>
                         </div>
                     <% } else { %>
                         <div class="project-card-image">
                             <div class="project-icon">
-                                <img src="<%= siteUrl %>/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
+                                <img src="/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
                             </div>
                         </div>
                     <% } %>
@@ -538,7 +538,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <h5 style="color: var(--cameroun-jaune);">
-                        <img src="<%= siteUrl %>/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
+                        <img src="/assets/images/logo.png" alt="Logo" style="height: 35px; width: 35px; object-fit: contain; margin-right: 10px; background: white; padding: 5px; border-radius: 8px;">
                         Portail Citoyen
                     </h5>
                     <p class="mt-3">
