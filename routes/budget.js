@@ -38,7 +38,7 @@ router.get('/liste', async (req, res, next) => {
       LEFT JOIN types_projets t ON p.type_projet_id = t.id
       LEFT JOIN communes c ON p.commune_id = c.id
       LEFT JOIN depenses d ON d.projet_id = p.id
-      GROUP BY p.id
+      GROUP BY p.id, t.nom, t.couleur, c.nom
       ORDER BY p.budget_actuel DESC
     `);
 
