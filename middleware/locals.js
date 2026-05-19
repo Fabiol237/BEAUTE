@@ -3,7 +3,10 @@ const helpers = require('../lib/helpers');
 const { renderFlash } = require('./flash');
 
 function attachLocals(req, res, next) {
-  res.locals.siteUrl = config.siteUrl;
+  // Reconstruit l'URL de base depuis le req pour fonctionner sur Vercel, localhost, etc.
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:3000';
+  res.locals.siteUrl = `${proto}://${host}`;
   res.locals.siteName = config.siteName;
   res.locals.session = req.session;
   res.locals.req = req;
