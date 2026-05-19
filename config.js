@@ -13,8 +13,8 @@ module.exports = {
     database: process.env.DB_NAME || 'postgres',
   },
   rootDir: __dirname,
-  uploadsDir: path.join(__dirname, 'assets', 'uploads'),
-  signalementsDir: path.join(__dirname, 'assets', 'uploads', 'signalements'),
+  uploadsDir: path.join(__dirname, 'public', 'assets', 'uploads'),
+  signalementsDir: path.join(__dirname, 'public', 'assets', 'uploads', 'signalements'),
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_ANON_KEY

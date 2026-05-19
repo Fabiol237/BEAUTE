@@ -36,7 +36,7 @@ app.use(
   })
 );
 
-app.use('/assets', express.static(path.join(config.rootDir, 'assets')));
+app.use('/assets', express.static(path.join(config.rootDir, 'public', 'assets')));
 app.use(attachLocals);
 
 
