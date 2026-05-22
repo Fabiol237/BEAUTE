@@ -21,6 +21,15 @@
   .popup-progress-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #007A3D, #FCD116); }
   .popup-btn { display: block; text-align: center; background: #003F88; color: white; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; margin-top: 8px; }
   .popup-btn:hover { background: #005CC8; color: white; }
+
+  @media(max-width:768px){
+    #map { min-height: 400px; height: 60vh; border-radius: 8px; }
+    .map-controls { flex-direction: column; align-items: stretch !important; gap: 10px !important; padding: 12px; }
+    .map-controls > div { width: 100%; justify-content: center; text-align: center; }
+    .layer-btn { flex: 1; font-size: 11px; padding: 6px 10px; }
+    #statutFilter { width: 100% !important; font-size: 14px; }
+    .stat-badge { font-size: 11px; padding: 4px 10px; }
+  }
 </style>
 
 <div class="container-fluid mt-3">

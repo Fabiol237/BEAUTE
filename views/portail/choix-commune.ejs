@@ -3,178 +3,419 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portail Citoyen — Choisissez votre Commune · MuniPro Littoral</title>
+  <meta name="description" content="Portail Citoyen des Communes Urbaines du Littoral — Suivez les projets de développement de votre commune au Cameroun.">
+  <title>Portail Citoyen — Communes du Littoral · République du Cameroun</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
     :root {
-      --green: #007A3D; --yellow: #FCD116; --red: #CE1126;
-      --dark: #0D1B2A; --text: #1A2332; --muted: #64748B;
-      --border: #E2E8F0; --bg: #F0F5FF;
+      --vert: #007A3D;
+      --vert-dark: #005C2E;
+      --vert-light: #E8F5EE;
+      --jaune: #FCD116;
+      --jaune-dark: #E6BC00;
+      --rouge: #CE1126;
+      --noir: #1A1A1A;
+      --gris: #6C757D;
+      --gris-clair: #F4F6F8;
+      --blanc: #FFFFFF;
+      --border: #DDE3EA;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: 'Poppins', sans-serif; background: var(--gris-clair); color: var(--noir); }
 
-    /* ── HERO ─────────── */
-    .hero {
-      background: linear-gradient(135deg, #0D1B2A 0%, #003F88 60%, #007A3D 100%);
-      padding: 64px 24px 80px; text-align: center; position: relative; overflow: hidden;
+    /* ═══════════════════════════════════════
+       BANDE TRICOLORE EN HAUT
+    ═══════════════════════════════════════ */
+    .tricolor-bar { display: flex; height: 6px; }
+    .tricolor-bar .tc-vert  { flex: 1; background: var(--vert); }
+    .tricolor-bar .tc-jaune { flex: 1; background: var(--jaune); }
+    .tricolor-bar .tc-rouge { flex: 1; background: var(--rouge); }
+
+    /* ═══════════════════════════════════════
+       EN-TÊTE OFFICIEL
+    ═══════════════════════════════════════ */
+    .official-header {
+      background: var(--blanc);
+      border-bottom: 3px solid var(--vert);
+      padding: 14px 32px;
     }
-    .hero::before {
-      content: ''; position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='25'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    .official-header .container {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 20px;
     }
-    .hero-content { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
-    .hero-logo { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 32px; }
-    .hero-logo img { height: 64px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
-    .hero-logo-text .name { color: #FCD116; font-size: 28px; font-weight: 900; letter-spacing: 1px; line-height: 1; }
-    .hero-logo-text .sub  { color: rgba(255,255,255,.7); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
-    .hero h1 { color: #fff; font-size: clamp(26px, 5vw, 42px); font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
-    .hero p  { color: rgba(255,255,255,.8); font-size: 16px; max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
-    .cameroon-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; max-width: 200px; margin: 0 auto 40px; }
-    .cameroon-bar span { flex: 1; }
-    .cb-green  { background: var(--green);  }
-    .cb-yellow { background: var(--yellow); }
-    .cb-red    { background: var(--red);    }
-    .search-bar { display: flex; gap: 0; max-width: 500px; margin: 0 auto; }
-    .search-bar input { flex: 1; padding: 14px 20px; border: none; border-radius: 12px 0 0 12px; font-size: 14px; font-family: inherit; outline: none; }
-    .search-bar button { padding: 14px 24px; background: var(--yellow); color: var(--dark); border: none; border-radius: 0 12px 12px 0; font-size: 18px; cursor: pointer; transition: background .2s; font-weight: 700; }
-    .search-bar button:hover { background: #E6BC00; }
+    .official-left, .official-right {
+      flex: 1; font-size: 10.5px; font-weight: 600;
+      color: #2C3E50; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .official-left { text-align: left; }
+    .official-right { text-align: right; }
+    .official-left .fr-name  { font-size: 12px; font-weight: 800; color: var(--vert-dark); }
+    .official-left .fr-motto { font-style: italic; color: var(--gris); font-weight: 400; text-transform: none; font-size: 10px; }
+    .official-left .en-name  { font-size: 11px; font-weight: 600; color: #4A5568; margin-top: 4px; }
+    .official-left .en-motto { font-style: italic; color: var(--gris); font-weight: 400; text-transform: none; font-size: 10px; }
+    .official-right .ministry { font-size: 10.5px; font-weight: 700; color: #2C3E50; line-height: 1.4; }
+    .official-right .region   { font-size: 10px; color: var(--gris); font-weight: 400; margin-top: 6px; }
+    .official-center { text-align: center; }
+    .official-center img { height: 80px; width: auto; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1)); }
+    .official-divider { width: 1px; height: 60px; background: var(--border); }
 
-    /* ── MAIN ─────────── */
-    .main { padding: 48px 24px 64px; max-width: 1200px; margin: 0 auto; }
-    .section-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
-    .section-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    /* ═══════════════════════════════════════
+       NAVBAR VERTE
+    ═══════════════════════════════════════ */
+    .main-nav {
+      background: var(--vert-dark);
+      padding: 0 32px;
+      position: sticky; top: 0; z-index: 1000;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    }
+    .main-nav .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between; height: 54px;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-brand img { height: 34px; }
+    .nav-brand span { color: var(--jaune); font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.85); text-decoration: none;
+      padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,0.12); color: var(--jaune); }
+    .nav-links a.active { background: var(--jaune); color: var(--vert-dark); font-weight: 700; }
+    .nav-date { color: rgba(255,255,255,0.6); font-size: 11px; font-style: italic; }
 
-    /* ── COMMUNE CARDS ─── */
-    .communes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .mobile-menu-btn { display: none; background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; }
+    .lang-toggle { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 11px; margin-left: 10px; }
+    .lang-toggle a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: bold; }
+    .lang-toggle a.active { color: var(--jaune); }
+
+    @media(max-width:768px){
+      .official-left, .official-right, .official-divider { display: none; }
+      .official-header .container { justify-content: center; }
+      .official-center img { height: 60px; }
+      .nav-date { display: none; }
+      .nav-links { display: none; position: absolute; top: 54px; left: 0; right: 0; background: var(--vert-dark); flex-direction: column; padding: 10px 0; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+      .nav-links.show { display: flex; }
+      .nav-links a { width: 100%; text-align: center; padding: 12px; border-radius: 0; }
+      .mobile-menu-btn { display: block; }
+    }
+
+    /* ═══════════════════════════════════════
+       HERO SECTION
+    ═══════════════════════════════════════ */
+    .hero-section {
+      background-image: url('/assets/images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      position: relative;
+      padding: 80px 32px 100px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(0,92,46,0.65) 0%, rgba(0,122,61,0.55) 40%, rgba(0,60,30,0.70) 100%);
+    }
+    .hero-section .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 750px; margin: 0 auto;
+    }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(252,209,22,0.15); border: 1px solid rgba(252,209,22,0.5);
+      color: var(--jaune); padding: 6px 16px; border-radius: 30px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 20px;
+    }
+    .hero-section h1 {
+      color: var(--blanc); font-size: clamp(26px,4.5vw,44px);
+      font-weight: 900; line-height: 1.15; margin-bottom: 14px;
+    }
+    .hero-section h1 span { color: var(--jaune); }
+    .hero-section p {
+      color: rgba(255,255,255,0.88); font-size: 15.5px;
+      max-width: 560px; margin: 0 auto 36px; line-height: 1.75;
+    }
+    .hero-flag-bar {
+      display: flex; height: 4px; max-width: 180px;
+      margin: 0 auto 36px; border-radius: 4px; overflow: hidden;
+    }
+    .hero-flag-bar span { flex: 1; }
+
+    /* Search */
+    .search-wrapper { max-width: 520px; margin: 0 auto; }
+    .search-box {
+      display: flex; background: var(--blanc);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .search-box input {
+      flex: 1; padding: 16px 22px; border: none; outline: none;
+      font-size: 14px; font-family: 'Poppins', sans-serif; color: var(--noir);
+    }
+    .search-box button {
+      padding: 16px 28px; background: var(--jaune);
+      border: none; font-size: 18px; cursor: pointer;
+      color: var(--vert-dark); font-weight: 700; transition: background 0.2s;
+    }
+    .search-box button:hover { background: var(--jaune-dark); }
+
+    /* Hero KPI */
+    .hero-stats {
+      display: flex; justify-content: center; gap: 0;
+      margin-top: 52px; max-width: 550px; margin-left: auto; margin-right: auto;
+      background: rgba(255,255,255,0.1); border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.2); overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+    .hero-stat {
+      flex: 1; padding: 18px 12px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat .val { font-size: 26px; font-weight: 900; color: var(--jaune); line-height: 1; }
+    .hero-stat .lbl { font-size: 10px; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; font-weight: 500; }
+
+    /* ═══════════════════════════════════════
+       MAIN CONTENT
+    ═══════════════════════════════════════ */
+    .page-content { max-width: 1200px; margin: 0 auto; padding: 48px 32px 80px; }
+
+    .section-head { margin-bottom: 28px; }
+    .section-head h2 { font-size: 20px; font-weight: 800; color: var(--vert-dark); display: flex; align-items: center; gap: 8px; }
+    .section-head h2::before { content: ''; display: block; width: 4px; height: 22px; background: var(--jaune); border-radius: 2px; }
+    .section-head p { color: var(--gris); font-size: 13.5px; margin-top: 4px; padding-left: 12px; }
+
+    /* ═══════════════════════════════════════
+       GRILLE COMMUNES
+    ═══════════════════════════════════════ */
+    .communes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 24px; }
+
     .commune-card {
-      background: #fff; border-radius: 20px; overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06); border: 1px solid var(--border);
-      transition: transform .3s, box-shadow .3s; cursor: pointer; text-decoration: none; color: inherit;
-      display: flex; flex-direction: column;
+      background: var(--blanc); border-radius: 16px; overflow: hidden;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+      text-decoration: none; color: inherit; display: flex; flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .commune-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.12); text-decoration: none; color: inherit; }
-    .commune-card-banner {
-      height: 120px; position: relative; overflow: hidden;
-      background: linear-gradient(135deg, #003F88 0%, #007A3D 100%);
+    .commune-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.13); }
+
+    .card-banner {
+      height: 145px; position: relative; overflow: hidden;
+      background-image: url('/assets/images/hero-bg.jpg');
+      background-size: cover; background-position: center;
     }
-    .commune-card-banner::after {
+    .card-banner-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--c1, #007A3D) 0%, var(--c2, #005C2E) 100%);
+      opacity: 0.78;
+    }
+    .card-banner::after {
       content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.5));
+      background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55));
     }
-    .commune-badge {
-      position: absolute; top: 12px; right: 12px; z-index: 2;
-      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    .card-banner-icon {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
+      z-index: 2; font-size: 44px; color: rgba(255,255,255,0.25);
     }
-    .badge-actif { background: rgba(0,122,61,.9); color: #fff; }
-    .commune-flag {
-      position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
-      display: flex; height: 6px;
+    .card-status {
+      position: absolute; top: 12px; right: 12px; z-index: 3;
+      background: rgba(0,122,61,0.92); color: #fff; font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px;
     }
-    .commune-flag span { flex: 1; }
-    .commune-card-body { padding: 20px; flex: 1; }
-    .commune-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-    .commune-region { font-size: 12px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 4px; }
-    .commune-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-    .kpi { background: #F8FAFC; border-radius: 10px; padding: 10px; text-align: center; border: 1px solid var(--border); }
-    .kpi-val { font-size: 18px; font-weight: 800; color: #003F88; }
-    .kpi-lbl { font-size: 10px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
-    .commune-card-footer {
+    .card-flag {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+      display: flex; height: 5px;
+    }
+    .card-flag span { flex: 1; }
+
+    .card-body { padding: 20px; flex: 1; }
+    .card-commune-name { font-size: 17px; font-weight: 800; color: var(--vert-dark); margin-bottom: 4px; }
+    .card-region { font-size: 11.5px; color: var(--gris); display: flex; align-items: center; gap: 4px; margin-bottom: 16px; }
+    .card-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .kpi-box { background: var(--gris-clair); border-radius: 10px; padding: 10px 8px; text-align: center; border: 1px solid var(--border); }
+    .kpi-box .kv { font-size: 19px; font-weight: 900; color: var(--vert-dark); }
+    .kpi-box .kl { font-size: 9.5px; color: var(--gris); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-top: 2px; }
+
+    .card-footer {
       padding: 14px 20px; border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 13px; color: var(--muted);
     }
-    .btn-voir {
-      background: #003F88; color: #fff; border: none; padding: 8px 20px;
-      border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
-      transition: background .2s; display: flex; align-items: center; gap: 6px;
-      text-decoration: none;
+    .card-footer .responsable { font-size: 12px; color: var(--gris); display: flex; align-items: center; gap: 5px; }
+    .card-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--vert); color: var(--blanc); border: none;
+      padding: 8px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 700;
+      text-decoration: none; transition: background 0.2s;
     }
-    .btn-voir:hover { background: #0052B4; color: #fff; text-decoration: none; }
+    .card-btn:hover { background: var(--vert-dark); color: var(--blanc); }
 
-    /* ── EMPTY STATE ───── */
-    .empty { text-align: center; padding: 64px 24px; color: var(--muted); }
-    .empty i { font-size: 56px; display: block; margin-bottom: 16px; opacity: .3; }
+    /* ═══════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════ */
+    .empty-state { text-align: center; padding: 72px 24px; color: var(--gris); }
+    .empty-state i { font-size: 64px; display: block; margin-bottom: 16px; opacity: 0.25; }
 
-    /* ── FOOTER ─────────── */
-    footer { text-align: center; padding: 32px 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); background: #fff; margin-top: 48px; }
-    footer strong { color: #FCD116; }
+    /* ═══════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════ */
+    footer {
+      background: var(--vert-dark); color: rgba(255,255,255,0.8);
+      text-align: center; padding: 28px 32px; font-size: 12.5px; margin-top: 60px;
+    }
+    footer strong { color: var(--jaune); }
+    footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    footer a:hover { color: var(--jaune); }
 
-    @media (max-width: 640px) {
+    @media(max-width:600px){
       .communes-grid { grid-template-columns: 1fr; }
-      .hero { padding: 48px 16px 64px; }
+      .hero-section { padding: 60px 20px 80px; }
+      .page-content { padding: 32px 16px 60px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-content">
-      <div class="hero-logo">
-        <img src="/assets/images/logo.png" alt="MuniPro">
-        <div class="hero-logo-text">
-          <div class="name">MuniPro</div>
-          <div class="sub">Littoral · Cameroun</div>
-        </div>
+  <!-- BANDE TRICOLORE -->
+  <div class="tricolor-bar">
+    <div class="tc-vert"></div>
+    <div class="tc-jaune"></div>
+    <div class="tc-rouge"></div>
+  </div>
+
+  <!-- EN-TÊTE OFFICIEL DE LA RÉPUBLIQUE -->
+  <div class="official-header">
+    <div class="container">
+      <div class="official-left">
+        <div class="fr-name"><%- __('republic_cameroon') %></div>
+        <div class="fr-motto"><%- __('motto') %></div>
+        <div style="height:6px;"></div>
+        <div class="en-name"><%- __('republic_cameroon_en') %></div>
+        <div class="en-motto"><%- __('motto_en') %></div>
       </div>
-      <h1>Portail Citoyen des Communes du Littoral</h1>
-      <p>Suivez en temps réel les projets de développement de votre commune. Transparence, proximité et participation citoyenne.</p>
-      <div class="cameroon-bar"><span class="cb-green"></span><span class="cb-yellow"></span><span class="cb-red"></span></div>
-      <form method="GET" action="" class="search-bar">
-        <input type="text" name="q" placeholder="Rechercher une commune..." value="<%= query || '' %>">
-        <button type="submit"><i class="bi bi-search"></i></button>
-      </form>
+      <div class="official-divider"></div>
+      <div class="official-center">
+        <img src="/assets/images/sceau_cameroun.png" alt="Armoiries du Cameroun">
+      </div>
+      <div class="official-divider"></div>
+      <div class="official-right">
+        <div class="ministry"><%- __('ministry') %></div>
+        <div class="region"><%- __('region') %></div>
+      </div>
     </div>
   </div>
 
-  <!-- COMMUNES -->
-  <div class="main">
-    <div style="margin-bottom:40px;">
-      <div class="section-title"><i class="bi bi-building" style="color:#003F88;margin-right:8px;"></i>Choisissez votre Commune</div>
-      <div class="section-sub"><%= communes.length %> commune(s) disponible(s) — Région du Littoral, Cameroun</div>
+  <!-- BARRE DE NAVIGATION VERTE -->
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <a href="<%= siteUrl %>/portail-citoyen" class="nav-brand">
+        <img src="/assets/images/logo.png" alt="Portail">
+        <span>MuniPro Littoral</span>
+      </a>
+      <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="nav-links">
+        <a href="<%= siteUrl %>/portail-citoyen" class="active"><i class="bi bi-house-fill"></i> <%- __('home') %></a>
+        <a href="<%= siteUrl %>/portail-citoyen/carte"><i class="bi bi-map-fill"></i> <%- __('map') %></a>
+        <a href="<%= siteUrl %>/portail-citoyen/suggestion"><i class="bi bi-chat-dots-fill"></i> <%- __('suggestions') %></a>
+        <div class="lang-toggle">
+          <a href="?lang=fr" class="<%= currentLang === 'fr' ? 'active' : '' %>">FR</a> | 
+          <a href="?lang=en" class="<%= currentLang === 'en' ? 'active' : '' %>">EN</a>
+        </div>
+      </div>
+      <div class="nav-date"><i class="bi bi-calendar3"></i> <%= new Date().toLocaleDateString(currentLang === 'en' ? 'en-US' : 'fr-FR', {day:'2-digit', month:'long', year:'numeric'}) %></div>
+    </div>
+  </nav>
+
+  <!-- SECTION HERO -->
+  <section class="hero-section">
+    <div class="hero-inner">
+      <div class="hero-pill"><i class="bi bi-broadcast-pin"></i> <%- __('hero_pill') %></div>
+      <h1><%- __('hero_title1') %><br><span><%- __('hero_title2') %></span></h1>
+      <p><%- __('hero_desc') %></p>
+      <div class="hero-flag-bar">
+        <span style="background:#007A3D;"></span>
+        <span style="background:#CE1126;"></span>
+        <span style="background:#FCD116;"></span>
+      </div>
+      <form method="GET" action="" class="search-wrapper">
+        <div class="search-box">
+          <input type="text" name="q" placeholder="<%- __('search_placeholder') %>" value="<%= query || '' %>">
+          <button type="submit"><i class="bi bi-search"></i></button>
+        </div>
+      </form>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="val"><%= communes.length %></div>
+          <div class="lbl"><%- __('kpi_councils') %></div>
+        </div>
+        <div class="hero-stat">
+          <div class="val"><%= communes.reduce((s,c)=>s+(c.total_projets||0),0) %></div>
+          <div class="lbl"><%- __('kpi_projects') %></div>
+        </div>
+        <div class="hero-stat">
+          <div class="val"><%= communes.reduce((s,c)=>s+(c.en_cours||0),0) %></div>
+          <div class="lbl"><%- __('kpi_ongoing') %></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div class="page-content">
+    <div class="section-head">
+      <h2><i class="bi bi-building" style="color:var(--vert);"></i> <%- __('choose_council') %></h2>
+      <p><%= communes.length %> <%- __('available_councils') %></p>
     </div>
 
     <% if (communes.length === 0) { %>
-    <div class="empty">
+    <div class="empty-state">
       <i class="bi bi-building-x"></i>
-      <p>Aucune commune trouvée.</p>
+      <p style="font-size:16px;font-weight:600;"><%- __('no_council') %></p>
     </div>
     <% } else { %>
     <div class="communes-grid">
       <% communes.forEach((c, i) => { %>
       <a href="<%= siteUrl %>/portail-citoyen/commune/<%= c.id %>" class="commune-card">
-        <div class="commune-card-banner" style="background: linear-gradient(135deg, <%= bannerColors[i % bannerColors.length][0] %> 0%, <%= bannerColors[i % bannerColors.length][1] %> 100%);">
-          <span class="commune-badge badge-actif"><i class="bi bi-broadcast"></i> En ligne</span>
-          <div class="commune-flag">
+        <div class="card-banner" <%= c.banniere ? `style="background-image: url('/assets/uploads/bannieres/${c.banniere}');"` : '' %>>
+          <div class="card-banner-overlay" style="--c1:<%= bannerColors[i % bannerColors.length][0] %>;--c2:<%= bannerColors[i % bannerColors.length][1] %>;"></div>
+          <% if (!c.banniere) { %><i class="bi bi-buildings card-banner-icon"></i><% } %>
+          <span class="card-status"><i class="bi bi-broadcast" style="font-size:8px;"></i> <%- __('online') %></span>
+          <div class="card-flag">
             <span style="background:#007A3D;"></span>
             <span style="background:#CE1126;"></span>
             <span style="background:#FCD116;"></span>
           </div>
         </div>
-        <div class="commune-card-body">
-          <div class="commune-name"><%= c.nom %></div>
-          <div class="commune-region"><i class="bi bi-geo-alt-fill"></i> <%= c.region %>, Cameroun</div>
-          <div class="commune-kpis">
-            <div class="kpi">
-              <div class="kpi-val"><%= c.total_projets || 0 %></div>
-              <div class="kpi-lbl">Projets</div>
+        <div class="card-body">
+          <div class="card-commune-name"><%= c.nom %></div>
+          <div class="card-region"><i class="bi bi-geo-alt-fill" style="color:var(--vert);"></i> <%= c.region %>, Cameroun</div>
+          <div class="card-kpis">
+            <div class="kpi-box">
+              <div class="kv"><%= c.total_projets || 0 %></div>
+              <div class="kl"><%- __('kpi_projects') %></div>
             </div>
-            <div class="kpi">
-              <div class="kpi-val" style="color:#007A3D;"><%= c.en_cours || 0 %></div>
-              <div class="kpi-lbl">En cours</div>
+            <div class="kpi-box">
+              <div class="kv" style="color:var(--vert);"><%= c.en_cours || 0 %></div>
+              <div class="kl"><%- __('kpi_ongoing') %></div>
             </div>
-            <div class="kpi">
-              <div class="kpi-val" style="color:#CE1126;"><%= c.taux_avancement || 0 %>%</div>
-              <div class="kpi-lbl">Réalisation</div>
+            <div class="kpi-box">
+              <div class="kv" style="color:var(--rouge);"><%= c.taux_avancement || 0 %>%</div>
+              <div class="kl"><%- __('done') %></div>
             </div>
           </div>
         </div>
-        <div class="commune-card-footer">
-          <span><i class="bi bi-person-fill"></i> <%= c.responsable || 'Mairie' %></span>
-          <span class="btn-voir"><i class="bi bi-arrow-right-circle"></i> Explorer</span>
+        <div class="card-footer">
+          <span class="responsable"><i class="bi bi-person-fill" style="color:var(--vert);"></i> <%= c.responsable || 'Mairie' %></span>
+          <span class="card-btn"><i class="bi bi-arrow-right-circle"></i> <%- __('explore') %></span>
         </div>
       </a>
       <% }) %>
@@ -182,9 +423,13 @@
     <% } %>
   </div>
 
+  <!-- FOOTER OFFICIEL -->
   <footer>
-    <strong>MuniPro</strong> — Projet de Suivi Numérique des Communes Urbaines du Littoral<br>
-    <small>Cameroun © <%= new Date().getFullYear() %> · Pour une gouvernance locale transparente</small>
+    <strong><%- __('footer_text1') %></strong><br>
+    <small style="margin-top:6px;display:block;">
+      © <%= new Date().getFullYear() %> <%- __('footer_text2') %>
+      &nbsp;|&nbsp; <a href="<%= siteUrl %>/portail-citoyen/suggestion"><%- __('contact') %></a>
+    </small>
   </footer>
 
 </body>

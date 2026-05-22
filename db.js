@@ -1,12 +1,14 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+const config = require('./config');
+
 const pool = new Pool({
-  host: process.env.DB_HOST || 'aws-0-eu-west-3.pooler.supabase.com',
-  user: process.env.DB_USER || 'postgres.aewdvkgozowfypbyliwt',
-  password: process.env.DB_PASS || 'Z0kof@ro123',
-  database: process.env.DB_NAME || 'postgres',
-  port: process.env.DB_PORT || 5432,
+  host: config.db.host,
+  user: config.db.user,
+  password: config.db.password,
+  database: config.db.database,
+  port: parseInt(process.env.DB_PORT) || 5432,
   ssl: { rejectUnauthorized: false },
 });
 

@@ -96,7 +96,7 @@ router.post('/creer', async (req, res, next) => {
       VALUES (?, ?, ?, ?, ?, 'inactif')
     `, [nom, region || 'Littoral', email, telephone || '', responsable || '']);
 
-    res.redirect('/dashboard');
+    res.redirect('/communes');
   } catch (err) {
     console.error(err);
     const errorMsg = 'Erreur lors de la création de la commune (le nom ou l\'email existe déjà).';

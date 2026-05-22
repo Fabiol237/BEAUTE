@@ -9,7 +9,7 @@ module.exports = {
   db: {
     host: process.env.DB_HOST || 'db.aewdvkgozowfypbyliwt.supabase.co',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASS || 'Z0kof@ro123',
+    password: process.env.DB_PASS || '',
     database: process.env.DB_NAME || 'postgres',
   },
   rootDir: __dirname,

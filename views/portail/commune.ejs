@@ -3,283 +3,444 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= commune.nom %> — Portail Citoyen · MuniPro</title>
+  <meta name="description" content="<%= commune.nom %> — Projets de développement, carte et informations officielles · Portail Citoyen du Littoral">
+  <title><%= commune.nom %> — Portail Citoyen · République du Cameroun</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     :root {
-      --green:#007A3D; --yellow:#FCD116; --red:#CE1126;
-      --blue:#003F88; --dark:#0D1B2A; --text:#1A2332;
-      --muted:#64748B; --border:#E2E8F0; --bg:#F0F5FF;
-      --card:#FFFFFF; --radius:16px; --shadow:0 2px 8px rgba(0,0,0,.07);
+      --vert: #007A3D; --vert-dark: #005C2E; --vert-light: #E8F5EE;
+      --jaune: #FCD116; --jaune-dark: #E6BC00; --rouge: #CE1126;
+      --noir: #1A1A1A; --gris: #6C757D; --gris-clair: #F4F6F8;
+      --blanc: #FFFFFF; --border: #DDE3EA;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--gris-clair); color: var(--noir); }
 
-    /* ── TOP BAR ────────────────────────────── */
-    .topnav {
-      position:fixed;top:0;left:0;right:0;z-index:1000;
-      background:rgba(13,27,42,0.95);backdrop-filter:blur(12px);
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0 24px;height:60px;border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .topnav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .topnav-logo img{height:36px;filter:brightness(1.1);}
-    .topnav-logo span{color:#FCD116;font-weight:800;font-size:16px;}
-    .topnav-commune{color:rgba(255,255,255,.9);font-size:13px;font-weight:600;}
-    .btn-changer{
-      display:flex;align-items:center;gap:6px;
-      color:rgba(255,255,255,.6);font-size:11px;font-weight:600;
-      text-decoration:none;border:1px solid rgba(255,255,255,.15);
-      padding:5px 12px;border-radius:20px;transition:all .2s;letter-spacing:.5px;
-    }
-    .btn-changer:hover{color:#fff;border-color:rgba(255,255,255,.4);text-decoration:none;}
+    /* BANDE TRICOLORE */
+    .tricolor-bar { display: flex; height: 6px; }
+    .tricolor-bar .tc-vert  { flex: 1; background: var(--vert); }
+    .tricolor-bar .tc-jaune { flex: 1; background: var(--jaune); }
+    .tricolor-bar .tc-rouge { flex: 1; background: var(--rouge); }
 
-    /* ── HERO ───────────────────────────────── */
-    .hero {
-      min-height: 520px;
-      background: linear-gradient(135deg, <%= heroBg[0] %> 0%, <%= heroBg[1] %> 100%);
-      display:flex;align-items:center;padding:80px 24px 64px;
-      position:relative;overflow:hidden;
+    /* EN-TÊTE OFFICIEL */
+    .official-header {
+      background: var(--blanc); border-bottom: 3px solid var(--vert);
+      padding: 12px 32px;
     }
-    .hero::after{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(to bottom, rgba(0,0,0,.1) 0%, rgba(0,0,0,.55) 100%);
+    .official-header .container {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
     }
-    .hero-content{position:relative;z-index:1;max-width:900px;margin:0 auto;width:100%;}
-    .hero-badge{
-      display:inline-flex;align-items:center;gap:6px;
-      background:rgba(252,209,22,.15);border:1px solid rgba(252,209,22,.4);
-      color:#FCD116;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;
-      text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;
-    }
-    .hero h1{color:#fff;font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.1;margin-bottom:12px;}
-    .hero-sub{color:rgba(255,255,255,.8);font-size:16px;margin-bottom:36px;max-width:560px;line-height:1.7;}
-    .hero-flag{display:flex;height:5px;border-radius:3px;overflow:hidden;width:120px;margin-bottom:36px;}
-    .hero-flag span{flex:1;}
+    .off-left { font-size: 10px; font-weight: 600; color: #2C3E50; text-transform: uppercase; letter-spacing: 0.5px; }
+    .off-left .fr-name { font-size: 11.5px; font-weight: 800; color: var(--vert-dark); }
+    .off-left .motto { font-style: italic; color: var(--gris); font-weight: 400; text-transform: none; }
+    .off-right { font-size: 10px; text-align: right; color: #2C3E50; font-weight: 600; }
+    .off-right .ministry { font-size: 10.5px; font-weight: 700; line-height: 1.4; }
+    .off-right .sub { font-size: 9.5px; color: var(--gris); font-weight: 400; margin-top: 4px; }
+    .off-center img { height: 70px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1)); }
+    .off-divider { width: 1px; height: 55px; background: var(--border); }
 
-    /* ── HERO KPI BAND ──────────────────────── */
-    .kpi-band{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
-      background:rgba(255,255,255,.15);border-radius:12px;overflow:hidden;
-      backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);
-      max-width:700px;
+    /* NAVBAR */
+    .main-nav {
+      background: var(--vert-dark); padding: 0 32px;
+      position: sticky; top: 0; z-index: 1000;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
     }
-    .kpi-cell{
-      padding:18px 16px;text-align:center;
-      background:rgba(13,27,42,.4);
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; height: 52px;
     }
-    .kpi-cell .val{font-size:26px;font-weight:900;color:#FCD116;line-height:1;}
-    .kpi-cell .lbl{font-size:10px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.7px;margin-top:4px;font-weight:600;}
-
-    /* ── HERO NAV BUTTONS ─────────────────── */
-    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;}
-    .btn-hero{
-      display:inline-flex;align-items:center;gap:8px;padding:12px 24px;
-      border-radius:10px;font-weight:700;font-size:14px;transition:all .2s;cursor:pointer;text-decoration:none;border:none;
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-brand img { height: 30px; }
+    .nav-brand span { color: var(--jaune); font-weight: 800; font-size: 14px; }
+    .nav-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.65); }
+    .nav-breadcrumb a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color .2s; }
+    .nav-breadcrumb a:hover { color: var(--jaune); }
+    .nav-breadcrumb .sep { opacity: 0.4; }
+    .nav-breadcrumb .cur { color: var(--jaune); font-weight: 600; }
+    .btn-retour {
+      display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.7);
+      font-size: 11.5px; font-weight: 600; text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;
+      transition: all .2s; margin-right: 10px;
     }
-    .btn-hero-primary{background:#FCD116;color:#002A5C;}
-    .btn-hero-primary:hover{background:#fff;color:#002A5C;text-decoration:none;}
-    .btn-hero-outline{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);}
-    .btn-hero-outline:hover{background:rgba(255,255,255,.2);color:#fff;text-decoration:none;}
+    .btn-retour:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+    
+    .lang-toggle { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 11px; }
+    .lang-toggle a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: bold; }
+    .lang-toggle a.active { color: var(--jaune); }
+    .nav-actions { display: flex; align-items: center; }
 
-    /* ── MAIN CONTENT ────────────────────── */
-    .main{max-width:1200px;margin:0 auto;padding:48px 24px 80px;}
-    .section-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
-    .section-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
-    .mb-section{margin-bottom:56px;}
-
-    /* ── PROJECT CARDS ───────────────────── */
-    .projets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
-    .projet-card{
-      background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
-      border:1px solid var(--border);overflow:hidden;transition:transform .25s,box-shadow .25s;
-      display:flex;flex-direction:column;
-    }
-    .projet-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.1);}
-    .projet-img{height:160px;background:linear-gradient(135deg,#1e3a5f,#003F88);position:relative;overflow:hidden;}
-    .projet-img img{width:100%;height:100%;object-fit:cover;}
-    .projet-statut{
-      position:absolute;top:12px;left:12px;padding:4px 10px;border-radius:20px;
-      font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
-    }
-    .s-en_cours{background:rgba(0,63,136,.9);color:#fff;}
-    .s-terminé{background:rgba(0,122,61,.9);color:#fff;}
-    .s-planifié{background:rgba(14,165,233,.9);color:#fff;}
-    .s-suspendu{background:rgba(252,209,22,.9);color:#002A5C;}
-    .projet-body{padding:16px;flex:1;}
-    .projet-type{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
-    .projet-titre{font-size:15px;font-weight:700;margin-bottom:10px;line-height:1.3;}
-    .projet-progress{margin-bottom:10px;}
-    .projet-progress-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;}
-    .progress-bar{height:6px;background:#E2E8F0;border-radius:10px;overflow:hidden;}
-    .progress-fill{height:100%;border-radius:10px;background:var(--blue);transition:width .6s;}
-    .projet-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);}
-    .btn-detail{color:var(--blue);font-weight:700;font-size:12px;text-decoration:none;display:flex;align-items:center;gap:4px;}
-    .btn-detail:hover{text-decoration:underline;}
-
-    /* ── INFOS COMMUNE ───────────────────── */
-    .info-card{background:var(--card);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);}
-    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-    .info-item strong{display:block;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;}
-    .info-item span{font-size:14px;font-weight:600;}
-
-    /* ── SUGGESTION BANNER ───────────────── */
-    .suggest-banner{
-      background:linear-gradient(135deg,var(--blue),#0052B4);
-      border-radius:var(--radius);padding:36px;display:flex;
-      align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;
-    }
-    .suggest-banner h3{color:#FCD116;font-size:18px;font-weight:800;margin-bottom:6px;}
-    .suggest-banner p{color:rgba(255,255,255,.8);font-size:14px;}
-
-    /* ── FOOTER ──────────────────────────── */
-    footer{text-align:center;padding:32px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);background:var(--card);}
-
-    /* ── RESPONSIVE ──────────────────────── */
     @media(max-width:768px){
-      .kpi-band{grid-template-columns:repeat(2,1fr);}
-      .info-grid{grid-template-columns:1fr;}
-      .suggest-banner{flex-direction:column;text-align:center;}
-      .hero-actions{justify-content:center;}
+      .off-left, .off-right, .off-divider { display: none; }
+      .official-header .container { justify-content: center; }
+      .nav-breadcrumb { display: none; }
+      .btn-retour span { display: none; } /* Hide text on mobile */
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 480px;
+      background-image: url('/assets/images/hero-bg.jpg');
+      background-size: cover; background-position: center;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; padding: 72px 32px 60px;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,92,46,0.65) 0%, rgba(0,60,30,0.55) 60%, rgba(206,17,38,0.25) 100%);
+    }
+    .hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.48) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 950px; width: 100%; }
+    .hero-commune-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(252,209,22,0.15); border: 1px solid rgba(252,209,22,0.5);
+      color: var(--jaune); padding: 6px 16px; border-radius: 30px;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 18px;
+    }
+    .hero h1 { color: #fff; font-size: clamp(28px,5vw,52px); font-weight: 900; line-height: 1.1; margin-bottom: 10px; }
+    .hero-sub { color: rgba(255,255,255,0.85); font-size: 15px; max-width: 520px; margin-bottom: 28px; line-height: 1.7; }
+    .hero-flag { display: flex; height: 4px; width: 100px; border-radius: 4px; overflow: hidden; margin-bottom: 30px; }
+    .hero-flag span { flex: 1; }
+
+    /* KPI band */
+    .kpi-band {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 14px; overflow: hidden; max-width: 640px; backdrop-filter: blur(8px);
+    }
+    .kpi-cell {
+      padding: 18px 12px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .kpi-cell:last-child { border-right: none; }
+    .kpi-cell .val { font-size: 26px; font-weight: 900; color: var(--jaune); line-height: 1; }
+    .kpi-cell .lbl { font-size: 9.5px; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 4px; }
+
+    /* Hero actions */
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+    .btn-hero {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 11px 22px; border-radius: 10px; font-size: 13px;
+      font-weight: 700; font-family: 'Poppins', sans-serif;
+      text-decoration: none; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-hero-primary { background: var(--jaune); color: var(--vert-dark); }
+    .btn-hero-primary:hover { background: #fff; color: var(--vert-dark); }
+    .btn-hero-outline { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); }
+    .btn-hero-outline:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+    /* MAIN */
+    .main { max-width: 1200px; margin: 0 auto; padding: 44px 32px 80px; }
+    .section-head { margin-bottom: 20px; }
+    .section-head h2 { font-size: 18px; font-weight: 800; color: var(--vert-dark); display: flex; align-items: center; gap: 8px; }
+    .section-head h2::before { content: ''; display: block; width: 4px; height: 20px; background: var(--jaune); border-radius: 2px; }
+    .section-head p { color: var(--gris); font-size: 13px; margin-top: 4px; padding-left: 12px; }
+    .mb-sect { margin-bottom: 52px; }
+
+    /* MAP */
+    .map-card { background: var(--blanc); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
+    .map-card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .map-card-header h3 { font-size: 15px; font-weight: 700; margin: 0; }
+    .map-card-header span { font-size: 12px; color: var(--gris); margin-left: auto; }
+    #map-commune { height: 380px; width: 100%; }
+
+    /* PROJECT GRID */
+    .projets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 20px; }
+    .projet-card {
+      background: var(--blanc); border-radius: 14px; border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden;
+      display: flex; flex-direction: column; transition: transform .25s, box-shadow .25s;
+    }
+    .projet-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+
+    .projet-img { height: 170px; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--vert-dark), var(--vert)); }
+    .projet-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+    .projet-card:hover .projet-img img { transform: scale(1.05); }
+    .projet-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: rgba(255,255,255,0.25); }
+    .statut-badge {
+      position: absolute; top: 10px; left: 10px; z-index: 2;
+      padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    }
+    .s-en_cours  { background: rgba(0,122,61,0.92); color: #fff; }
+    .s-termine   { background: rgba(14,165,233,0.92); color: #fff; }
+    .s-planifie  { background: rgba(252,209,22,0.92); color: #2C3E50; }
+    .s-suspendu  { background: rgba(239,68,68,0.92); color: #fff; }
+    .s-annule    { background: rgba(100,116,139,0.92); color: #fff; }
+
+    .projet-body { padding: 16px; flex: 1; }
+    .projet-type { font-size: 10.5px; color: var(--gris); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .projet-titre { font-size: 14.5px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+    .progress-lbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--gris); margin-bottom: 4px; }
+    .prog-bar { height: 6px; background: #E2E8F0; border-radius: 6px; overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 6px; transition: width .6s; }
+    .update-chip { font-size: 10.5px; color: var(--gris); display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+    .projet-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .date-chip { font-size: 11.5px; color: var(--gris); display: flex; align-items: center; gap: 4px; }
+    .btn-detail { color: var(--vert-dark); font-weight: 700; font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+    .btn-detail:hover { color: var(--vert); text-decoration: underline; }
+
+    /* INFO COMMUNE */
+    .info-card { background: var(--blanc); border-radius: 14px; border: 1px solid var(--border); padding: 26px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .info-item strong { display: block; font-size: 10.5px; text-transform: uppercase; color: var(--gris); letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-item span { font-size: 13.5px; font-weight: 600; }
+
+    /* SUGGESTION BANNER */
+    .suggest-banner {
+      background: linear-gradient(135deg, var(--vert-dark) 0%, #003020 100%);
+      border-radius: 16px; padding: 36px 32px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+      border: 1px solid rgba(0,122,61,0.3);
+    }
+    .suggest-banner h3 { color: var(--jaune); font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .suggest-banner p { color: rgba(255,255,255,0.8); font-size: 13.5px; }
+    .btn-suggest {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--jaune); color: var(--vert-dark);
+      padding: 13px 28px; border-radius: 10px; font-weight: 700; font-size: 14px;
+      text-decoration: none; transition: all .2s; white-space: nowrap;
+    }
+    .btn-suggest:hover { background: #fff; color: var(--vert-dark); }
+
+    /* FOOTER */
+    footer { background: var(--vert-dark); color: rgba(255,255,255,0.75); text-align: center; padding: 24px; font-size: 12.5px; }
+    footer strong { color: var(--jaune); }
+
+    @media(max-width:768px){
+      .kpi-band { grid-template-columns: repeat(2,1fr); }
+      .info-grid { grid-template-columns: 1fr; }
+      .suggest-banner { flex-direction: column; text-align: center; }
+      .hero { padding: 70px 20px 50px; }
     }
     @media(max-width:480px){
-      .kpi-band{grid-template-columns:repeat(2,1fr);}
-      .projets-grid{grid-template-columns:1fr;}
+      .projets-grid { grid-template-columns: 1fr; }
+      #map-commune { height: 250px; }
     }
   </style>
 </head>
 <body>
 
-<!-- TOP NAV -->
-<nav class="topnav">
-  <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
-    <img src="/assets/images/logo.png" alt="MuniPro">
-    <span>MuniPro</span>
-  </a>
-  <div class="topnav-commune"><i class="bi bi-building" style="color:#FCD116;margin-right:6px;"></i><%= commune.nom %></div>
-  <a href="<%= siteUrl %>/portail-citoyen" class="btn-changer">
-    <i class="bi bi-arrow-left-circle"></i> Autre commune
-  </a>
-</nav>
+  <!-- BANDE TRICOLORE -->
+  <div class="tricolor-bar">
+    <div class="tc-vert"></div>
+    <div class="tc-jaune"></div>
+    <div class="tc-rouge"></div>
+  </div>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge"><i class="bi bi-broadcast-pin"></i> Suivi en temps réel</div>
-    <h1><%= commune.nom %></h1>
-    <p class="hero-sub">Transparence et développement communautaire au cœur de la gestion municipale du Littoral camerounais.</p>
-    <div class="hero-flag">
-      <span style="background:var(--green);"></span>
-      <span style="background:var(--red);"></span>
-      <span style="background:var(--yellow);"></span>
-    </div>
-
-    <div class="kpi-band">
-      <div class="kpi-cell">
-        <div class="val"><%= stats.total %></div>
-        <div class="lbl">Projets</div>
+  <!-- EN-TÊTE OFFICIEL -->
+  <div class="official-header">
+    <div class="container">
+      <div class="off-left">
+        <div class="fr-name"><%- __('republic_cameroon') %></div>
+        <div class="motto"><%- __('motto') %></div>
+        <div style="height:5px;"></div>
+        <div style="font-size:10.5px;font-weight:600;color:#4A5568;"><%- __('republic_cameroon_en') %></div>
+        <div class="motto"><%- __('motto_en') %></div>
       </div>
-      <div class="kpi-cell">
-        <div class="val"><%= stats.en_cours %></div>
-        <div class="lbl">En cours</div>
+      <div class="off-divider"></div>
+      <div class="off-center">
+        <img src="/assets/images/sceau_cameroun.png" alt="Armoiries">
       </div>
-      <div class="kpi-cell">
-        <div class="val"><%= stats.termines %></div>
-        <div class="lbl">Terminés</div>
+      <div class="off-divider"></div>
+      <div class="off-right">
+        <div class="ministry"><%- __('ministry') %></div>
+        <div class="sub"><%- __('region') %></div>
       </div>
-      <div class="kpi-cell">
-        <div class="val"><%= stats.taux_moyen %>%</div>
-        <div class="lbl">Réalisation</div>
-      </div>
-    </div>
-
-    <div class="hero-actions">
-      <a href="#projets" class="btn-hero btn-hero-primary"><i class="bi bi-folder-fill"></i> Voir les projets</a>
-      <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-hero btn-hero-outline"><i class="bi bi-chat-dots"></i> Faire une suggestion</a>
     </div>
   </div>
-</section>
 
-<!-- MAIN CONTENT -->
-<div class="main">
-
-  <!-- PROJETS RECENTS -->
-  <div class="mb-section" id="projets">
-    <div class="section-title"><i class="bi bi-folder-fill" style="color:var(--blue);"></i> Projets de la commune</div>
-    <div class="section-sub"><%= projets.length %> projet(s) public(s) · Dernières mises à jour</div>
-    <% if (projets.length === 0) { %>
-    <div style="text-align:center;padding:48px;color:var(--muted);">
-      <i class="bi bi-folder-x" style="font-size:48px;display:block;margin-bottom:12px;opacity:.3;"></i>
-      <p>Aucun projet public disponible pour le moment.</p>
-    </div>
-    <% } else { %>
-    <div class="projets-grid">
-      <% projets.forEach(p => { %>
-      <div class="projet-card">
-        <div class="projet-img">
-          <% if (p.photo) { %>
-            <img src="/assets/uploads/<%= p.photo %>" alt="<%= p.titre %>">
-          <% } %>
-          <span class="projet-statut s-<%= p.statut.replace(' ','_') %>"><%= p.statut.replace('_',' ') %></span>
+  <!-- NAVBAR -->
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <a href="<%= siteUrl %>/portail-citoyen" class="nav-brand">
+        <img src="/assets/images/logo.png" alt="">
+        <span>MuniPro Littoral</span>
+      </a>
+      <div class="nav-breadcrumb">
+        <a href="<%= siteUrl %>/portail-citoyen"><%- __('kpi_councils') %></a>
+        <span class="sep">›</span>
+        <span class="cur"><%= commune.nom %></span>
+      </div>
+      <div class="nav-actions">
+        <a href="<%= siteUrl %>/portail-citoyen" class="btn-retour">
+          <i class="bi bi-arrow-left-circle"></i> <span><%- __('change_council') %></span>
+        </a>
+        <div class="lang-toggle">
+          <a href="?lang=fr" class="<%= currentLang === 'fr' ? 'active' : '' %>">FR</a> | 
+          <a href="?lang=en" class="<%= currentLang === 'en' ? 'active' : '' %>">EN</a>
         </div>
-        <div class="projet-body">
-          <div class="projet-type"><%= p.type_nom || 'Projet' %></div>
-          <div class="projet-titre"><%= p.titre %></div>
-          <div class="projet-progress">
-            <div class="projet-progress-top">
-              <span>Avancement physique</span>
-              <span style="font-weight:700;color:var(--blue);"><%= p.avancement_physique %>%</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" <%= commune.banniere ? `style="background-image: url('/assets/uploads/bannieres/${commune.banniere}');"` : '' %>>
+    <div class="hero-content">
+      <div class="hero-commune-badge"><i class="bi bi-building-fill"></i> <%- __('commune_littoral') %></div>
+      <h1><%= commune.nom %></h1>
+      <p class="hero-sub"><%- __('commune_desc') %></p>
+      <div class="hero-flag">
+        <span style="background:#007A3D;"></span>
+        <span style="background:#CE1126;"></span>
+        <span style="background:#FCD116;"></span>
+      </div>
+      <div class="kpi-band">
+        <div class="kpi-cell"><div class="val"><%= stats.total %></div><div class="lbl"><%- __('kpi_projects') %></div></div>
+        <div class="kpi-cell"><div class="val"><%= stats.en_cours %></div><div class="lbl"><%- __('kpi_ongoing') %></div></div>
+        <div class="kpi-cell"><div class="val"><%= stats.termines %></div><div class="lbl"><%- __('kpi_completed') %></div></div>
+        <div class="kpi-cell"><div class="val"><%= stats.taux_moyen %>%</div><div class="lbl"><%- __('kpi_done_pct') %></div></div>
+      </div>
+      <div class="hero-actions">
+        <a href="#projets" class="btn-hero btn-hero-primary"><i class="bi bi-folder-fill"></i> <%- __('see_projects') %></a>
+        <a href="#carte-commune" class="btn-hero btn-hero-outline"><i class="bi bi-map-fill"></i> <%- __('map') %></a>
+        <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-hero btn-hero-outline"><i class="bi bi-chat-dots"></i> <%- __('suggestions') %></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div class="main">
+
+    <!-- CARTE -->
+    <% const projetsGeo = projets.filter(p => p.latitude && p.longitude); %>
+    <div class="mb-sect" id="carte-commune">
+      <div class="section-head">
+        <h2><i class="bi bi-geo-alt-fill" style="color:var(--vert);"></i> <%- __('project_map') %></h2>
+        <p><%= projetsGeo.length %> <%- __('geolocated_projects') %> — <%= commune.nom %></p>
+      </div>
+      <div class="map-card">
+        <div class="map-card-header">
+          <i class="bi bi-pin-map-fill" style="color:var(--vert);font-size:18px;"></i>
+          <h3><%- __('project_location') %></h3>
+          <span><%= projetsGeo.length %> <%- __('points_on_map') %></span>
+        </div>
+        <div id="map-commune"></div>
+      </div>
+    </div>
+
+    <!-- PROJETS -->
+    <div class="mb-sect" id="projets">
+      <div class="section-head">
+        <h2><i class="bi bi-folder-fill" style="color:var(--vert);"></i> <%- __('council_projects') %></h2>
+        <p><%= projets.length %> <%- __('public_projects_desc') %></p>
+      </div>
+      <% if (projets.length === 0) { %>
+      <div style="text-align:center;padding:56px;color:var(--gris);">
+        <i class="bi bi-folder-x" style="font-size:52px;display:block;margin-bottom:12px;opacity:.25;"></i>
+        <p><%- __('no_public_projects') %></p>
+      </div>
+      <% } else { %>
+      <div class="projets-grid">
+        <% projets.forEach(p => { %>
+        <div class="projet-card">
+          <div class="projet-img">
+            <% if (p.photo) { %>
+              <img src="/assets/uploads/<%= e(p.photo) %>" alt="<%= e(p.titre) %>">
+            <% } else { %>
+              <div class="projet-placeholder"><i class="bi bi-buildings"></i></div>
+            <% } %>
+            <span class="statut-badge s-<%= p.statut.replace(/ /g,'_').replace(/é/g,'e').replace(/é/g,'e') %>"><%= p.statut.replace('_',' ') %></span>
+          </div>
+          <div class="projet-body">
+            <div class="projet-type"><%= p.type_nom || __('municipal_project') %></div>
+            <div class="projet-titre"><%= e(p.titre) %></div>
+            <div class="progress-lbl">
+              <span><%- __('physical_progress') %></span>
+              <span style="font-weight:800;color:<%= p.avancement_physique>70?'var(--vert)':p.avancement_physique>40?'#F59E0B':'var(--rouge)' %>;"><%= p.avancement_physique %>%</span>
             </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:<%= p.avancement_physique %>%;background:<%= p.avancement_physique>70 ? 'var(--green)' : p.avancement_physique>40 ? '#F59E0B' : 'var(--red)' %>;"></div>
+            <div class="prog-bar">
+              <div class="prog-fill" style="width:<%= p.avancement_physique %>%;background:<%= p.avancement_physique>70?'var(--vert)':p.avancement_physique>40?'#F59E0B':'var(--rouge)' %>;"></div>
             </div>
+            <% if (p.updated_at) { %>
+            <div class="update-chip">
+              <i class="bi bi-clock-history"></i>
+              <%- __('updated_on') %> <%= new Date(p.updated_at).toLocaleDateString(currentLang === 'en' ? 'en-US' : 'fr-FR', {day:'2-digit',month:'long',year:'numeric'}) %>
+            </div>
+            <% } %>
+          </div>
+          <div class="projet-footer">
+            <span class="date-chip"><i class="bi bi-calendar3"></i> <%= p.date_fin_prevue ? new Date(p.date_fin_prevue).toLocaleDateString(currentLang === 'en' ? 'en-US' : 'fr-FR') : '—' %></span>
+            <a href="<%= siteUrl %>/portail-citoyen/projet/<%= p.id %>" class="btn-detail"><i class="bi bi-arrow-right-circle-fill"></i> <%- __('details') %></a>
           </div>
         </div>
-        <div class="projet-footer">
-          <span><i class="bi bi-calendar3"></i> <%= p.date_fin_prevue ? new Date(p.date_fin_prevue).toLocaleDateString('fr-FR') : '—' %></span>
-          <a href="<%= siteUrl %>/portail-citoyen/projet/<%= p.id %>" class="btn-detail"><i class="bi bi-arrow-right-circle"></i> Détails</a>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- INFOS COMMUNE -->
+    <div class="mb-sect">
+      <div class="section-head">
+        <h2><i class="bi bi-info-circle-fill" style="color:var(--vert);"></i> <%- __('official_info') %></h2>
+        <p><%- __('institutional_data') %></p>
+      </div>
+      <div class="info-card">
+        <div class="info-grid">
+          <div class="info-item"><strong><%- __('council_label') %></strong><span><%= commune.nom %></span></div>
+          <div class="info-item"><strong><%- __('region_label') %></strong><span><%= commune.region %>, Cameroun</span></div>
+          <div class="info-item"><strong><%- __('responsible_label') %></strong><span><%= commune.responsable || '—' %></span></div>
+          <div class="info-item"><strong><%- __('email_label') %></strong><span><%= commune.email || '—' %></span></div>
+          <div class="info-item"><strong><%- __('phone_label') %></strong><span><%= commune.telephone || '—' %></span></div>
+          <div class="info-item"><strong><%- __('total_budget_label') %></strong><span style="color:var(--vert-dark);font-weight:800;"><%= formatMontant(commune.budget_total) %></span></div>
         </div>
       </div>
-      <% }) %>
     </div>
-    <% } %>
-  </div>
 
-  <!-- INFOS COMMUNE -->
-  <div class="mb-section">
-    <div class="section-title"><i class="bi bi-info-circle-fill" style="color:var(--blue);"></i> Informations sur la commune</div>
-    <div class="section-sub">Données institutionnelles officielles</div>
-    <div class="info-card">
-      <div class="info-grid">
-        <div class="info-item"><strong>Commune</strong><span><%= commune.nom %></span></div>
-        <div class="info-item"><strong>Région</strong><span><%= commune.region %>, Cameroun</span></div>
-        <div class="info-item"><strong>Responsable</strong><span><%= commune.responsable || '—' %></span></div>
-        <div class="info-item"><strong>Contact Email</strong><span><%= commune.email %></span></div>
-        <div class="info-item"><strong>Téléphone</strong><span><%= commune.telephone || '—' %></span></div>
-        <div class="info-item"><strong>Budget total des projets</strong><span style="color:var(--blue);font-weight:800;"><%= formatMontant(commune.budget_total) %></span></div>
+    <!-- BANNER SUGGESTION -->
+    <div class="suggest-banner">
+      <div>
+        <h3><i class="bi bi-chat-quote-fill"></i> <%- __('your_opinion') %></h3>
+        <p><%- __('suggestion_desc') %></p>
       </div>
+      <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-suggest">
+        <i class="bi bi-send-fill"></i> <%- __('submit_suggestion') %>
+      </a>
     </div>
+
   </div>
 
-  <!-- SUGGESTION BANNER -->
-  <div class="suggest-banner">
-    <div>
-      <h3><i class="bi bi-chat-quote-fill"></i> Votre avis compte !</h3>
-      <p>Signalez un problème ou suggérez un nouveau projet pour votre commune.<br>Votre participation contribue au développement local.</p>
-    </div>
-    <a href="<%= siteUrl %>/portail-citoyen/suggestion" class="btn-hero btn-hero-primary" style="padding:14px 28px;font-size:15px;">
-      <i class="bi bi-send-fill"></i> Soumettre une suggestion
-    </a>
-  </div>
+  <footer>
+    <strong>MuniPro Littoral</strong> — <%- __('hero_pill') %> · <%= commune.nom %><br>
+    <small>© <%= new Date().getFullYear() %> <%- __('footer_text2') %></small>
+  </footer>
 
-</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const projetsData = <%- JSON.stringify(projets.filter(p => p.latitude && p.longitude).map(p => ({
+      id: p.id, titre: p.titre, statut: p.statut, avancement: p.avancement_physique,
+      lat: parseFloat(p.latitude), lng: parseFloat(p.longitude),
+      type_nom: p.type_nom || 'Projet', updated_at: p.updated_at
+    }))) %>;
 
-<footer>
-  <strong style="color:#FCD116;">MuniPro</strong> — Portail Citoyen · <%= commune.nom %><br>
-  <small>Projet de Suivi Numérique des Communes Urbaines du Littoral © <%= new Date().getFullYear() %></small>
-</footer>
+    const defaultCenter = [4.05, 9.70];
+    const center = projetsData.length > 0 ? [projetsData[0].lat, projetsData[0].lng] : defaultCenter;
+    const map = L.map('map-commune', { center, zoom: projetsData.length > 0 ? 13 : 10, scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+
+    const statusColors = { 'en_cours':'#007A3D','terminé':'#0EA5E9','planifié':'#F59E0B','suspendu':'#FCD116','annulé':'#CE1126' };
+
+    if (projetsData.length === 0) {
+      document.getElementById('map-commune').innerHTML = '<div style="height:380px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#64748B;gap:12px;"><i class="bi bi-geo-alt" style="font-size:48px;opacity:.3;"></i><p>Aucun projet géolocalisé pour cette commune.</p></div>';
+    } else {
+      const bounds = [];
+      projetsData.forEach(p => {
+        const color = statusColors[p.statut] || '#007A3D';
+        const circle = L.circleMarker([p.lat, p.lng], { radius: 12, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }).addTo(map);
+        const d = p.updated_at ? new Date(p.updated_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+        circle.bindPopup(`<div style="font-family:'Poppins',sans-serif;min-width:200px;"><div style="font-weight:800;font-size:13px;margin-bottom:4px;">${p.titre}</div><span style="background:${color};color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;">${p.statut.replace('_',' ')}</span><div style="margin-top:8px;font-size:12px;color:#64748B;">Avancement : <strong>${p.avancement}%</strong></div><a href="<%= siteUrl %>/portail-citoyen/projet/${p.id}" style="display:block;margin-top:10px;background:#007A3D;color:#fff;text-align:center;padding:6px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;">Voir le projet →</a></div>`);
+        bounds.push([p.lat, p.lng]);
+      });
+      if (bounds.length > 1) map.fitBounds(bounds, {padding:[40,40]});
+    }
+  </script>
 
 </body>
 </html>

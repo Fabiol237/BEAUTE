@@ -44,8 +44,31 @@
                     </a>
                 </li>
                 <% } %>
+                <% if ((session.utilisateur_role || '') === 'admin') { %>
+                <li class="nav-item">
+                    <a class="nav-link <%= req.path === '/dashboard/ma-commune' ? 'active' : '' %>" href="<%= siteUrl %>/dashboard/ma-commune">
+                        <i class="bi bi-building"></i> Ma Commune
+                    </a>
+                </li>
+                <% } %>
+                <% if ((session.utilisateur_role || '') === 'super_admin') { %>
+                <li class="nav-item">
+                    <a class="nav-link <%= req.path.startsWith('/communes') ? 'active' : '' %>" href="<%= siteUrl %>/communes">
+                        <i class="bi bi-building"></i> Communes
+                    </a>
+                </li>
+                <% } %>
             </ul>
             <ul class="navbar-nav">
+                <li class="nav-item dropdown me-2">
+                    <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-globe"></i> <%= (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'EN' : 'FR' %>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="min-width: 80px;">
+                        <li><a class="dropdown-item" href="?lang=fr">FR</a></li>
+                        <li><a class="dropdown-item" href="?lang=en">EN</a></li>
+                    </ul>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle"></i>

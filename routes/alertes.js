@@ -32,7 +32,7 @@ router.get('/', async (req, res, next) => {
     }));
 
     const en_retard = projets.filter(p => p.statut === 'en_cours' && p.date_fin_prevue && new Date(p.date_fin_prevue) < new Date());
-    const communes_inactives  = communes.filter(c => c.statut === 'inactice' || c.statut === 'inactif');
+    const communes_inactives  = communes.filter(c => c.statut === 'inactif');
     const communes_suspendues = communes.filter(c => c.statut === 'suspendu');
     const projets_bloques     = projets.filter(p => p.statut === 'suspendu');
 

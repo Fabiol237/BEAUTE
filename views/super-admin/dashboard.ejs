@@ -138,6 +138,23 @@
       </div>
     </div>
 
+    <!-- CHANGER BANNIERE GLOBALE -->
+    <div class="card mb-6">
+      <div class="card-header">
+        <h5><i class="bi bi-image" style="color:var(--munipro-green);"></i> Bannière de la Page d'Accueil</h5>
+      </div>
+      <div class="card-body">
+        <% if (req.query.success === 'banner') { %>
+          <div class="alert alert-success">Bannière globale mise à jour avec succès.</div>
+        <% } %>
+        <form action="/dashboard/global-banner" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-3">
+          <input type="file" name="banniere" class="form-control" accept="image/*" required style="max-width: 400px;">
+          <button type="submit" class="btn btn-primary">Changer la bannière</button>
+        </form>
+        <small class="text-muted mt-2 d-block">L'image remplacera celle du portail citoyen (format paysage recommandé).</small>
+      </div>
+    </div>
+
     <!-- TABLEAU RÉSUMÉ TOUTES COMMUNES -->
     <div class="card mb-6">
       <div class="card-header">

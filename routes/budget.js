@@ -1,6 +1,6 @@
 const express = require('express');
 const { query, queryOne } = require('../db');
-const { requireConnexion } = require('../middleware/auth');
+const { requireConnexion, requireRole } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
 const { parseMontantInput } = require('../lib/helpers');
 
@@ -10,18 +10,23 @@ router.use(requireConnexion);
 
 router.get('/liste', async (req, res, next) => {
   try {
+    const cId = req.session.commune_id;
+    const pCond = cId ? 'WHERE commune_id = ?' : '';
+    const dCond = cId ? 'WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = ?)' : '';
+    const args = cId ? [cId] : [];
+
     const stats_budget = {};
     stats_budget.budget_total = Number(
-      (await queryOne('SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets')).s
+      (await queryOne(`SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets ${pCond}`, args)).s
     );
     stats_budget.depenses_total = Number(
-      (await queryOne('SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE validee = true')).s
+      (await queryOne(`SELECT COALESCE(SUM(montant), 0) AS s FROM depenses ${dCond ? dCond + ' AND' : 'WHERE'} validee = true`, args)).s
     );
     stats_budget.nb_projets = Number(
-      (await queryOne('SELECT COUNT(*) AS c FROM projets')).c
+      (await queryOne(`SELECT COUNT(*) AS c FROM projets ${pCond}`, args)).c
     );
     stats_budget.depenses_attente = Number(
-      (await queryOne('SELECT COUNT(*) AS c FROM depenses WHERE validee = false')).c
+      (await queryOne(`SELECT COUNT(*) AS c FROM depenses ${dCond ? dCond + ' AND' : 'WHERE'} validee = false`, args)).c
     );
     stats_budget.restant = stats_budget.budget_total - stats_budget.depenses_total;
     stats_budget.pourcentage =
@@ -38,9 +43,10 @@ router.get('/liste', async (req, res, next) => {
       LEFT JOIN types_projets t ON p.type_projet_id = t.id
       LEFT JOIN communes c ON p.commune_id = c.id
       LEFT JOIN depenses d ON d.projet_id = p.id
+      ${cId ? 'WHERE p.commune_id = ?' : ''}
       GROUP BY p.id, t.nom, t.couleur, c.nom
       ORDER BY p.budget_actuel DESC
-    `);
+    `, args);
 
     res.render('budget/liste', {
       page_title: 'Gestion Budgétaire',
@@ -54,14 +60,15 @@ router.get('/liste', async (req, res, next) => {
 
 router.get('/depenses', async (req, res, next) => {
   try {
+    const cId = req.session.commune_id;
     const projet_id = parseInt(req.query.projet_id, 10) || 0;
     const projet = await queryOne(
       `SELECT p.*, t.nom AS type_nom, c.nom AS commune_nom, t.couleur
        FROM projets p
        LEFT JOIN types_projets t ON p.type_projet_id = t.id
        LEFT JOIN communes c ON p.commune_id = c.id
-       WHERE p.id = ?`,
-      [projet_id]
+       WHERE p.id = ? ${cId ? 'AND p.commune_id = ?' : ''}`,
+      cId ? [projet_id, cId] : [projet_id]
     );
 
     if (!projet) {
@@ -101,7 +108,7 @@ router.get('/depenses', async (req, res, next) => {
   }
 });
 
-router.post('/depenses', async (req, res, next) => {
+router.post('/depenses', requireRole('gestionnaire'), async (req, res, next) => {
   try {
     const projet_id = parseInt(req.query.projet_id || req.body.projet_id, 10) || 0;
     if (req.body.action !== 'ajouter') {

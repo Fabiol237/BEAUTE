@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0" style="color:var(--vert-dark);">Paramètres de ma Commune</h2>
+            <p class="text-muted mb-0">Modifiez les informations et la bannière de votre commune</p>
+        </div>
+    </div>
+
+    <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+    <% } %>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form action="/dashboard/ma-commune" method="POST" enctype="multipart/form-data">
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Bannière actuelle</label>
+                    <div class="mb-2">
+                        <% if (commune.banniere) { %>
+                            <img src="/assets/uploads/bannieres/<%= commune.banniere %>" alt="Bannière" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
+                        <% } else { %>
+                            <div class="bg-light p-4 text-center rounded text-muted">
+                                Aucune bannière personnalisée. L'image par défaut sera utilisée.
+                            </div>
+                        <% } %>
+                    </div>
+                    <label class="form-label fw-bold mt-3">Changer la bannière</label>
+                    <input type="file" name="banniere" class="form-control" accept="image/*">
+                    <small class="text-muted">Format recommandé : Paysage, JPG/PNG, max 2Mo</small>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nom de la Commune</label>
+                        <input type="text" name="nom" class="form-control" value="<%= commune.nom %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Région</label>
+                        <input type="text" class="form-control" value="<%= commune.region %>" disabled>
+                        <small class="text-muted">Contactez le Super Admin pour modifier la région.</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email de contact</label>
+                        <input type="email" name="email" class="form-control" value="<%= commune.email %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Téléphone de contact</label>
+                        <input type="text" name="telephone" class="form-control" value="<%= commune.telephone %>">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Nom du Responsable (Maire)</label>
+                    <input type="text" name="responsable" class="form-control" value="<%= commune.responsable %>">
+                </div>
+
+                <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i> Enregistrer les modifications</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

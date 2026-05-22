@@ -52,7 +52,7 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = user.role;
       req.session.commune_id = user.commune_id;
 
-      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = $1', [user.id]);
+      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [user.id]);
       await logAction(req, 'CONNEXION', `Connexion réussie : ${user.email} (${user.role}) — Commune ID: ${user.commune_id}`);
       return res.redirect('/dashboard');
     }
@@ -82,7 +82,7 @@ router.post('/admin/login', guestOnly, async (req, res) => {
 
   try {
     const superAdmin = await queryOne(
-      `SELECT * FROM munipro_admins WHERE email = $1 AND statut = 'actif'`,
+      `SELECT * FROM munipro_admins WHERE email = ? AND statut = 'actif'`,
       [email]
     );
 
@@ -96,7 +96,7 @@ router.post('/admin/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = 'super_admin';
       req.session.is_super_admin = true;
 
-      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = $1', [superAdmin.id]);
+      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = ?', [superAdmin.id]);
       await logAction(req, 'CONNEXION', `Connexion Super Admin : ${superAdmin.email}`);
       return res.redirect('/dashboard');
     }

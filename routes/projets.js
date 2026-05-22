@@ -6,7 +6,7 @@ const { pool, query, queryOne } = require('../db');
 const config = require('../config');
 const { requireConnexion, requireRole, requireAdmin } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
-const { parseMontantInput, peutFaire } = require('../lib/helpers');
+const { parseMontantInput, peutFaire, joursRestants } = require('../lib/helpers');
 const { loadProjetForPdf, streamRapport } = require('../lib/rapportPdf');
 
 const router = express.Router();
@@ -94,18 +94,18 @@ function buildKpiList(body) {
   return arr.map((l, i) => [l, cibles[i] || '']);
 }
 
-async function insertPhasesRisquesKpis(conn, projetId, body, dateFin) {
+async function insertPhasesRisquesKpis(client, projetId, body, dateFin) {
   const phases = buildPhaseList(body);
   for (let i = 0; i < phases.length; i++) {
     const [titre, statut, pct, datePrev] = phases[i];
     if (!String(titre || '').trim()) continue;
-    await conn.execute(
+    await client.query(
       `INSERT INTO jalons (projet_id, titre, date_prevue, statut, pourcentage_completion, ordre)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         projetId,
         String(titre).trim(),
-        datePrev || dateFin,
+        datePrev || dateFin || null,
         statut || 'non_commencé',
         parseInt(pct, 10) || 0,
         i + 1,
@@ -116,8 +116,8 @@ async function insertPhasesRisquesKpis(conn, projetId, body, dateFin) {
   for (let i = 0; i < risques.length; i++) {
     const [desc, niveau] = risques[i];
     if (!String(desc || '').trim()) continue;
-    await conn.execute(
-      'INSERT INTO risques (projet_id, description, niveau, ordre) VALUES (?, ?, ?, ?)',
+    await client.query(
+      'INSERT INTO risques (projet_id, description, niveau, ordre) VALUES ($1, $2, $3, $4)',
       [projetId, String(desc).trim(), niveau || 'moyen', i + 1]
     );
   }
@@ -125,8 +125,8 @@ async function insertPhasesRisquesKpis(conn, projetId, body, dateFin) {
   for (let i = 0; i < kpis.length; i++) {
     const [lib, cible] = kpis[i];
     if (!String(lib || '').trim()) continue;
-    await conn.execute(
-      'INSERT INTO indicateurs (projet_id, libelle, valeur_cible, ordre) VALUES (?, ?, ?, ?)',
+    await client.query(
+      'INSERT INTO indicateurs (projet_id, libelle, valeur_cible, ordre) VALUES ($1, $2, $3, $4)',
       [projetId, String(lib).trim(), String(cible || '').trim(), i + 1]
     );
   }
@@ -280,6 +280,7 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
     );
     const projet_id = result.rows[0].id;
 
+    await insertPhasesRisquesKpis(client, projet_id, body, date_fin_prevue);
     await client.query('COMMIT');
     setFlash(req, 'success', `Projet « ${titre} » créé avec succès !`);
     res.redirect(`/projets/details/${projet_id}`);
@@ -296,9 +297,10 @@ router.get('/details/:id', async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
     const projet = await queryOne(
-      `SELECT p.*, c.nom AS commune_nom,
+      `SELECT p.*, c.nom AS commune_nom, c.region AS region_nom,
               tp.nom AS type_nom, tp.couleur AS type_couleur,
-              CONCAT(u.prenom, ' ', u.nom) AS responsable_nom, u.email AS responsable_email
+              CONCAT(u.prenom, ' ', u.nom) AS responsable_nom, u.email AS responsable_email,
+              p.localisation AS adresse
        FROM projets p
        LEFT JOIN communes c ON p.commune_id = c.id
        LEFT JOIN types_projets tp ON p.type_projet_id = tp.id
@@ -330,9 +332,7 @@ router.get('/details/:id', async (req, res, next) => {
     );
     const duree_totale = Math.max(1, Math.round((fin - debut) / 86400000));
     const pourcentage_temps = (jours_ecoules / duree_totale) * 100;
-    const jours_restants_val = require('../lib/helpers').joursRestants(
-      projet.date_fin_prevue
-    );
+    const jours_restants_val = joursRestants(projet.date_fin_prevue);
 
     const liste_avancements = await query(
       `SELECT a.*, CONCAT(u.prenom, ' ', u.nom) AS auteur
@@ -513,6 +513,11 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
       ]
     );
 
+    // Supprimer les anciens jalons/risques/kpis et réinsérer
+    await client.query('DELETE FROM jalons WHERE projet_id = $1', [projet_id]);
+    await client.query('DELETE FROM risques WHERE projet_id = $1', [projet_id]);
+    await client.query('DELETE FROM indicateurs WHERE projet_id = $1', [projet_id]);
+    await insertPhasesRisquesKpis(client, projet_id, body, date_fin_prevue);
     await client.query('COMMIT');
     setFlash(req, 'success', 'Projet modifié avec succès !');
     res.redirect(`/projets/details/${projet_id}`);
@@ -544,6 +549,14 @@ router.post('/supprimer/:id', requireAdmin, async (req, res, next) => {
     const projet_id = parseInt(req.params.id, 10);
     if (!req.body.confirmer) return res.redirect(`/projets/details/${projet_id}`);
     const projet = await queryOne('SELECT titre FROM projets WHERE id = $1', [projet_id]);
+    // Supprimer les dépendances pour éviter les erreurs de contrainte de clé étrangère
+    await query('DELETE FROM jalons WHERE projet_id = $1', [projet_id]);
+    await query('DELETE FROM risques WHERE projet_id = $1', [projet_id]);
+    await query('DELETE FROM indicateurs WHERE projet_id = $1', [projet_id]);
+    await query('DELETE FROM avancements WHERE projet_id = $1', [projet_id]);
+    await query('DELETE FROM photos WHERE projet_id = $1', [projet_id]);
+    await query('DELETE FROM depenses WHERE projet_id = $1', [projet_id]);
+    
     await query('DELETE FROM projets WHERE id = $1', [projet_id]);
     setFlash(req, 'success', `Le projet "${projet.titre}" a été supprimé avec succès.`);
     res.redirect('/projets/liste');

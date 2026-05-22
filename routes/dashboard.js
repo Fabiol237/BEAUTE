@@ -1,10 +1,26 @@
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+const config = require('../config');
 const { query, queryOne } = require('../db');
 const { requireConnexion } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(requireConnexion);
+
+const bannerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(config.uploadsDir, 'bannieres');
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `banner_${req.session.commune_id || 'sa'}_${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+const uploadBanner = multer({ storage: bannerStorage });
 
 router.get('/', async (req, res, next) => {
   const isSuperAdmin = req.session.utilisateur_role === 'super_admin';
@@ -162,6 +178,57 @@ router.get('/', async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+router.get('/ma-commune', async (req, res, next) => {
+  if (req.session.utilisateur_role !== 'admin') return res.redirect('/dashboard');
+  try {
+    const commune = await queryOne('SELECT * FROM communes WHERE id = ?', [req.session.commune_id]);
+    res.render('ma-commune', { page_title: 'Paramètres de ma Commune', commune, is_super_admin: false, message: req.query.success ? 'Mise à jour réussie' : '' });
+  } catch(err) {
+    next(err);
+  }
+});
+
+router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, next) => {
+  if (req.session.utilisateur_role !== 'admin') return res.redirect('/dashboard');
+  try {
+    const { nom, email, telephone, responsable } = req.body;
+    let sql, params;
+
+    if (req.file) {
+      sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4, banniere=$5 WHERE id=$6';
+      params = [nom, email, telephone, responsable, req.file.filename, req.session.commune_id];
+    } else {
+      sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4 WHERE id=$5';
+      params = [nom, email, telephone, responsable, req.session.commune_id];
+    }
+
+    await query(sql, params);
+    res.redirect('/dashboard/ma-commune?success=1');
+  } catch(err) {
+    next(err);
+  }
+});
+
+router.post('/global-banner', uploadBanner.single('banniere'), (req, res, next) => {
+  if (req.session.utilisateur_role !== 'super_admin') return res.redirect('/dashboard');
+  if (req.file) {
+    const fs = require('fs');
+    const path = require('path');
+    const config = require('../config');
+    const sourcePath = req.file.path;
+    const destPath = path.join(config.rootDir, 'public', 'assets', 'images', 'hero-bg.jpg');
+    try {
+      fs.copyFileSync(sourcePath, destPath);
+      fs.unlinkSync(sourcePath); 
+      res.redirect('/dashboard?success=banner');
+    } catch(err) {
+      next(err);
+    }
+  } else {
+    res.redirect('/dashboard');
   }
 });
 

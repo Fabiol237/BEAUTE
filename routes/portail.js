@@ -43,7 +43,7 @@ router.get('/', async (req, res, next) => {
   try {
     const q = req.query.q || '';
     let sql = `
-      SELECT c.*,
+      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at,
         COUNT(DISTINCT p.id) AS total_projets,
         SUM(CASE WHEN p.statut='en_cours' THEN 1 ELSE 0 END) AS en_cours,
         COALESCE(AVG(p.avancement_physique),0) AS taux_avancement
@@ -52,8 +52,8 @@ router.get('/', async (req, res, next) => {
       WHERE c.statut = 'actif'
     `;
     const params = [];
-    if (q) { sql += ' AND c.nom LIKE ?'; params.push(`%${q}%`); }
-    sql += ' GROUP BY c.id ORDER BY c.nom';
+    if (q) { sql += ' AND c.nom ILIKE ?'; params.push(`%${q}%`); }
+    sql += ' GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at ORDER BY c.nom';
     const communes = (await query(sql, params)).map(c => ({
       ...c,
       taux_avancement: Math.round(Number(c.taux_avancement)||0),
@@ -71,13 +71,13 @@ router.get('/commune/:id', async (req, res, next) => {
   try {
     const commune_id = parseInt(req.params.id, 10);
     const commune = await queryOne(`
-      SELECT c.*,
+      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at,
         COUNT(DISTINCT p.id) AS total_projets,
         COALESCE(SUM(p.budget_actuel),0) AS budget_total
       FROM communes c
       LEFT JOIN projets p ON p.commune_id = c.id
       WHERE c.id = ? AND c.statut = 'actif'
-      GROUP BY c.id
+      GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at
     `, [commune_id]);
     if (!commune) return res.redirect('/portail-citoyen');
 
@@ -120,7 +120,7 @@ router.get('/projets', async (req, res, next) => {
     const where = ['p.visible_public = TRUE'];
     const params = [];
     if (recherche) {
-      where.push('(p.titre LIKE ? OR p.description LIKE ?)');
+      where.push('(p.titre ILIKE ? OR p.description ILIKE ?)');
       params.push(`%${recherche}%`, `%${recherche}%`);
     }
     if (commune_id) {
@@ -180,7 +180,7 @@ router.get('/projet/:id', async (req, res, next) => {
     if (!projet) return res.redirect('/portail-citoyen');
 
     const photos_list = await query(
-      'SELECT * FROM photos_projets WHERE projet_id = ? ORDER BY created_at DESC LIMIT 9',
+      'SELECT * FROM photos WHERE projet_id = ? ORDER BY date_upload DESC LIMIT 9',
       [projet_id]
     );
 
@@ -375,7 +375,7 @@ router.post(
         body,
       });
     } finally {
-      conn.release();
+      client.release();
     }
   }
 );

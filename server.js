@@ -3,6 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const methodOverride = require('method-override');
+const i18n = require('i18n');
 const config = require('./config');
 const { pool } = require('./db');
 const attachLocals = require('./middleware/locals');
@@ -16,7 +17,6 @@ const utilisateursRoutes = require('./routes/utilisateurs');
 const portailRoutes = require('./routes/portail');
 const superAdminRoutes = require('./routes/superAdmin');
 const communesRoutes = require('./routes/communes');
-const comptesRoutes = require('./routes/comptes');
 const alertesRoutes = require('./routes/alertes');
 const rapportsRoutes = require('./routes/rapports');
 
@@ -25,6 +25,13 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1); // Trust Vercel proxy for secure cookies
+
+i18n.configure({
+  locales: ['fr', 'en'],
+  directory: path.join(__dirname, 'locales'),
+  defaultLocale: 'fr',
+  objectNotation: true
+});
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -39,10 +46,27 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { 
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax'
     },
   })
 );
+
+app.use(i18n.init);
+app.use((req, res, next) => {
+  if (req.query.lang) {
+    req.session.lang = req.query.lang;
+  }
+  if (req.session.lang) {
+    i18n.setLocale(req, req.session.lang);
+  } else {
+    i18n.setLocale(req, 'fr');
+  }
+  res.locals.currentLang = i18n.getLocale(req);
+  next();
+});
 
 app.use('/assets', express.static(path.join(config.rootDir, 'public', 'assets')));
 app.use(attachLocals);
@@ -61,7 +85,6 @@ app.use('/utilisateurs', utilisateursRoutes);
 app.use('/portail-citoyen', portailRoutes);
 app.use('/super-admin', superAdminRoutes);
 app.use('/communes', communesRoutes);
-app.use('/comptes', (req, res) => res.redirect('/super-admin/comptes' + (req.path !== '/' ? req.path : '') + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '')));
 app.use('/alertes', alertesRoutes);
 app.use('/rapports', rapportsRoutes);
 
@@ -71,7 +94,9 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).send(`<h1>Erreur serveur</h1><pre style="background:#f4f4f4;padding:15px;border:1px solid #ddd;white-space:pre-wrap;">${err.stack || err.message || err}</pre>`);
+  const isDev = process.env.NODE_ENV !== 'production';
+  const errorDetails = isDev ? `<pre style="background:#f4f4f4;padding:15px;border:1px solid #ddd;white-space:pre-wrap;">${err.stack || err.message || err}</pre>` : "<p>Une erreur inattendue s'est produite. Veuillez réessayer plus tard.</p>";
+  res.status(500).send(`<h1>Erreur serveur</h1>${errorDetails}`);
 });
 
 async function start() {

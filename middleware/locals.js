@@ -22,6 +22,7 @@ function attachLocals(req, res, next) {
   res.locals.getFlash = () => renderFlash(req, helpers);
   res.locals.todayFr = helpers.todayFr;
   res.locals.todayIso = helpers.todayIso;
+  res.locals.__ = res.__ || function(key){return key;};
   next();
 }
 

@@ -18,7 +18,7 @@
     <a href="<%= siteUrl %>/communes" class="nav-item <%= currentPath.startsWith('/communes') ? 'active' : '' %>">
       <i class="bi bi-building"></i> Communes
     </a>
-    <a href="/comptes" class="nav-item <%= currentPath.startsWith('/comptes') || currentPath.startsWith('/super-admin/comptes') ? 'active' : '' %>">
+    <a href="/super-admin/comptes" class="nav-item <%= currentPath.startsWith('/comptes') || currentPath.startsWith('/super-admin/comptes') ? 'active' : '' %>">
       <i class="bi bi-people-fill"></i> Comptes Responsables
     </a>
     <a href="/super-admin/journal" class="nav-item <%= currentPath.startsWith('/super-admin/journal') ? 'active' : '' %>">

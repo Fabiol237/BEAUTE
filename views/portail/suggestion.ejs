@@ -3,195 +3,296 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suggestions & Signalements — MuniPro Portail Citoyen</title>
+  <meta name="description" content="Suggestions et signalements citoyens — Portail Officiel des Communes du Littoral, République du Cameroun">
+  <title>Suggestions & Signalements — Portail Citoyen · République du Cameroun</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
-    :root{--green:#007A3D;--yellow:#FCD116;--red:#CE1126;--blue:#003F88;--dark:#0D1B2A;--text:#1A2332;--muted:#64748B;--border:#E2E8F0;--bg:#F0F5FF;--card:#fff;}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    :root {
+      --vert: #007A3D; --vert-dark: #005C2E; --vert-light: #E8F5EE;
+      --jaune: #FCD116; --rouge: #CE1126;
+      --noir: #1A1A1A; --gris: #6C757D; --gris-clair: #F4F6F8;
+      --blanc: #FFFFFF; --border: #DDE3EA;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--gris-clair); color: var(--noir); min-height: 100vh; }
 
-    .topnav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,27,42,.97);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:60px;border-bottom:1px solid rgba(255,255,255,.08);}
-    .topnav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .topnav-logo img{height:36px;}
-    .topnav-logo span{color:#FCD116;font-weight:800;font-size:16px;}
-    .btn-back{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.15);padding:5px 12px;border-radius:20px;transition:all .2s;}
-    .btn-back:hover{color:#fff;border-color:rgba(255,255,255,.4);text-decoration:none;}
+    .tricolor-bar { display: flex; height: 6px; }
+    .tc-vert { flex:1;background:var(--vert); } .tc-jaune{flex:1;background:var(--jaune);} .tc-rouge{flex:1;background:var(--rouge);}
 
-    .hero{margin-top:60px;background:linear-gradient(135deg,var(--dark),var(--blue));padding:48px 24px;text-align:center;}
-    .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(252,209,22,.15);border:1px solid rgba(252,209,22,.4);color:#FCD116;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
-    .hero h1{color:#fff;font-size:clamp(24px,4vw,36px);font-weight:900;margin-bottom:10px;}
-    .hero p{color:rgba(255,255,255,.75);font-size:15px;max-width:540px;margin:0 auto;}
+    .official-header {
+      background: var(--blanc); border-bottom: 3px solid var(--vert); padding: 12px 32px;
+    }
+    .official-header .container { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .off-left { font-size: 10px; font-weight: 600; color: #2C3E50; text-transform: uppercase; }
+    .off-left .fr-name { font-size: 11.5px; font-weight: 800; color: var(--vert-dark); }
+    .off-left .motto { font-style: italic; color: var(--gris); font-weight: 400; text-transform: none; }
+    .off-right { font-size: 10px; text-align: right; color: #2C3E50; font-weight: 700; }
+    .off-right .sub { font-size: 9.5px; color: var(--gris); font-weight: 400; margin-top: 4px; }
+    .off-center img { height: 68px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1)); }
+    .off-divider { width: 1px; height: 52px; background: var(--border); }
+    @media(max-width:768px){.off-left,.off-right,.off-divider{display:none;}.official-header .container{justify-content:center;}}
 
-    .main{max-width:820px;margin:0 auto;padding:40px 24px 80px;}
+    .main-nav { background: var(--vert-dark); padding: 0 32px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 3px 12px rgba(0,0,0,0.2); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-brand img { height: 30px; }
+    .nav-brand span { color: var(--jaune); font-weight: 800; font-size: 14px; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; transition: all .2s; }
+    .nav-links a:hover { background: rgba(255,255,255,0.12); color: var(--jaune); }
+    .btn-retour { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.7); font-size: 11.5px; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; transition: all .2s; }
+    .btn-retour:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
 
-    /* MODE TABS */
-    .mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-    .mode-tab{padding:16px;text-align:center;text-decoration:none;font-weight:700;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
-    .mode-tab:hover{color:var(--blue);text-decoration:none;}
-    .mode-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:#F0F5FF;}
+    /* HERO BANNER */
+    .page-hero {
+      background: linear-gradient(135deg, var(--vert-dark) 0%, #003825 60%, #002818 100%);
+      padding: 52px 32px; text-align: center; position: relative; overflow: hidden;
+    }
+    .page-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: url('/assets/images/hero-bg.jpg') center/cover no-repeat;
+      opacity: 0.08;
+    }
+    .page-hero .inner { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+    .page-hero .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(252,209,22,0.15); border: 1px solid rgba(252,209,22,0.45);
+      color: var(--jaune); padding: 6px 16px; border-radius: 30px;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 16px;
+    }
+    .page-hero h1 { color: var(--blanc); font-size: clamp(22px,3.5vw,34px); font-weight: 900; margin-bottom: 10px; }
+    .page-hero p { color: rgba(255,255,255,0.82); font-size: 14.5px; line-height: 1.7; }
+    .flag-strip { display: flex; height: 3px; max-width: 120px; margin: 20px auto 0; border-radius: 4px; overflow: hidden; }
+    .flag-strip span { flex: 1; }
+
+    /* MAIN */
+    .main { max-width: 840px; margin: 0 auto; padding: 40px 32px 80px; }
 
     /* ALERTS */
-    .alert{padding:14px 18px;border-radius:12px;margin-bottom:20px;font-size:14px;display:flex;align-items:flex-start;gap:10px;}
-    .alert-success{background:rgba(0,122,61,.08);border:1px solid rgba(0,122,61,.2);color:#005A2D;}
-    .alert-danger{background:rgba(206,17,38,.08);border:1px solid rgba(206,17,38,.2);color:#9B0E1A;}
+    .alert { padding: 14px 18px; border-radius: 12px; margin-bottom: 22px; font-size: 13.5px; display: flex; align-items: flex-start; gap: 10px; }
+    .alert-success { background: rgba(0,122,61,0.08); border: 1px solid rgba(0,122,61,0.25); color: #004D1A; }
+    .alert-danger  { background: rgba(206,17,38,0.07); border: 1px solid rgba(206,17,38,0.2); color: #8B000E; }
+
+    /* TABS */
+    .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--blanc); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 26px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .mode-tab { padding: 16px; text-align: center; text-decoration: none; font-weight: 700; font-size: 13.5px; color: var(--gris); border-bottom: 3px solid transparent; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .mode-tab:hover { color: var(--vert-dark); text-decoration: none; }
+    .mode-tab.active { color: var(--vert-dark); border-bottom-color: var(--vert); background: var(--vert-light); }
 
     /* FORM CARD */
-    .form-card{background:var(--card);border-radius:16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05);overflow:hidden;}
-    .form-card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-    .form-card-header h2{font-size:16px;font-weight:700;margin:0;}
-    .form-body{padding:28px;}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-    .form-grid-full{grid-column:1/-1;}
-    .form-group{display:flex;flex-direction:column;gap:6px;}
-    .form-label{font-size:13px;font-weight:600;color:var(--text);}
-    .form-label .req{color:var(--red);}
-    .form-control,.form-select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .2s,box-shadow .2s;}
-    .form-control:focus,.form-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,63,136,.1);}
-    textarea.form-control{resize:vertical;min-height:120px;}
-    .form-hint{font-size:11px;color:var(--muted);}
-    .btn-submit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
-    .btn-submit:hover{background:#0052B4;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,63,136,.3);}
+    .form-card { background: var(--blanc); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
+    .form-card-header { padding: 20px 26px; border-bottom: 3px solid var(--vert); display: flex; align-items: center; gap: 10px; background: var(--vert-light); }
+    .form-card-header h2 { font-size: 15.5px; font-weight: 700; margin: 0; color: var(--vert-dark); }
+    .form-body { padding: 30px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-grid-full { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-label { font-size: 12.5px; font-weight: 600; color: #2C3E50; }
+    .form-label .req { color: var(--rouge); }
+    .form-control, .form-select {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 13.5px; font-family: 'Poppins', sans-serif;
+      color: var(--noir); background: var(--blanc); transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus, .form-select:focus { outline: none; border-color: var(--vert); box-shadow: 0 0 0 3px rgba(0,122,61,0.12); }
+    textarea.form-control { resize: vertical; min-height: 120px; }
+    .form-hint { font-size: 11px; color: var(--gris); }
+    .btn-submit {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px; background: var(--vert); color: var(--blanc);
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+      font-family: 'Poppins', sans-serif; cursor: pointer; transition: all .2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--vert-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,122,61,0.25); }
 
-    @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+    footer { background: var(--vert-dark); color: rgba(255,255,255,0.75); text-align: center; padding: 24px; font-size: 12.5px; margin-top: 20px; }
+    footer strong { color: var(--jaune); }
+
+    @media(max-width:600px){ .form-grid{grid-template-columns:1fr;} .main{padding:32px 16px 60px;} }
   </style>
 </head>
 <body>
 
-<nav class="topnav">
-  <a href="<%= siteUrl %>/portail-citoyen" class="topnav-logo">
-    <img src="/assets/images/logo.png" alt="MuniPro">
-    <span>MuniPro</span>
-  </a>
-  <a href="<%= siteUrl %>/portail-citoyen" class="btn-back"><i class="bi bi-arrow-left"></i> Retour</a>
-</nav>
-
-<div class="hero">
-  <div class="hero-badge"><i class="bi bi-chat-quote-fill"></i> Participation citoyenne</div>
-  <h1>Suggestions & Signalements</h1>
-  <p>Contribuez au développement de votre commune. Chaque retour compte pour améliorer les services municipaux.</p>
-</div>
-
-<div class="main">
-
-  <% if (success) { %>
-  <div class="alert alert-success">
-    <i class="bi bi-check-circle-fill" style="font-size:18px;"></i>
-    <div>
-      <strong>Merci pour votre contribution !</strong><br>
-      Votre <%= mode_success === 'signalement' ? 'signalement' : 'suggestion' %> a bien été reçu(e) et sera traité(e) par la mairie dans les meilleurs délais.
-    </div>
-  </div>
-  <% } %>
-
-  <% if (erreurs && erreurs.length) { %>
-  <div class="alert alert-danger">
-    <i class="bi bi-exclamation-triangle-fill" style="font-size:18px;"></i>
-    <div>
-      <strong>Veuillez corriger les erreurs suivantes :</strong>
-      <ul style="margin:6px 0 0 16px;">
-        <% erreurs.forEach(er => { %><li><%= er %></li><% }); %>
-      </ul>
-    </div>
-  </div>
-  <% } %>
-
-  <!-- TABS -->
-  <div class="mode-tabs">
-    <a href="?mode=suggestion" class="mode-tab <%= mode_actif === 'suggestion' ? 'active' : '' %>">
-      <i class="bi bi-lightbulb-fill"></i> Faire une suggestion
-    </a>
-    <a href="?mode=signalement" class="mode-tab <%= mode_actif === 'signalement' ? 'active' : '' %>">
-      <i class="bi bi-exclamation-circle-fill"></i> Signaler un problème
-    </a>
+  <div class="tricolor-bar">
+    <div class="tc-vert"></div>
+    <div class="tc-jaune"></div>
+    <div class="tc-rouge"></div>
   </div>
 
-  <!-- FORM -->
-  <div class="form-card">
-    <div class="form-card-header">
-      <i class="bi bi-<%= mode_actif === 'suggestion' ? 'lightbulb' : 'exclamation-circle' %>" style="color:var(--blue);font-size:18px;"></i>
-      <h2><%= mode_actif === 'suggestion' ? 'Nouvelle suggestion citoyenne' : 'Nouveau signalement de problème' %></h2>
+  <div class="official-header">
+    <div class="container">
+      <div class="off-left">
+        <div class="fr-name">République du Cameroun</div>
+        <div class="motto">Paix - Travail - Patrie</div>
+        <div style="height:4px;"></div>
+        <div style="font-size:10px;color:#4A5568;">Republic of Cameroon</div>
+        <div class="motto">Peace - Work - Fatherland</div>
+      </div>
+      <div class="off-divider"></div>
+      <div class="off-center">
+        <img src="/assets/images/sceau_cameroun.png" alt="Armoiries">
+      </div>
+      <div class="off-divider"></div>
+      <div class="off-right">
+        <div>Portail Citoyen — Participation Citoyenne</div>
+        <div class="sub">Région du Littoral · Communes Urbaines du Cameroun</div>
+      </div>
     </div>
-    <div class="form-body">
-      <form method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="mode" value="<%= mode_actif %>">
-        <div class="form-grid">
+  </div>
 
-          <div class="form-group">
-            <label class="form-label">Votre nom <span class="req">*</span></label>
-            <input name="nom" class="form-control" value="<%= e(body.nom||'') %>" placeholder="Jean DUPONT" required>
-          </div>
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <a href="<%= siteUrl %>/portail-citoyen" class="nav-brand">
+        <img src="/assets/images/logo.png" alt="">
+        <span>MuniPro Littoral</span>
+      </a>
+      <div class="nav-links">
+        <a href="<%= siteUrl %>/portail-citoyen"><i class="bi bi-house-fill"></i> Accueil</a>
+        <a href="<%= siteUrl %>/portail-citoyen/carte"><i class="bi bi-map-fill"></i> Carte</a>
+      </div>
+      <a href="<%= siteUrl %>/portail-citoyen" class="btn-retour"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+  </nav>
 
-          <div class="form-group">
-            <label class="form-label">Adresse email <span class="req">*</span></label>
-            <input type="email" name="email" class="form-control" value="<%= e(body.email||'') %>" placeholder="jean@exemple.cm" required>
-          </div>
+  <div class="page-hero">
+    <div class="inner">
+      <div class="pill"><i class="bi bi-chat-quote-fill"></i> Participation Citoyenne</div>
+      <h1>Suggestions & Signalements</h1>
+      <p>Contribuez au développement de votre commune. Chaque retour citoyen contribue à améliorer la qualité des services municipaux.</p>
+      <div class="flag-strip">
+        <span style="background:#007A3D;"></span>
+        <span style="background:#CE1126;"></span>
+        <span style="background:#FCD116;"></span>
+      </div>
+    </div>
+  </div>
 
-          <div class="form-group">
-            <label class="form-label">Téléphone</label>
-            <input name="telephone" class="form-control" value="<%= e(body.telephone||'') %>" placeholder="+237 6XX XXX XXX">
-          </div>
+  <div class="main">
 
-          <div class="form-group">
-            <label class="form-label">Projet concerné <span style="color:var(--muted);font-weight:400;">(optionnel)</span></label>
-            <select name="projet_id" class="form-select">
-              <option value="">— Aucun projet spécifique —</option>
-              <% projets.forEach(p => { %><option value="<%= p.id %>" <%= String(body.projet_id)===String(p.id)?'selected':'' %>><%= p.titre %></option><% }); %>
-            </select>
-          </div>
+    <% if (success) { %>
+    <div class="alert alert-success">
+      <i class="bi bi-check-circle-fill" style="font-size:20px;margin-top:1px;"></i>
+      <div>
+        <strong>Merci pour votre contribution !</strong><br>
+        Votre <%= mode_success === 'signalement' ? 'signalement' : 'suggestion' %> a bien été reçu(e) et sera traité(e) par la mairie dans les meilleurs délais.
+      </div>
+    </div>
+    <% } %>
 
-          <div class="form-group form-grid-full">
-            <label class="form-label">Catégorie <span class="req">*</span></label>
-            <% if (mode_actif === 'suggestion') { %>
-            <select name="categorie" class="form-select" required>
-              <option value="">Choisissez une catégorie</option>
-              <option value="infrastructure" <%= body.categorie==='infrastructure'?'selected':'' %>>🏗️ Infrastructure & Routes</option>
-              <option value="environnement" <%= body.categorie==='environnement'?'selected':'' %>>🌿 Environnement & Déchets</option>
-              <option value="sante"          <%= body.categorie==='sante'?'selected':'' %>>🏥 Santé & Hygiène</option>
-              <option value="education"      <%= body.categorie==='education'?'selected':'' %>>📚 Éducation & Jeunesse</option>
-              <option value="securite"       <%= body.categorie==='securite'?'selected':'' %>>🔒 Sécurité & Ordre public</option>
-              <option value="autre"          <%= body.categorie==='autre'?'selected':'' %>>💡 Autre suggestion</option>
-            </select>
-            <% } else { %>
-            <select name="categorie_probleme" class="form-select" required>
-              <option value="">Choisissez la nature du problème</option>
-              <option value="voirie">🛣️ Voirie & Routes dégradées</option>
-              <option value="eclairage">💡 Éclairage public défaillant</option>
-              <option value="dechets">🗑️ Collecte des déchets</option>
-              <option value="eau">💧 Eau & Assainissement</option>
-              <option value="securite">🚨 Problème de sécurité</option>
-              <option value="autre">⚠️ Autre problème</option>
-            </select>
+    <% if (erreurs && erreurs.length) { %>
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle-fill" style="font-size:20px;margin-top:1px;"></i>
+      <div>
+        <strong>Veuillez corriger les erreurs suivantes :</strong>
+        <ul style="margin:6px 0 0 16px;">
+          <% erreurs.forEach(er => { %><li><%= er %></li><% }); %>
+        </ul>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="mode-tabs">
+      <a href="?mode=suggestion" class="mode-tab <%= mode_actif === 'suggestion' ? 'active' : '' %>">
+        <i class="bi bi-lightbulb-fill"></i> Faire une suggestion
+      </a>
+      <a href="?mode=signalement" class="mode-tab <%= mode_actif === 'signalement' ? 'active' : '' %>">
+        <i class="bi bi-exclamation-circle-fill"></i> Signaler un problème
+      </a>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-header">
+        <i class="bi bi-<%= mode_actif === 'suggestion' ? 'lightbulb-fill' : 'exclamation-circle-fill' %>" style="color:var(--vert);font-size:20px;"></i>
+        <h2><%= mode_actif === 'suggestion' ? 'Nouvelle suggestion citoyenne' : 'Nouveau signalement de problème' %></h2>
+      </div>
+      <div class="form-body">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="mode" value="<%= mode_actif %>">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Votre nom <span class="req">*</span></label>
+              <input name="nom" class="form-control" value="<%= e(body.nom||'') %>" placeholder="Jean DUPONT" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Adresse email <span class="req">*</span></label>
+              <input type="email" name="email" class="form-control" value="<%= e(body.email||'') %>" placeholder="jean@exemple.cm" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input name="telephone" class="form-control" value="<%= e(body.telephone||'') %>" placeholder="+237 6XX XXX XXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Projet concerné <span style="color:var(--gris);font-weight:400;">(optionnel)</span></label>
+              <select name="projet_id" class="form-select">
+                <option value="">— Aucun projet spécifique —</option>
+                <% projets.forEach(p => { %><option value="<%= p.id %>" <%= String(body.projet_id)===String(p.id)?'selected':'' %>><%= p.titre %></option><% }); %>
+              </select>
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label class="form-label">Catégorie <span class="req">*</span></label>
+              <% if (mode_actif === 'suggestion') { %>
+              <select name="categorie" class="form-select" required>
+                <option value="">Choisissez une catégorie</option>
+                <option value="infrastructure" <%= body.categorie==='infrastructure'?'selected':'' %>>🏗️ Infrastructure & Routes</option>
+                <option value="environnement" <%= body.categorie==='environnement'?'selected':'' %>>🌿 Environnement & Déchets</option>
+                <option value="sante"          <%= body.categorie==='sante'?'selected':'' %>>🏥 Santé & Hygiène</option>
+                <option value="education"      <%= body.categorie==='education'?'selected':'' %>>📚 Éducation & Jeunesse</option>
+                <option value="securite"       <%= body.categorie==='securite'?'selected':'' %>>🔒 Sécurité & Ordre public</option>
+                <option value="autre"          <%= body.categorie==='autre'?'selected':'' %>>💡 Autre suggestion</option>
+              </select>
+              <% } else { %>
+              <select name="categorie_probleme" class="form-select" required>
+                <option value="">Choisissez la nature du problème</option>
+                <option value="voirie">🛣️ Voirie & Routes dégradées</option>
+                <option value="eclairage">💡 Éclairage public défaillant</option>
+                <option value="dechets">🗑️ Collecte des déchets</option>
+                <option value="eau">💧 Eau & Assainissement</option>
+                <option value="securite">🚨 Problème de sécurité</option>
+                <option value="autre">⚠️ Autre problème</option>
+              </select>
+              <% } %>
+            </div>
+
+            <% if (mode_actif === 'signalement') { %>
+            <div class="form-group form-grid-full">
+              <label class="form-label">Adresse du problème</label>
+              <input name="adresse_probleme" class="form-control" value="<%= e(body.adresse_probleme||'') %>" placeholder="Ex: Avenue de la Liberté, quartier Akwa">
+            </div>
+            <div class="form-group form-grid-full">
+              <label class="form-label">Photos du problème <span style="color:var(--gris);font-weight:400;">(max 5 · JPG/PNG)</span></label>
+              <input type="file" name="photos" class="form-control" accept="image/*" multiple>
+            </div>
             <% } %>
-          </div>
 
-          <% if (mode_actif === 'signalement') { %>
-          <div class="form-group form-grid-full">
-            <label class="form-label">Adresse du problème</label>
-            <input name="adresse_probleme" class="form-control" value="<%= e(body.adresse_probleme||'') %>" placeholder="Ex: Avenue de la Liberté, quartier Akwa">
-          </div>
-          <div class="form-group form-grid-full">
-            <label class="form-label">Photos du problème <span style="color:var(--muted);font-weight:400;">(max 5 · JPG/PNG/WEBP)</span></label>
-            <input type="file" name="photos" class="form-control" accept="image/*" multiple>
-          </div>
-          <% } %>
+            <div class="form-group form-grid-full">
+              <label class="form-label">Description détaillée <span class="req">*</span></label>
+              <textarea name="message" class="form-control" rows="5" required minlength="20" placeholder="Décrivez votre <%= mode_actif === 'suggestion' ? 'suggestion' : 'signalement' %> avec le maximum de détails possibles (minimum 20 caractères)..."><%= e(body.message||'') %></textarea>
+              <span class="form-hint">Minimum 20 caractères requis</span>
+            </div>
 
-          <div class="form-group form-grid-full">
-            <label class="form-label">Description détaillée <span class="req">*</span></label>
-            <textarea name="message" class="form-control" rows="5" required minlength="20" placeholder="Décrivez votre <%= mode_actif === 'suggestion' ? 'suggestion' : 'signalement' %> avec le maximum de détails possibles (minimum 20 caractères)..."><%= e(body.message||'') %></textarea>
-            <span class="form-hint">Minimum 20 caractères requis</span>
           </div>
-
-        </div>
-        <button type="submit" class="btn-submit">
-          <i class="bi bi-send-fill"></i>
-          <%= mode_actif === 'suggestion' ? 'Envoyer ma suggestion' : 'Envoyer le signalement' %>
-        </button>
-      </form>
+          <button type="submit" class="btn-submit">
+            <i class="bi bi-send-fill"></i>
+            <%= mode_actif === 'suggestion' ? 'Envoyer ma suggestion' : 'Envoyer le signalement' %>
+          </button>
+        </form>
+      </div>
     </div>
+
   </div>
 
-</div>
+  <footer>
+    <strong>MuniPro Littoral</strong> — Portail Citoyen · Suggestions & Signalements<br>
+    <small>© <%= new Date().getFullYear() %> Communes Urbaines du Littoral · République du Cameroun</small>
+  </footer>
+
 </body>
 </html>

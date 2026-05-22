@@ -1,30 +1,240 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8"><title>Projets — Portail</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-</head><body class="bg-light">
-<nav class="navbar navbar-dark" style="background:#007A3D"><div class="container">
-<a class="navbar-brand text-white" href="<%= siteUrl %>/portail-citoyen">Portail Citoyen</a>
-<a class="nav-link text-white" href="<%= siteUrl %>/portail-citoyen/suggestion">Suggestions</a>
-</div></nav>
-<div class="container py-4">
-<h1 class="mb-4">Projets municipaux</h1>
-<form class="row g-2 mb-4" method="GET">
-<div class="col-md-3"><input name="q" class="form-control" placeholder="Recherche" value="<%= e(recherche) %>"></div>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tous les projets municipaux — Portail Citoyen des Communes du Littoral, République du Cameroun">
+  <title>Projets Municipaux — Portail Citoyen · République du Cameroun</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --vert: #007A3D; --vert-dark: #005C2E; --vert-light: #E8F5EE;
+      --jaune: #FCD116; --rouge: #CE1126;
+      --noir: #1A1A1A; --gris: #6C757D; --gris-clair: #F4F6F8;
+      --blanc: #FFFFFF; --border: #DDE3EA;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--gris-clair); color: var(--noir); }
 
-<div class="col-md-2"><select name="type" class="form-select"><option value="">Type</option>
-<% types.forEach(t=>{ %><option value="<%= t.id %>" <%= String(type_id)===String(t.id)?'selected':'' %>><%= e(t.nom) %></option><% }); %></select></div>
-<div class="col-md-2"><select name="statut" class="form-select"><option value="">Statut</option>
-<% ['planifié','en_cours','terminé','suspendu'].forEach(s=>{ %><option value="<%= s %>" <%= statut===s?'selected':'' %>><%= s %></option><% }); %></select></div>
-<div class="col-md-2"><button class="btn btn-primary w-100">Filtrer</button></div>
-</form>
-<div class="row g-3">
-<% projets.forEach(p=>{ %>
-<div class="col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
-<h5><%= e(p.titre) %></h5>
-<p class="small"><%= (p.description||'').substring(0,120) %>...</p>
-<a href="<%= siteUrl %>/portail-citoyen/projet/<%= p.id %>" class="btn btn-success btn-sm">Voir</a>
-</div></div></div>
-<% }); %>
-<% if (!projets.length) { %><p class="text-muted">Aucun projet.</p><% } %>
-</div></div></body></html>
+    .tricolor-bar{display:flex;height:6px;}
+    .tc-vert{flex:1;background:var(--vert);} .tc-jaune{flex:1;background:var(--jaune);} .tc-rouge{flex:1;background:var(--rouge);}
+
+    .official-header{background:var(--blanc);border-bottom:3px solid var(--vert);padding:12px 32px;}
+    .official-header .container{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+    .off-left{font-size:10px;font-weight:600;color:#2C3E50;text-transform:uppercase;}
+    .off-left .fr-name{font-size:11.5px;font-weight:800;color:var(--vert-dark);}
+    .off-left .motto{font-style:italic;color:var(--gris);font-weight:400;text-transform:none;}
+    .off-right{font-size:10px;text-align:right;color:#2C3E50;font-weight:700;}
+    .off-right .sub{font-size:9.5px;color:var(--gris);font-weight:400;margin-top:4px;}
+    .off-center img{height:65px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.1));}
+    .off-divider{width:1px;height:50px;background:var(--border);}
+    @media(max-width:768px){.off-left,.off-right,.off-divider{display:none;}.official-header .container{justify-content:center;}}
+
+    .main-nav{background:var(--vert-dark);padding:0 32px;position:sticky;top:0;z-index:1000;box-shadow:0 3px 12px rgba(0,0,0,0.2);}
+    .nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px;}
+    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nav-brand img{height:30px;}
+    .nav-brand span{color:var(--jaune);font-weight:800;font-size:14px;}
+    .nav-links{display:flex;align-items:center;gap:4px;}
+    .nav-links a{color:rgba(255,255,255,0.8);text-decoration:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;transition:all .2s;}
+    .nav-links a:hover{background:rgba(255,255,255,0.12);color:var(--jaune);}
+    .nav-links a.active{background:var(--jaune);color:var(--vert-dark);font-weight:700;}
+    .btn-retour{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.7);font-size:11.5px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,0.2);padding:5px 12px;border-radius:20px;transition:all .2s;}
+    .btn-retour:hover{color:#fff;border-color:rgba(255,255,255,0.5);}
+
+    /* PAGE HERO */
+    .page-hero{
+      background:linear-gradient(135deg, var(--vert-dark) 0%, #003825 60%, #002818 100%);
+      padding:48px 32px;text-align:center;position:relative;overflow:hidden;
+    }
+    .page-hero::before{content:'';position:absolute;inset:0;background:url('/assets/images/hero-bg.jpg') center/cover no-repeat;opacity:0.08;}
+    .page-hero .inner{position:relative;z-index:1;max-width:700px;margin:0 auto;}
+    .page-hero .pill{display:inline-flex;align-items:center;gap:7px;background:rgba(252,209,22,0.15);border:1px solid rgba(252,209,22,0.45);color:var(--jaune);padding:6px 16px;border-radius:30px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;}
+    .page-hero h1{color:var(--blanc);font-size:clamp(22px,3.5vw,34px);font-weight:900;margin-bottom:8px;}
+    .page-hero p{color:rgba(255,255,255,0.8);font-size:14px;line-height:1.7;margin-bottom:28px;}
+
+    /* FILTRES */
+    .filter-bar{background:var(--blanc);border-bottom:1px solid var(--border);padding:16px 32px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+    .filter-inner{max-width:1200px;margin:0 auto;}
+    .filter-form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+    .filter-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;}
+    .filter-group label{font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.5px;}
+    .filter-group input,.filter-group select{padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--noir);background:var(--blanc);transition:border-color .2s;}
+    .filter-group input:focus,.filter-group select:focus{outline:none;border-color:var(--vert);}
+    .btn-filter{padding:10px 22px;background:var(--vert);color:var(--blanc);border:none;border-radius:9px;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+    .btn-filter:hover{background:var(--vert-dark);}
+
+    /* MAIN CONTENT */
+    .page-content{max-width:1200px;margin:0 auto;padding:36px 32px 80px;}
+    .results-info{font-size:13px;color:var(--gris);margin-bottom:20px;display:flex;align-items:center;gap:6px;}
+    .results-info strong{color:var(--vert-dark);}
+
+    /* PROJECT GRID */
+    .projets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;}
+    .projet-card{background:var(--blanc);border-radius:14px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.05);overflow:hidden;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s;text-decoration:none;color:inherit;}
+    .projet-card:hover{transform:translateY(-5px);box-shadow:0 12px 32px rgba(0,0,0,0.11);}
+    .projet-img{height:175px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--vert-dark),var(--vert));}
+    .projet-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+    .projet-card:hover .projet-img img{transform:scale(1.05);}
+    .projet-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;color:rgba(255,255,255,0.2);}
+    .statut-badge{position:absolute;top:10px;left:10px;z-index:2;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
+    .s-en_cours{background:rgba(0,122,61,0.9);color:#fff;}
+    .s-termine,.s-terminé{background:rgba(14,165,233,0.9);color:#fff;}
+    .s-planifie,.s-planifié{background:rgba(252,209,22,0.9);color:#2C3E50;}
+    .s-suspendu{background:rgba(239,68,68,0.9);color:#fff;}
+    .s-annule,.s-annulé{background:rgba(100,116,139,0.9);color:#fff;}
+    .projet-body{padding:16px;flex:1;}
+    .projet-type{font-size:10.5px;color:var(--gris);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+    .projet-titre{font-size:14.5px;font-weight:700;margin-bottom:12px;line-height:1.35;}
+    .progress-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--gris);margin-bottom:4px;}
+    .prog-bar{height:6px;background:#E2E8F0;border-radius:6px;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:6px;}
+    .projet-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .date-chip{font-size:11px;color:var(--gris);display:flex;align-items:center;gap:4px;}
+    .btn-voir{display:flex;align-items:center;gap:5px;color:var(--vert-dark);font-weight:700;font-size:12px;text-decoration:none;}
+    .btn-voir:hover{color:var(--vert);}
+
+    /* EMPTY */
+    .empty-state{text-align:center;padding:72px 24px;color:var(--gris);}
+    .empty-state i{font-size:64px;display:block;margin-bottom:16px;opacity:0.2;}
+
+    footer{background:var(--vert-dark);color:rgba(255,255,255,0.75);text-align:center;padding:24px;font-size:12.5px;margin-top:20px;}
+    footer strong{color:var(--jaune);}
+    @media(max-width:600px){.projets-grid{grid-template-columns:1fr;}.page-content{padding:24px 16px 60px;}.filter-form{flex-direction:column;}}
+  </style>
+</head>
+<body>
+
+  <div class="tricolor-bar">
+    <div class="tc-vert"></div>
+    <div class="tc-jaune"></div>
+    <div class="tc-rouge"></div>
+  </div>
+
+  <div class="official-header">
+    <div class="container">
+      <div class="off-left">
+        <div class="fr-name">République du Cameroun</div>
+        <div class="motto">Paix - Travail - Patrie</div>
+        <div style="height:4px;"></div>
+        <div style="font-size:10px;color:#4A5568;">Republic of Cameroon</div>
+        <div class="motto">Peace - Work - Fatherland</div>
+      </div>
+      <div class="off-divider"></div>
+      <div class="off-center">
+        <img src="/assets/images/sceau_cameroun.png" alt="Armoiries">
+      </div>
+      <div class="off-divider"></div>
+      <div class="off-right">
+        <div>Portail Citoyen — Projets Municipaux</div>
+        <div class="sub">Communes Urbaines du Littoral · Cameroun</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <a href="<%= siteUrl %>/portail-citoyen" class="nav-brand">
+        <img src="/assets/images/logo.png" alt="">
+        <span>MuniPro Littoral</span>
+      </a>
+      <div class="nav-links">
+        <a href="<%= siteUrl %>/portail-citoyen"><i class="bi bi-house-fill"></i> Accueil</a>
+        <a href="#" class="active"><i class="bi bi-folder-fill"></i> Projets</a>
+        <a href="<%= siteUrl %>/portail-citoyen/carte"><i class="bi bi-map-fill"></i> Carte</a>
+        <a href="<%= siteUrl %>/portail-citoyen/suggestion"><i class="bi bi-chat-dots-fill"></i> Suggestions</a>
+      </div>
+      <a href="<%= siteUrl %>/portail-citoyen" class="btn-retour"><i class="bi bi-arrow-left"></i> Accueil</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="inner">
+      <div class="pill"><i class="bi bi-folder-fill"></i> Catalogue des Projets</div>
+      <h1>Projets Municipaux</h1>
+      <p>Consultez l'ensemble des projets de développement des communes du Littoral camerounais.<br>Filtrez par type, statut ou commune pour trouver ce qui vous intéresse.</p>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="filter-bar">
+    <div class="filter-inner">
+      <form class="filter-form" method="GET">
+        <div class="filter-group">
+          <label>Recherche</label>
+          <input name="q" placeholder="Nom du projet..." value="<%= e(recherche) %>">
+        </div>
+        <div class="filter-group">
+          <label>Type de projet</label>
+          <select name="type">
+            <option value="">Tous les types</option>
+            <% types.forEach(t=>{ %><option value="<%= t.id %>" <%= String(type_id)===String(t.id)?'selected':'' %>><%= e(t.nom) %></option><% }); %>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Statut</label>
+          <select name="statut">
+            <option value="">Tous les statuts</option>
+            <% ['planifié','en_cours','terminé','suspendu'].forEach(s=>{ %><option value="<%= s %>" <%= statut===s?'selected':'' %>><%= s %></option><% }); %>
+          </select>
+        </div>
+        <button type="submit" class="btn-filter"><i class="bi bi-funnel-fill"></i> Filtrer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONTENU -->
+  <div class="page-content">
+    <div class="results-info">
+      <i class="bi bi-grid-3x3-gap-fill" style="color:var(--vert);"></i>
+      <strong><%= projets.length %></strong> projet(s) trouvé(s)
+    </div>
+
+    <% if (!projets.length) { %>
+    <div class="empty-state">
+      <i class="bi bi-folder-x"></i>
+      <p style="font-size:15px;font-weight:600;">Aucun projet trouvé.</p>
+      <p style="margin-top:6px;font-size:13px;">Modifiez vos critères de recherche.</p>
+    </div>
+    <% } else { %>
+    <div class="projets-grid">
+      <% projets.forEach(p => { %>
+      <a href="<%= siteUrl %>/portail-citoyen/projet/<%= p.id %>" class="projet-card">
+        <div class="projet-img">
+          <% if (p.photo) { %>
+            <img src="/assets/uploads/<%= e(p.photo) %>" alt="<%= e(p.titre) %>">
+          <% } else { %>
+            <div class="projet-placeholder"><i class="bi bi-buildings"></i></div>
+          <% } %>
+          <span class="statut-badge s-<%= p.statut.replace(/ /g,'_').replace(/é/g,'e') %>"><%= p.statut.replace('_',' ') %></span>
+        </div>
+        <div class="projet-body">
+          <div class="projet-type"><%= p.type_nom || 'Projet municipal' %></div>
+          <div class="projet-titre"><%= e(p.titre) %></div>
+          <div class="progress-lbl">
+            <span>Avancement</span>
+            <span style="font-weight:800;color:<%= (p.avancement_physique||0)>70?'var(--vert)':(p.avancement_physique||0)>40?'#F59E0B':'var(--rouge)' %>"><%= p.avancement_physique || 0 %>%</span>
+          </div>
+          <div class="prog-bar">
+            <div class="prog-fill" style="width:<%= p.avancement_physique||0 %>%;background:<%= (p.avancement_physique||0)>70?'var(--vert)':(p.avancement_physique||0)>40?'#F59E0B':'var(--rouge)' %>;"></div>
+          </div>
+        </div>
+        <div class="projet-footer">
+          <span class="date-chip"><i class="bi bi-geo-alt-fill" style="color:var(--vert);"></i> <%= (p.description||'').substring(0,40) %>...</span>
+          <span class="btn-voir"><i class="bi bi-arrow-right-circle-fill"></i> Voir</span>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+
+  <footer>
+    <strong>MuniPro Littoral</strong> — Portail Citoyen · Projets Municipaux<br>
+    <small>© <%= new Date().getFullYear() %> Communes Urbaines du Littoral · République du Cameroun</small>
+  </footer>
+
+</body>
+</html>
