@@ -20,7 +20,12 @@ async function setupBucket() {
   });
 
   if (error) {
-    if (error.message.includes('already exists') || error.message.includes('duplicate key')) {
+    if (
+      error.message.includes('already exists') || 
+      error.message.includes('duplicate key') ||
+      error.message.includes('existe déjà') ||
+      error.message.includes('la ressource existe')
+    ) {
       console.log('✅ Le bucket "uploads" existe déjà.');
     } else {
       console.error('❌ Erreur lors de la création du bucket:', error);

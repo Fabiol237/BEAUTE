@@ -145,13 +145,76 @@
       </div>
       <div class="card-body">
         <% if (req.query.success === 'banner') { %>
-          <div class="alert alert-success">Bannière globale mise à jour avec succès.</div>
+          <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>Bannière globale mise à jour avec succès.</div>
         <% } %>
-        <form action="/dashboard/global-banner" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-3">
-          <input type="file" name="banniere" class="form-control" accept="image/*" required style="max-width: 400px;">
-          <button type="submit" class="btn btn-primary">Changer la bannière</button>
+        <% if (req.query.error === 'upload') { %>
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Échec de l'upload :</strong> <%= req.query.msg || 'Erreur inconnue' %>
+            <br><small class="mt-1 d-block">Vérifiez que le bucket <strong>uploads</strong> existe dans Supabase Storage et que la clé API est correcte.</small>
+          </div>
+        <% } %>
+        <% if (req.query.error === 'no_file') { %>
+          <div class="alert alert-warning"><i class="bi bi-exclamation-circle me-2"></i>Veuillez sélectionner une image avant de soumettre.</div>
+        <% } %>
+        <form id="banner-form" onsubmit="uploadBanniere(event)" class="d-flex align-items-center gap-3">
+          <input type="file" id="banner-file" name="banniere" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" required style="max-width: 400px;">
+          <button type="submit" id="banner-btn" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Changer la bannière</button>
+          <span id="banner-status" style="font-size:13px;display:none;"></span>
         </form>
-        <small class="text-muted mt-2 d-block">L'image remplacera celle du portail citoyen (format paysage recommandé).</small>
+        <small class="text-muted mt-2 d-block">Format paysage recommandé (JPEG, PNG, WEBP). Taille libre — upload direct vers le stockage cloud.</small>
+        <script>
+        async function uploadBanniere(e) {
+          e.preventDefault();
+          const file = document.getElementById('banner-file').files[0];
+          if (!file) return;
+
+          const btn = document.getElementById('banner-btn');
+          const status = document.getElementById('banner-status');
+          btn.disabled = true;
+          btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Upload en cours...';
+          status.style.display = 'inline';
+          status.style.color = '#666';
+          status.textContent = 'Préparation...';
+
+          try {
+            // 1. Obtenir l'URL signée depuis le serveur
+            const ext = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '.jpg';
+            const signedRes = await fetch('/dashboard/global-banner-signed', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ext })
+            });
+            const signedData = await signedRes.json();
+            if (signedData.error) throw new Error(signedData.error);
+
+            status.textContent = 'Upload en cours (' + Math.round(file.size/1024) + ' KB)...';
+
+            // 2. Uploader directement vers Supabase (bypass Vercel)
+            const uploadRes = await fetch(signedData.signedUrl, {
+              method: 'PUT',
+              body: file,
+              headers: { 'Content-Type': file.type || 'image/jpeg' }
+            });
+
+            if (!uploadRes.ok) {
+              const txt = await uploadRes.text();
+              throw new Error('Supabase: ' + (txt || uploadRes.status));
+            }
+
+            // 3. Succès
+            status.style.color = 'green';
+            status.textContent = '✅ Bannière mise à jour !';
+            setTimeout(() => { window.location.href = '/dashboard?success=banner'; }, 1200);
+          } catch (err) {
+            console.error('Upload error:', err);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-upload me-1"></i>Changer la bannière';
+            status.style.color = 'red';
+            status.textContent = '❌ Erreur : ' + err.message;
+          }
+        }
+        </script>
       </div>
     </div>
 

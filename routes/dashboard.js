@@ -7,7 +7,7 @@ const config = require('../config');
 const { query, queryOne } = require('../db');
 const { requireConnexion } = require('../middleware/auth');
 
-const { uploadToSupabase } = require('../lib/supabase');
+const { uploadToSupabase, supabaseAdmin } = require('../lib/supabase');
 
 const router = express.Router();
 router.use(requireConnexion);
@@ -236,30 +236,36 @@ router.post('/ma-commune', (req, res, next) => {
   }
 });
 
-router.post('/global-banner', (req, res, next) => {
-  uploadBanner.single('banniere')(req, res, (err) => {
-    if (err) {
-      console.error('❌ Erreur Multer upload bannière globale:', err.message);
-      const msg = encodeURIComponent(err.message || 'Erreur fichier invalide');
-      return res.redirect('/dashboard?error=upload&msg=' + msg);
-    }
-    next();
-  });
-}, async (req, res, next) => {
-  if (req.session.utilisateur_role !== 'super_admin') return res.redirect('/dashboard');
-  if (!req.file) return res.redirect('/dashboard?error=no_file');
-
+// Génère une URL signée pour upload direct navigateur → Supabase (bypass limite Vercel)
+router.post('/global-banner-signed', express.json(), async (req, res) => {
+  if (req.session.utilisateur_role !== 'super_admin') {
+    return res.status(403).json({ error: 'Accès refusé' });
+  }
   try {
-    const ext = path.extname(req.file.originalname) || '.jpg';
+    const ext = (req.body.ext || '.jpg').replace(/[^a-zA-Z0-9.]/g, '');
     const rand = Math.random().toString(36).substring(2, 8);
     const filename = `bannieres/hero-bg_${Date.now()}_${rand}${ext}`;
-    await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
-    res.redirect('/dashboard?success=banner');
-  } catch(err) {
-    console.error('❌ Erreur upload bannière globale:', err.message);
-    const msg = encodeURIComponent(err.message || 'Erreur inconnue lors de l\'upload');
-    res.redirect('/dashboard?error=upload&msg=' + msg);
+
+    const { data, error } = await supabaseAdmin.storage
+      .from('uploads')
+      .createSignedUploadUrl(filename);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from('uploads')
+      .getPublicUrl(filename);
+
+    res.json({ signedUrl: data.signedUrl, token: data.token, path: filename, publicUrl });
+  } catch (err) {
+    console.error('❌ Erreur génération URL signée:', err.message);
+    res.status(500).json({ error: err.message });
   }
+});
+
+// Ancienne route POST conservée pour compatibilité (redirige simplement)
+router.post('/global-banner', (req, res) => {
+  res.redirect('/dashboard?error=no_file');
 });
 
 module.exports = router;

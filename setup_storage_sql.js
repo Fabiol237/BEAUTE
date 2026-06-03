@@ -30,7 +30,7 @@ async function createBucket() {
       CREATE POLICY "Allow public uploads" ON storage.objects
       FOR INSERT TO public WITH CHECK (bucket_id = 'uploads');
     `).catch(err => {
-      if (err.message.includes('already exists')) console.log('Policy déjà existante (insert).');
+      if (err.message.includes('already exists') || err.message.includes('existe déjà')) console.log('Policy déjà existante (insert).');
       else console.error('Erreur policy insert:', err.message);
     });
 
@@ -38,7 +38,7 @@ async function createBucket() {
       CREATE POLICY "Allow public select" ON storage.objects
       FOR SELECT TO public USING (bucket_id = 'uploads');
     `).catch(err => {
-      if (err.message.includes('already exists')) console.log('Policy déjà existante (select).');
+      if (err.message.includes('already exists') || err.message.includes('existe déjà')) console.log('Policy déjà existante (select).');
       else console.error('Erreur policy select:', err.message);
     });
 
