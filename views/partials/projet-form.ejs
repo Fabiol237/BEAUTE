@@ -49,9 +49,9 @@
 <div class="card mb-4 border-0 shadow-sm">
 <div class="card-header bg-info text-white"><h5 class="mb-0"><i class="bi bi-calendar-range me-2"></i> Planning</h5></div>
 <div class="card-body row g-3">
-<div class="col-md-6"><label class="form-label">Date début *</label><input type="date" name="date_debut" id="date_debut" class="form-control" value="<%= e(b.date_debut ? String(b.date_debut).slice(0,10) : '') %>" required></div>
-<div class="col-md-6"><label class="form-label">Date fin prévue *</label><input type="date" name="date_fin_prevue" id="date_fin_prevue" class="form-control" value="<%= e(b.date_fin_prevue ? String(b.date_fin_prevue).slice(0,10) : '') %>" required></div>
-<% if (isEdit) { %><div class="col-md-6"><label class="form-label">Date fin réelle</label><input type="date" name="date_fin_reelle" class="form-control" value="<%= e(b.date_fin_reelle ? String(b.date_fin_reelle).slice(0,10) : '') %>"></div><% } %>
+<div class="col-md-6"><label class="form-label">Date début *</label><input type="date" name="date_debut" id="date_debut" class="form-control" value="<%= e(b.date_debut ? new Date(b.date_debut).toISOString().slice(0,10) : '') %>" required></div>
+<div class="col-md-6"><label class="form-label">Date fin prévue *</label><input type="date" name="date_fin_prevue" id="date_fin_prevue" class="form-control" value="<%= e(b.date_fin_prevue ? new Date(b.date_fin_prevue).toISOString().slice(0,10) : '') %>" required></div>
+<% if (isEdit) { %><div class="col-md-6"><label class="form-label">Date fin réelle</label><input type="date" name="date_fin_reelle" class="form-control" value="<%= e(b.date_fin_reelle ? new Date(b.date_fin_reelle).toISOString().slice(0,10) : '') %>"></div><% } %>
 </div></div>
 <div class="card mb-4 border-0 shadow-sm">
 <div class="card-header bg-warning text-dark"><h5 class="mb-0"><i class="bi bi-graph-up me-2"></i> Suivi</h5></div>

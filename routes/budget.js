@@ -171,7 +171,7 @@ router.post('/depenses', requireRole('gestionnaire'), async (req, res, next) => 
         date_depense,
         (req.body.numero_facture || '').trim() || null,
         (req.body.fournisseur || '').trim() || null,
-        req.session.utilisateur_id,
+        req.session.is_super_admin ? null : req.session.utilisateur_id,
       ]
     );
 

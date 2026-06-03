@@ -266,7 +266,7 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
         (body.description || '').trim() || null,
         type_projet_id,
         commune_id,
-        req.session.utilisateur_id,
+        req.session.is_super_admin ? null : req.session.utilisateur_id,
         budget_previsionnel,
         date_debut,
         date_fin_prevue,
@@ -323,15 +323,15 @@ router.get('/details/:id', async (req, res, next) => {
       projet.budget_actuel > 0 ? (depenses / projet.budget_actuel) * 100 : 0;
     const budget_restant = projet.budget_actuel - depenses;
 
-    const debut = new Date(projet.date_debut);
-    const fin = new Date(projet.date_fin_prevue);
+    const debut = projet.date_debut ? new Date(projet.date_debut) : new Date();
+    const fin = projet.date_fin_prevue ? new Date(projet.date_fin_prevue) : new Date();
     const now = new Date();
     const jours_ecoules = Math.max(
       0,
       Math.round((now - debut) / 86400000)
     );
     const duree_totale = Math.max(1, Math.round((fin - debut) / 86400000));
-    const pourcentage_temps = (jours_ecoules / duree_totale) * 100;
+    const pourcentage_temps = projet.date_debut && projet.date_fin_prevue ? (jours_ecoules / duree_totale) * 100 : 0;
     const jours_restants_val = joursRestants(projet.date_fin_prevue);
 
     const liste_avancements = await query(
@@ -389,7 +389,7 @@ router.post('/details/:id', async (req, res, next) => {
       await query(
         `INSERT INTO avancements (projet_id, utilisateur_id, pourcentage, description, observations, date_constat)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [projet_id, req.session.utilisateur_id, pourcentage, description || null, observations || null, date_constat]
+        [projet_id, req.session.is_super_admin ? null : req.session.utilisateur_id, pourcentage, description || null, observations || null, date_constat]
       );
       await query(
         'UPDATE projets SET avancement_physique = $1, updated_at = NOW() WHERE id = $2',
@@ -415,6 +415,15 @@ router.get('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
     const types_projets = await query('SELECT * FROM types_projets ORDER BY nom');
     const communes = await query('SELECT * FROM communes ORDER BY nom');
 
+    const jalons = await query('SELECT * FROM jalons WHERE projet_id = $1 ORDER BY ordre', [projet_id]);
+    const phases_list = jalons.length ? jalons.map(j => [j.titre, j.statut, j.pourcentage_completion, j.date_prevue ? new Date(j.date_prevue).toISOString().slice(0,10) : '']) : defaultPhases();
+
+    const risques = await query('SELECT * FROM risques WHERE projet_id = $1 ORDER BY ordre', [projet_id]);
+    const risques_list = risques.length ? risques.map(r => [r.description, r.niveau]) : defaultRisques();
+
+    const indicateurs = await query('SELECT * FROM indicateurs WHERE projet_id = $1 ORDER BY ordre', [projet_id]);
+    const kpis_list = indicateurs.length ? indicateurs.map(i => [i.libelle, i.valeur_cible]) : defaultKpis();
+
     res.render('projets/modifier', {
       page_title: 'Modifier le projet',
       projet,
@@ -424,9 +433,9 @@ router.get('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
       budget_source: null,
       erreurs: [],
       body: projet,
-      phases_list: defaultPhases(),
-      risques_list: defaultRisques(),
-      kpis_list: defaultKpis(),
+      phases_list,
+      risques_list,
+      kpis_list,
     });
   } catch (err) {
     next(err);
@@ -473,9 +482,9 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
       budget_source: null,
       erreurs,
       body: { ...(projet || {}), ...body },
-      phases_list: defaultPhases(),
-      risques_list: defaultRisques(),
-      kpis_list: defaultKpis(),
+      phases_list: buildPhaseList(body),
+      risques_list: buildRisqueList(body),
+      kpis_list: buildKpiList(body),
     });
   };
 
@@ -608,7 +617,7 @@ router.post(
               file.size,
               legendes[i] || '',
               dates_prise[i] || new Date().toISOString().slice(0, 10),
-              req.session.utilisateur_id,
+              req.session.is_super_admin ? null : req.session.utilisateur_id,
             ]
           );
           uploaded_count++;
