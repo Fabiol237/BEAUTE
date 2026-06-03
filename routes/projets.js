@@ -660,7 +660,7 @@ router.post(
             `INSERT INTO photos (
               projet_id, fichier_url, fichier_nom, taille, legende,
               date_prise, uploaded_by, date_upload
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
             [
               projet_id,
               finalFilename,

@@ -5,7 +5,16 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": "public/**"
+        "includeFiles": [
+          "views/**",
+          "locales/**",
+          "public/**",
+          "lib/**",
+          "middleware/**",
+          "routes/**",
+          "config.js",
+          "db.js"
+        ]
       }
     }
   ],
