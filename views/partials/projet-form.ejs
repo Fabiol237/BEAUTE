@@ -1,5 +1,5 @@
 <% const b = body || {}; const isEdit = typeof projet_id !== 'undefined' && projet_id; %>
-<form method="POST" id="formProjet">
+<form method="POST" id="formProjet" enctype="multipart/form-data">
 <div class="row g-4">
 <div class="col-lg-8">
 <div class="card mb-4 border-0 shadow-sm">
@@ -30,6 +30,18 @@
 </div>
 
 <div class="col-12"><label class="form-label fw-semibold">Adresse / Localisation</label><input type="text" name="adresse" class="form-control" value="<%= e(b.adresse || b.localisation || '') %>"></div>
+
+<div class="col-12">
+  <label class="form-label fw-semibold">Bannière / Image d'en-tête du projet</label>
+  <% if (isEdit && b.photo) { %>
+    <div class="mb-2">
+      <img src="/assets/uploads/<%= b.photo %>" alt="Bannière actuelle" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
+    </div>
+  <% } %>
+  <input type="file" name="photo" class="form-control" accept="image/*">
+  <small class="text-muted">Format recommandé : Paysage, JPG/PNG, max 5Mo</small>
+</div>
+
 <div class="col-md-6"><label class="form-label">Latitude</label><input type="text" name="latitude" class="form-control" value="<%= e(b.latitude || '') %>"></div>
 <div class="col-md-6"><label class="form-label">Longitude</label><input type="text" name="longitude" class="form-control" value="<%= e(b.longitude || '') %>"></div>
 <div class="col-12"><div class="form-check form-switch">

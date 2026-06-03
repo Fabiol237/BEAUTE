@@ -213,7 +213,7 @@ router.get('/creer', gestionnaireOnly, async (req, res, next) => {
   }
 });
 
-router.post('/creer', gestionnaireOnly, async (req, res, next) => {
+router.post('/creer', gestionnaireOnly, uploadPhotos.single('photo'), async (req, res, next) => {
   const body = req.body;
   const erreurs = [];
   const titre = (body.titre || '').trim();
@@ -259,8 +259,8 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
           titre, description, type_projet_id, commune_id, created_by,
           budget_previsionnel, budget_actuel,
           date_debut, date_fin_prevue, statut,
-          avancement_physique, latitude, longitude, localisation, visible_public
-        ) VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+          avancement_physique, latitude, longitude, localisation, visible_public, photo
+        ) VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
       [
         titre,
         (body.description || '').trim() || null,
@@ -276,6 +276,7 @@ router.post('/creer', gestionnaireOnly, async (req, res, next) => {
         body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
         (body.adresse || '').trim() || null,
         body.visible_public ? true : false,
+        req.file ? req.file.filename : null,
       ]
     );
     const projet_id = result.rows[0].id;
@@ -442,7 +443,7 @@ router.get('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
   }
 });
 
-router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
+router.post('/modifier/:id', gestionnaireOnly, uploadPhotos.single('photo'), async (req, res, next) => {
   const projet_id = parseInt(req.params.id, 10);
   const body = req.body;
   const erreurs = [];
@@ -493,34 +494,66 @@ router.post('/modifier/:id', gestionnaireOnly, async (req, res, next) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(
-      `UPDATE projets SET
-        titre = $1, description = $2,
-        type_projet_id = $3, commune_id = $4,
-        budget_actuel = $5,
-        date_debut = $6, date_fin_prevue = $7, date_fin_reelle = $8,
-        statut = $9, avancement_physique = $10,
-        latitude = $11, longitude = $12, localisation = $13,
-        visible_public = $14, updated_at = NOW()
-      WHERE id = $15`,
-      [
-        titre,
-        (body.description || '').trim() || null,
-        type_projet_id,
-        commune_id,
-        budget_actuel,
-        date_debut,
-        date_fin_prevue,
-        date_fin_reelle,
-        body.statut || 'planifié',
-        avancement_physique,
-        body.latitude ? parseFloat(String(body.latitude).replace(',', '.')) || null : null,
-        body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
-        (body.adresse || body.localisation || '').trim() || null,
-        body.visible_public ? true : false,
-        projet_id,
-      ]
-    );
+    if (req.file) {
+      await client.query(
+        `UPDATE projets SET
+          titre = $1, description = $2,
+          type_projet_id = $3, commune_id = $4,
+          budget_actuel = $5,
+          date_debut = $6, date_fin_prevue = $7, date_fin_reelle = $8,
+          statut = $9, avancement_physique = $10,
+          latitude = $11, longitude = $12, localisation = $13,
+          visible_public = $14, photo = $15, updated_at = NOW()
+        WHERE id = $16`,
+        [
+          titre,
+          (body.description || '').trim() || null,
+          type_projet_id,
+          commune_id,
+          budget_actuel,
+          date_debut,
+          date_fin_prevue,
+          date_fin_reelle,
+          body.statut || 'planifié',
+          avancement_physique,
+          body.latitude ? parseFloat(String(body.latitude).replace(',', '.')) || null : null,
+          body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
+          (body.adresse || body.localisation || '').trim() || null,
+          body.visible_public ? true : false,
+          req.file.filename,
+          projet_id,
+        ]
+      );
+    } else {
+      await client.query(
+        `UPDATE projets SET
+          titre = $1, description = $2,
+          type_projet_id = $3, commune_id = $4,
+          budget_actuel = $5,
+          date_debut = $6, date_fin_prevue = $7, date_fin_reelle = $8,
+          statut = $9, avancement_physique = $10,
+          latitude = $11, longitude = $12, localisation = $13,
+          visible_public = $14, updated_at = NOW()
+        WHERE id = $15`,
+        [
+          titre,
+          (body.description || '').trim() || null,
+          type_projet_id,
+          commune_id,
+          budget_actuel,
+          date_debut,
+          date_fin_prevue,
+          date_fin_reelle,
+          body.statut || 'planifié',
+          avancement_physique,
+          body.latitude ? parseFloat(String(body.latitude).replace(',', '.')) || null : null,
+          body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
+          (body.adresse || body.localisation || '').trim() || null,
+          body.visible_public ? true : false,
+          projet_id,
+        ]
+      );
+    }
 
     // Supprimer les anciens jalons/risques/kpis et réinsérer
     await client.query('DELETE FROM jalons WHERE projet_id = $1', [projet_id]);

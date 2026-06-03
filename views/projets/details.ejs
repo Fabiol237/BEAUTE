@@ -2,6 +2,28 @@
 <%- include('../partials/navbar') %>
 <div class="container-fluid mt-4">
 <%- getFlash() %>
+<% if (projet.photo) { %>
+<div class="card mb-4 border-0 shadow-sm overflow-hidden">
+  <div style="height: 250px; background-image: url('/assets/uploads/<%= e(projet.photo) %>'); background-size: cover; background-position: center; position: relative;">
+    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));"></div>
+    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; color: white;">
+      <span class="badge" style="background:<%= e(projet.type_couleur || '#6c757d') %>"><%= e(projet.type_nom) %></span>
+      <h1 class="mt-2 mb-1 text-white" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.5);"><%= e(projet.titre) %></h1>
+      <p class="mb-0 text-light"><i class="bi bi-geo-alt"></i> <% if (projet.region_nom) { %><%= e(projet.region_nom) %> - <% } %><%= e(projet.commune_nom) %></p>
+    </div>
+  </div>
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <div>
+      <%- getStatutBadge(projet.statut) %>
+      <% if (projet.description) { %><p class="mt-2 mb-0 text-muted"><%= e(projet.description) %></p><% } %>
+    </div>
+    <div class="text-end" style="min-width: 150px;">
+      <a href="<%= siteUrl %>/projets/modifier/<%= projet.id %>" class="btn btn-primary mb-2 w-100">Modifier</a><br>
+      <a href="<%= siteUrl %>/projets/liste" class="btn btn-outline-secondary btn-sm w-100">Retour</a>
+    </div>
+  </div>
+</div>
+<% } else { %>
 <div class="card mb-4" style="border-left:5px solid <%= e(projet.type_couleur || '#6c757d') %>">
 <div class="card-body">
 <div class="d-flex justify-content-between">
@@ -17,6 +39,7 @@
 </div></div>
 <% if (projet.description) { %><p class="mt-3"><%= e(projet.description) %></p><% } %>
 </div></div>
+<% } %>
 <div class="row">
 <div class="col-lg-8">
 <div class="card mb-4"><div class="card-header">Avancement</div>
