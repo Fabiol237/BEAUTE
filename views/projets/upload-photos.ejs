@@ -9,7 +9,12 @@
 <div class="col-lg-8 mx-auto card"><div class="card-body">
 <form method="POST" enctype="multipart/form-data">
 <label class="btn btn-primary w-100 mb-3"><i class="bi bi-folder2-open me-2"></i>Choisir des images
-<input type="file" name="photos" accept="image/*" multiple required class="d-none"></label>
+<input type="file" name="photos" accept="image/*" multiple required class="d-none"
+       onchange="var c=document.getElementById('photosPreviewGrid');c.innerHTML='';for(var i=0;i<this.files.length;i++){var img=document.createElement('img');img.src=URL.createObjectURL(this.files[i]);img.style.cssText='width:120px;height:90px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;';c.appendChild(img);}document.getElementById('photosCount').textContent=this.files.length+' image(s) sélectionnée(s)';document.getElementById('photosPreviewSection').style.display='block';"></label>
+<div id="photosPreviewSection" style="display:none;" class="mb-3">
+  <p id="photosCount" class="text-muted small fw-bold mb-2"></p>
+  <div id="photosPreviewGrid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+</div>
 <p class="text-muted small">JPG, PNG, GIF — max 5 Mo par fichier</p>
 <button type="submit" class="btn btn-success btn-lg w-100">Uploader</button>
 </form></div></div></div>

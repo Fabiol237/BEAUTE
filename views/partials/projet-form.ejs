@@ -33,12 +33,17 @@
 
 <div class="col-12">
   <label class="form-label fw-semibold">Bannière / Image d'en-tête du projet</label>
-  <% if (isEdit && b.photo) { %>
-    <div class="mb-2">
-      <img src="<%= imageUrl(b.photo) %>" alt="Bannière actuelle" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
+  <div id="projetPhotoPreviewContainer" class="mb-2">
+    <img id="projetPhotoPreview" src="<%= (isEdit && b.photo) ? imageUrl(b.photo) : '' %>" alt="Bannière du projet"
+         style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%; <%= (isEdit && b.photo) ? '' : 'display:none;' %>">
+    <div id="projetPhotoPlaceholder" class="bg-light p-3 text-center rounded text-muted"
+         style="<%= (isEdit && b.photo) ? 'display:none;' : '' %>">
+      <i class="bi bi-image" style="font-size:32px;display:block;margin-bottom:6px;opacity:0.4;"></i>
+      Aucune image sélectionnée
     </div>
-  <% } %>
-  <input type="file" name="photo" class="form-control" accept="image/*">
+  </div>
+  <input type="file" name="photo" class="form-control" accept="image/*"
+         onchange="if(this.files[0]){var p=document.getElementById('projetPhotoPreview');var d=document.getElementById('projetPhotoPlaceholder');p.src=URL.createObjectURL(this.files[0]);p.style.display='block';if(d)d.style.display='none';}">
   <small class="text-muted">Format recommandé : Paysage, JPG/PNG, max 5Mo</small>
 </div>
 

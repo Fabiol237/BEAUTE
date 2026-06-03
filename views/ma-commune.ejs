@@ -20,16 +20,17 @@
                 <div class="mb-4">
                     <label class="form-label fw-bold">Bannière actuelle</label>
                     <div class="mb-2">
-                        <% if (commune && commune.banniere) { %>
-                            <img src="<%= commune.banniere %>" alt="Bannière" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
-                        <% } else { %>
-                            <div class="bg-light p-4 text-center rounded text-muted">
-                                Aucune bannière personnalisée. L'image par défaut sera utilisée.
-                            </div>
-                        <% } %>
+                        <img id="bannerPreview" src="<%= (commune && commune.banniere) ? commune.banniere : '' %>" alt="Bannière"
+                             style="max-height: 200px; border-radius: 8px; object-fit: cover; width: 100%; <%= (commune && commune.banniere) ? '' : 'display:none;' %>">
+                        <div id="defaultBannerPlaceholder" class="bg-light p-4 text-center rounded text-muted"
+                             style="<%= (commune && commune.banniere) ? 'display:none;' : '' %>">
+                            <i class="bi bi-image" style="font-size:40px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                            Aucune bannière personnalisée. L'image par défaut sera utilisée.
+                        </div>
                     </div>
                     <label class="form-label fw-bold mt-3">Changer la bannière</label>
-                    <input type="file" name="banniere" class="form-control" accept="image/*">
+                    <input type="file" name="banniere" class="form-control" accept="image/*"
+                           onchange="if(this.files[0]){var p=document.getElementById('bannerPreview');var d=document.getElementById('defaultBannerPlaceholder');p.src=URL.createObjectURL(this.files[0]);p.style.display='block';if(d)d.style.display='none';}">
                     <small class="text-muted">Format recommandé : Paysage, JPG/PNG, max 2Mo</small>
                 </div>
 
