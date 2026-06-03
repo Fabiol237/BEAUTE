@@ -9,6 +9,8 @@ const { setFlash } = require('../middleware/flash');
 const { parseMontantInput, peutFaire, joursRestants } = require('../lib/helpers');
 const { loadProjetForPdf, streamRapport } = require('../lib/rapportPdf');
 
+const { uploadToSupabase } = require('../lib/supabase');
+
 const router = express.Router();
 
 router.use(requireConnexion);
@@ -23,18 +25,7 @@ function gestionnaireOnly(req, res, next) {
 
 const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
 
-const uploadStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = isVercel ? '/tmp' : config.uploadsDir;
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    const name = `projet_${req.params.id || req.body.projet_id || '0'}_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
-    cb(null, name);
-  },
-});
+const uploadStorage = multer.memoryStorage();
 
 const uploadPhotos = multer({
   storage: uploadStorage,
@@ -259,17 +250,12 @@ router.post('/creer', gestionnaireOnly, uploadPhotos.single('photo'), async (req
     await client.query('BEGIN');
     let finalFilename = null;
     if (req.file) {
-      finalFilename = req.file.filename;
-      if (isVercel) {
-        const destDir = config.uploadsDir;
-        fs.mkdirSync(destDir, { recursive: true });
-        const destPath = path.join(destDir, req.file.filename);
-        try {
-          fs.copyFileSync(req.file.path, destPath);
-          fs.unlinkSync(req.file.path);
-        } catch (copyErr) {
-          console.warn('Copie fichier impossible (Vercel):', copyErr.message);
-        }
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const filename = `projet_${req.body.projet_id || '0'}_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+      try {
+        finalFilename = await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
+      } catch (err) {
+        console.error('Upload Supabase error:', err);
       }
     }
 
@@ -514,6 +500,15 @@ router.post('/modifier/:id', gestionnaireOnly, uploadPhotos.single('photo'), asy
   try {
     await client.query('BEGIN');
     if (req.file) {
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const filename = `projet_${projet_id}_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+      let finalFilename = null;
+      try {
+        finalFilename = await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
+      } catch (err) {
+        console.error('Upload Supabase error:', err);
+      }
+
       await client.query(
         `UPDATE projets SET
           titre = $1, description = $2,
@@ -539,7 +534,7 @@ router.post('/modifier/:id', gestionnaireOnly, uploadPhotos.single('photo'), asy
           body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
           (body.adresse || body.localisation || '').trim() || null,
           body.visible_public ? true : false,
-          req.file.filename,
+          finalFilename,
           projet_id,
         ]
       );
@@ -657,6 +652,10 @@ router.post(
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         try {
+          const ext = path.extname(file.originalname) || '.jpg';
+          const filename = `projet_gallery_${projet_id}_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+          const finalFilename = await uploadToSupabase(file.buffer, filename, file.mimetype);
+
           await query(
             `INSERT INTO photos (
               projet_id, fichier_url, fichier_nom, taille, legende,
@@ -664,7 +663,7 @@ router.post(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
             [
               projet_id,
-              file.filename,
+              finalFilename,
               file.originalname,
               file.size,
               legendes[i] || '',
@@ -674,6 +673,7 @@ router.post(
           );
           uploaded_count++;
         } catch (e) {
+          console.error('Gallery upload error:', e);
           errors.push(`Erreur pour ${file.originalname}`);
         }
       }

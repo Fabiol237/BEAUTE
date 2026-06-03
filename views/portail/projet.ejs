@@ -48,7 +48,7 @@
     /* HERO */
     .hero{
       min-height:340px;
-      <%= projet.photo ? "background-image:url('/assets/uploads/" + projet.photo + "');" : "" %>
+      <%= projet.photo ? "background-image:url('" + imageUrl(projet.photo) + "');" : "" %>
       background-color:<%= heroColor %>;
       background-size:cover;background-position:center;
       position:relative;overflow:hidden;
@@ -258,7 +258,7 @@
         <div class="photos-grid">
           <% photos_list.forEach(ph => { %>
           <div class="photo-item">
-            <img src="/assets/uploads/<%= ph.fichier_url || ph.fichier %>" alt="Photo du chantier">
+            <img src="<%= imageUrl(ph.fichier_url || ph.fichier) %>" alt="Photo du chantier">
           </div>
           <% }) %>
         </div>

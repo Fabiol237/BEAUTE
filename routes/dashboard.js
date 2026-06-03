@@ -7,24 +7,23 @@ const config = require('../config');
 const { query, queryOne } = require('../db');
 const { requireConnexion } = require('../middleware/auth');
 
+const { uploadToSupabase } = require('../lib/supabase');
+
 const router = express.Router();
 router.use(requireConnexion);
 
 const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
 
-const bannerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Sur Vercel le filesystem est en lecture seule, on utilise /tmp
-    const dir = isVercel ? '/tmp' : config.uploadsDir;
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `banner_${req.session.commune_id || 'sa'}_${Date.now()}${ext}`);
+// Utilisation de memoryStorage pour uploader vers Supabase
+const bannerStorage = multer.memoryStorage();
+const uploadBanner = multer({ 
+  storage: bannerStorage, 
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Type de fichier non autorisé'), ok);
   }
 });
-const uploadBanner = multer({ storage: bannerStorage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.get('/', async (req, res, next) => {
   const isSuperAdmin = req.session.utilisateur_role === 'super_admin';
@@ -202,20 +201,17 @@ router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, nex
     let sql, params;
 
     if (req.file) {
-      // Sur Vercel : copier depuis /tmp vers public/assets/uploads
-      let finalFilename = req.file.filename;
-      if (isVercel) {
-        const destDir = path.join(config.uploadsDir);
-        fs.mkdirSync(destDir, { recursive: true });
-        const destPath = path.join(destDir, req.file.filename);
-        try {
-          fs.copyFileSync(req.file.path, destPath);
-          fs.unlinkSync(req.file.path);
-        } catch (copyErr) {
-          // Sur Vercel la copie échoue aussi, stocker juste le nom
-          console.warn('Copie fichier impossible (Vercel):', copyErr.message);
-        }
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const filename = `banner_${req.session.commune_id || 'sa'}_${Date.now()}${ext}`;
+      
+      let finalFilename = filename;
+      try {
+        finalFilename = await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
+      } catch (err) {
+        console.error('Upload Supabase error:', err);
+        return next(err);
       }
+
       sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4, banniere=$5 WHERE id=$6';
       params = [nom, email, telephone, responsable, finalFilename, req.session.commune_id];
     } else {
@@ -230,17 +226,13 @@ router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, nex
   }
 });
 
-router.post('/global-banner', uploadBanner.single('banniere'), (req, res, next) => {
+router.post('/global-banner', uploadBanner.single('banniere'), async (req, res, next) => {
   if (req.session.utilisateur_role !== 'super_admin') return res.redirect('/dashboard');
   if (req.file) {
-    const fs = require('fs');
-    const path = require('path');
-    const config = require('../config');
-    const sourcePath = req.file.path;
-    const destPath = path.join(config.rootDir, 'public', 'assets', 'images', 'hero-bg.jpg');
     try {
-      fs.copyFileSync(sourcePath, destPath);
-      fs.unlinkSync(sourcePath); 
+      const ext = path.extname(req.file.originalname) || '.jpg';
+      const filename = `hero-bg${ext}`;
+      await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
       res.redirect('/dashboard?success=banner');
     } catch(err) {
       next(err);

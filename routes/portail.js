@@ -4,18 +4,11 @@ const fs = require('fs');
 const multer = require('multer');
 const { pool, query, queryOne } = require('../db');
 const config = require('../config');
+const { uploadToSupabase } = require('../lib/supabase');
 
 const router = express.Router();
 
-const sigStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    fs.mkdirSync(config.signalementsDir, { recursive: true });
-    cb(null, config.signalementsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `sig_${Date.now()}_${Math.random().toString(36).slice(2)}${path.extname(file.originalname)}`);
-  },
-});
+const sigStorage = multer.memoryStorage();
 
 const uploadSig = multer({
   storage: sigStorage,
@@ -343,10 +336,17 @@ router.post(
 
       if (mode === 'signalement' && req.files && req.files.length) {
         for (const file of req.files.slice(0, 5)) {
-          await client.query(
-            'INSERT INTO signalement_photos (suggestion_id, fichier_url, fichier_nom, taille) VALUES ($1,$2,$3,$4)',
-            [sid, file.filename, file.originalname, file.size]
-          );
+          const ext = path.extname(file.originalname) || '.jpg';
+          const filename = `sig_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+          try {
+            const finalFilename = await uploadToSupabase(file.buffer, filename, file.mimetype);
+            await client.query(
+              'INSERT INTO signalement_photos (suggestion_id, fichier_url, fichier_nom, taille) VALUES ($1,$2,$3,$4)',
+              [sid, finalFilename, file.originalname, file.size]
+            );
+          } catch (uploadErr) {
+            console.error('Supabase upload error for signalement:', uploadErr);
+          }
         }
       }
 

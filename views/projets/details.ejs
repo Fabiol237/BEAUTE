@@ -4,7 +4,7 @@
 <%- getFlash() %>
 <% if (projet.photo) { %>
 <div class="card mb-4 border-0 shadow-sm overflow-hidden">
-  <div style="height: 250px; background-image: url('/assets/uploads/<%= e(projet.photo) %>'); background-size: cover; background-position: center; position: relative;">
+  <div style="height: 250px; background-image: url('<%= imageUrl(projet.photo) %>'); background-size: cover; background-position: center; position: relative;">
     <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));"></div>
     <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; color: white;">
       <span class="badge" style="background:<%= e(projet.type_couleur || '#6c757d') %>"><%= e(projet.type_nom) %></span>
@@ -70,7 +70,7 @@
 </div></div>
 <div class="card mb-4"><div class="card-header">Photos</div><div class="card-body">
 <% if (liste_photos.length) { %><div class="row g-2"><% liste_photos.forEach(ph => { %>
-<div class="col-md-4"><img src="/assets/uploads/<%= e(ph.fichier_url) %>" class="img-fluid rounded" alt=""></div>
+<div class="col-md-4"><img src="<%= imageUrl(ph.fichier_url) %>" class="img-fluid rounded" alt=""></div>
 <% }); %></div><% } else { %><p class="text-muted">Aucune photo</p><% } %>
 <a href="<%= siteUrl %>/projets/upload-photos/<%= projet.id %>" class="btn btn-primary mt-2">Ajouter photos</a>
 </div></div>

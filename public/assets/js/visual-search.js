@@ -413,8 +413,9 @@
       var progress     = p.avancement_physique || 0;
       var progressColor = progress > 70 ? '#007A3D' : progress > 40 ? '#F59E0B' : '#CE1126';
       var hasPhoto     = Boolean(p.photo);
+      var photoUrl = hasPhoto ? (String(p.photo).indexOf('http') === 0 ? p.photo : '/assets/uploads/' + p.photo) : null;
       var photoStyle   = hasPhoto
-        ? 'background-image:url("/assets/uploads/' + escHtml(p.photo) + '");background-size:cover;background-position:center;'
+        ? 'background-image:url("' + escHtml(photoUrl) + '");background-size:cover;background-position:center;'
         : 'background:linear-gradient(135deg,#005C2E,#007A3D);';
       var statutLabel  = (p.statut || '').replace(/_/g, ' ');
       var statutClass  = 's-' + (p.statut || '').replace(/ /g, '_');

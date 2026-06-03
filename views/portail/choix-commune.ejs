@@ -385,7 +385,7 @@
     <div class="communes-grid">
       <% communes.forEach((c, i) => { %>
       <a href="<%= siteUrl %>/portail-citoyen/commune/<%= c.id %>" class="commune-card">
-        <div class="card-banner" <%= c.banniere ? `style="background-image: url('/assets/uploads/${c.banniere}');"` : '' %>>
+        <div class="card-banner" <%= c.banniere ? `style="background-image: url('${c.banniere}');"` : '' %>>
           <div class="card-banner-overlay" style="--c1:<%= bannerColors[i % bannerColors.length][0] %>;--c2:<%= bannerColors[i % bannerColors.length][1] %>;"></div>
           <% if (!c.banniere) { %><i class="bi bi-buildings card-banner-icon"></i><% } %>
           <span class="card-status"><i class="bi bi-broadcast" style="font-size:8px;"></i> <%- __('online') %></span>

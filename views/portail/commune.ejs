@@ -282,7 +282,7 @@
   </nav>
 
   <!-- HERO -->
-  <section class="hero" <%= commune.banniere ? `style="background-image: url('/assets/uploads/${commune.banniere}');"` : '' %>>
+  <section class="hero" <%= commune.banniere ? `style="background-image: url('${commune.banniere}');"` : '' %>>
     <div class="hero-content">
       <div class="hero-commune-badge"><i class="bi bi-building-fill"></i> <%- __('commune_littoral') %></div>
       <h1><%= commune.nom %></h1>
@@ -343,7 +343,7 @@
         <div class="projet-card">
           <div class="projet-img">
             <% if (p.photo) { %>
-              <img src="/assets/uploads/<%= e(p.photo) %>" alt="<%= e(p.titre) %>">
+              <img src="<%= imageUrl(p.photo) %>" alt="<%= e(p.titre) %>">
             <% } else { %>
               <div class="projet-placeholder"><i class="bi bi-buildings"></i></div>
             <% } %>

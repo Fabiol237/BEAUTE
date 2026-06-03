@@ -378,9 +378,7 @@
         <div class="container hero-content">
             <div class="text-center">
                 <h1 class="hero-title">
-                    <img src="/assets/images/logo.png"
-                         alt="Logo Communes" 
-                         style="height: 60px; width: 60px; object-fit: contain; vertical-align: middle; margin-right: 15px; background: white; padding: 8px; border-radius: 12px;">
+                    <img src="<%= imageUrl(communes[0].maire_photo) %>" alt="<%= communes[0].maire_nom %>" class="rounded-circle shadow-sm" style="width:80px;height:80px;object-fit:cover;border:3px solid white; margin-right: 15px;">
                     Projets Municipaux
                 </h1>
                 <p class="hero-subtitle">
@@ -473,7 +471,7 @@
                 <div class="project-card">
                     <% if (projet.photo) { %>
                         <div class="project-card-image has-photo" 
-                             style="background-image: url('/assets/uploads/<%= e(projet.photo) %>');">
+                             style="background-image: url('<%= imageUrl(projet.photo) %>');">
                             <div class="project-overlay"></div>
                         </div>
                     <% } else { %>

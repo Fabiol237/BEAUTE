@@ -243,7 +243,8 @@
         if (!p.latitude || !p.longitude) return;
         const color = statusColors[p.statut] || '#007A3D';
         const budget = p.budget_actuel ? (Math.round(Number(p.budget_actuel) / 1000000) + 'M FCFA') : '—';
-        const photoHtml = p.photo ? `<img src="/uploads/${p.photo}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;margin-bottom:8px;" onerror="this.style.display='none'">` : '';
+        const photoUrl = p.photo ? (p.photo.startsWith('http') ? p.photo : `/assets/uploads/${p.photo}`) : null;
+        const photoHtml = photoUrl ? `<img src="${photoUrl}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;margin-bottom:8px;" onerror="this.style.display='none'">` : '';
         const popup = `<div class="popup-inner">
           ${photoHtml}
           <div class="popup-title">${p.titre}</div>
