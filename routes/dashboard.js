@@ -194,7 +194,16 @@ router.get('/ma-commune', async (req, res, next) => {
   }
 });
 
-router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, next) => {
+router.post('/ma-commune', (req, res, next) => {
+  uploadBanner.single('banniere')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Erreur Multer upload ma-commune:', err.message);
+      const msg = encodeURIComponent(err.message || 'Erreur fichier invalide');
+      return res.redirect('/dashboard/ma-commune?error=upload&msg=' + msg);
+    }
+    next();
+  });
+}, async (req, res, next) => {
   if (req.session.utilisateur_role !== 'admin') return res.redirect('/dashboard');
   try {
     const { nom, email, telephone, responsable } = req.body;
@@ -202,7 +211,8 @@ router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, nex
 
     if (req.file) {
       const ext = path.extname(req.file.originalname) || '.jpg';
-      const filename = `banner_${req.session.commune_id || 'sa'}_${Date.now()}${ext}`;
+      const rand = Math.random().toString(36).substring(2, 8);
+      const filename = `bannieres/commune_${req.session.commune_id || 'sa'}_${Date.now()}_${rand}${ext}`;
       
       let finalFilename = filename;
       try {
@@ -226,19 +236,29 @@ router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, nex
   }
 });
 
-router.post('/global-banner', uploadBanner.single('banniere'), async (req, res, next) => {
-  if (req.session.utilisateur_role !== 'super_admin') return res.redirect('/dashboard');
-  if (req.file) {
-    try {
-      const ext = path.extname(req.file.originalname) || '.jpg';
-      const filename = `hero-bg${ext}`;
-      await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
-      res.redirect('/dashboard?success=banner');
-    } catch(err) {
-      next(err);
+router.post('/global-banner', (req, res, next) => {
+  uploadBanner.single('banniere')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Erreur Multer upload bannière globale:', err.message);
+      const msg = encodeURIComponent(err.message || 'Erreur fichier invalide');
+      return res.redirect('/dashboard?error=upload&msg=' + msg);
     }
-  } else {
-    res.redirect('/dashboard');
+    next();
+  });
+}, async (req, res, next) => {
+  if (req.session.utilisateur_role !== 'super_admin') return res.redirect('/dashboard');
+  if (!req.file) return res.redirect('/dashboard?error=no_file');
+
+  try {
+    const ext = path.extname(req.file.originalname) || '.jpg';
+    const rand = Math.random().toString(36).substring(2, 8);
+    const filename = `bannieres/hero-bg_${Date.now()}_${rand}${ext}`;
+    await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
+    res.redirect('/dashboard?success=banner');
+  } catch(err) {
+    console.error('❌ Erreur upload bannière globale:', err.message);
+    const msg = encodeURIComponent(err.message || 'Erreur inconnue lors de l\'upload');
+    res.redirect('/dashboard?error=upload&msg=' + msg);
   }
 });
 
