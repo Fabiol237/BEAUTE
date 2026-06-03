@@ -10,17 +10,21 @@ const { requireConnexion } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireConnexion);
 
+const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
+
 const bannerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(config.uploadsDir, 'bannieres');
+    // Sur Vercel le filesystem est en lecture seule, on utilise /tmp
+    const dir = isVercel ? '/tmp' : config.uploadsDir;
     fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, `banner_${req.session.commune_id || 'sa'}_${Date.now()}${path.extname(file.originalname)}`);
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `banner_${req.session.commune_id || 'sa'}_${Date.now()}${ext}`);
   }
 });
-const uploadBanner = multer({ storage: bannerStorage });
+const uploadBanner = multer({ storage: bannerStorage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.get('/', async (req, res, next) => {
   const isSuperAdmin = req.session.utilisateur_role === 'super_admin';
@@ -198,8 +202,22 @@ router.post('/ma-commune', uploadBanner.single('banniere'), async (req, res, nex
     let sql, params;
 
     if (req.file) {
+      // Sur Vercel : copier depuis /tmp vers public/assets/uploads
+      let finalFilename = req.file.filename;
+      if (isVercel) {
+        const destDir = path.join(config.uploadsDir);
+        fs.mkdirSync(destDir, { recursive: true });
+        const destPath = path.join(destDir, req.file.filename);
+        try {
+          fs.copyFileSync(req.file.path, destPath);
+          fs.unlinkSync(req.file.path);
+        } catch (copyErr) {
+          // Sur Vercel la copie échoue aussi, stocker juste le nom
+          console.warn('Copie fichier impossible (Vercel):', copyErr.message);
+        }
+      }
       sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4, banniere=$5 WHERE id=$6';
-      params = [nom, email, telephone, responsable, req.file.filename, req.session.commune_id];
+      params = [nom, email, telephone, responsable, finalFilename, req.session.commune_id];
     } else {
       sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4 WHERE id=$5';
       params = [nom, email, telephone, responsable, req.session.commune_id];

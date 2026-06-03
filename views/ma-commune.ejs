@@ -20,8 +20,8 @@
                 <div class="mb-4">
                     <label class="form-label fw-bold">Bannière actuelle</label>
                     <div class="mb-2">
-                        <% if (commune.banniere) { %>
-                            <img src="/assets/uploads/bannieres/<%= commune.banniere %>" alt="Bannière" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
+                        <% if (commune && commune.banniere) { %>
+                            <img src="/assets/uploads/<%= commune.banniere %>" alt="Bannière" style="max-height: 150px; border-radius: 8px; object-fit: cover; width: 100%;">
                         <% } else { %>
                             <div class="bg-light p-4 text-center rounded text-muted">
                                 Aucune bannière personnalisée. L'image par défaut sera utilisée.
