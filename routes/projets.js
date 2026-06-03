@@ -21,10 +21,13 @@ function gestionnaireOnly(req, res, next) {
   next();
 }
 
+const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
+
 const uploadStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    fs.mkdirSync(config.uploadsDir, { recursive: true });
-    cb(null, config.uploadsDir);
+    const dir = isVercel ? '/tmp' : config.uploadsDir;
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || '.jpg';
@@ -254,6 +257,22 @@ router.post('/creer', gestionnaireOnly, uploadPhotos.single('photo'), async (req
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    let finalFilename = null;
+    if (req.file) {
+      finalFilename = req.file.filename;
+      if (isVercel) {
+        const destDir = config.uploadsDir;
+        fs.mkdirSync(destDir, { recursive: true });
+        const destPath = path.join(destDir, req.file.filename);
+        try {
+          fs.copyFileSync(req.file.path, destPath);
+          fs.unlinkSync(req.file.path);
+        } catch (copyErr) {
+          console.warn('Copie fichier impossible (Vercel):', copyErr.message);
+        }
+      }
+    }
+
     const result = await client.query(
       `INSERT INTO projets (
           titre, description, type_projet_id, commune_id, created_by,
@@ -276,7 +295,7 @@ router.post('/creer', gestionnaireOnly, uploadPhotos.single('photo'), async (req
         body.longitude ? parseFloat(String(body.longitude).replace(',', '.')) || null : null,
         (body.adresse || '').trim() || null,
         body.visible_public ? true : false,
-        req.file ? req.file.filename : null,
+        finalFilename,
       ]
     );
     const projet_id = result.rows[0].id;
