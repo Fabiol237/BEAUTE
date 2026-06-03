@@ -268,4 +268,21 @@ router.post('/global-banner', (req, res) => {
   res.redirect('/dashboard?error=no_file');
 });
 
+// Sauvegarde l'URL de la bannière globale
+router.post('/save-global-banner', express.json(), async (req, res) => {
+  if (req.session.utilisateur_role !== 'super_admin') {
+    return res.status(403).json({ error: 'Accès refusé' });
+  }
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL manquante' });
+    // On met à jour la bannière globale (en supposant qu'il n'y a qu'un super admin ou on met à jour pour tous)
+    await query('UPDATE munipro_admins SET banniere_globale = $1', [url]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Erreur save global banner:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

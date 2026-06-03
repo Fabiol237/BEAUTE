@@ -202,6 +202,15 @@
               throw new Error('Supabase: ' + (txt || uploadRes.status));
             }
 
+            // 2.5 Sauvegarder l'URL en DB
+            const saveRes = await fetch('/dashboard/save-global-banner', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: signedData.publicUrl })
+            });
+            const saveData = await saveRes.json();
+            if (saveData.error) throw new Error('DB Save: ' + saveData.error);
+
             // 3. Succès
             status.style.color = 'green';
             status.textContent = '✅ Bannière mise à jour !';

@@ -2,7 +2,9 @@ const config = require('../config');
 const helpers = require('../lib/helpers');
 const { renderFlash } = require('./flash');
 
-function attachLocals(req, res, next) {
+const { queryOne } = require('../db');
+
+async function attachLocals(req, res, next) {
   // Reconstruit l'URL de base depuis le req pour fonctionner sur Vercel, localhost, etc.
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
   const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:3000';
@@ -24,6 +26,14 @@ function attachLocals(req, res, next) {
   res.locals.todayIso = helpers.todayIso;
   res.locals.imageUrl = helpers.imageUrl;
   res.locals.__ = res.__ || function(key){return key;};
+
+  try {
+    const admin = await queryOne('SELECT banniere_globale FROM munipro_admins LIMIT 1');
+    res.locals.globalBanner = admin?.banniere_globale || '/assets/images/hero-bg.jpg';
+  } catch (err) {
+    res.locals.globalBanner = '/assets/images/hero-bg.jpg';
+  }
+
   next();
 }
 
