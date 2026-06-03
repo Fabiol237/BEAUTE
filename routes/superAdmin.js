@@ -151,8 +151,14 @@ router.get('/journal', async (req, res, next) => {
 
     let sql = `
       SELECT j.*, 
-             u.prenom || ' ' || u.nom AS agent_nom,
-             u.role AS agent_role,
+             CASE 
+               WHEN j.description LIKE '[SUPER_ADMIN]%' THEN 'Super Admin'
+               ELSE u.prenom || ' ' || u.nom 
+             END AS agent_nom,
+             CASE 
+               WHEN j.description LIKE '[SUPER_ADMIN]%' THEN 'super_admin'
+               ELSE u.role 
+             END AS agent_role,
              u.email AS agent_email,
              c.nom AS commune_nom
       FROM journal j

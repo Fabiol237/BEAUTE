@@ -8,9 +8,17 @@ const { pool } = require('../db');
  */
 async function logAction(req, action, description) {
   try {
-    const utilisateur_id = req.session?.utilisateur_id || null;
+    let utilisateur_id = req.session?.utilisateur_id || null;
     const commune_id = req.session?.commune_id || null;
     const ip = req.ip || req.headers['x-forwarded-for'] || null;
+
+    // Le compte super admin a l'id "SUPER_ADMIN" (string) mais la table attend un INTEGER.
+    // On met null pour l'ID et on préfixe la description.
+    if (utilisateur_id === 'SUPER_ADMIN') {
+      utilisateur_id = null;
+      description = '[SUPER_ADMIN] ' + description;
+    }
+
     await pool.query(
       `INSERT INTO journal (utilisateur_id, commune_id, action, description, ip, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
