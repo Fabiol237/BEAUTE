@@ -135,6 +135,55 @@ CREATE TABLE IF NOT EXISTS projets (
   FOREIGN KEY (created_by) REFERENCES utilisateurs(id) ON DELETE SET NULL
 );
 
+-- ── 7.5 JALONS ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS jalons (
+  id SERIAL PRIMARY KEY,
+  projet_id INTEGER NOT NULL,
+  titre VARCHAR(200) NOT NULL,
+  date_prevue DATE,
+  statut VARCHAR(50) DEFAULT 'non_commencé',
+  pourcentage_completion INTEGER DEFAULT 0,
+  ordre INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (projet_id) REFERENCES projets(id) ON DELETE CASCADE
+);
+
+-- ── 7.6 RISQUES ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS risques (
+  id SERIAL PRIMARY KEY,
+  projet_id INTEGER NOT NULL,
+  description TEXT NOT NULL,
+  niveau VARCHAR(50) DEFAULT 'moyen',
+  ordre INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (projet_id) REFERENCES projets(id) ON DELETE CASCADE
+);
+
+-- ── 7.7 INDICATEURS ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS indicateurs (
+  id SERIAL PRIMARY KEY,
+  projet_id INTEGER NOT NULL,
+  libelle VARCHAR(200) NOT NULL,
+  valeur_cible VARCHAR(100),
+  ordre INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (projet_id) REFERENCES projets(id) ON DELETE CASCADE
+);
+
+-- ── 7.8 AVANCEMENTS ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS avancements (
+  id SERIAL PRIMARY KEY,
+  projet_id INTEGER NOT NULL,
+  utilisateur_id INTEGER NOT NULL,
+  pourcentage INTEGER NOT NULL DEFAULT 0,
+  description TEXT,
+  observations TEXT,
+  date_constat DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (projet_id) REFERENCES projets(id) ON DELETE CASCADE,
+  FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE SET NULL
+);
+
 -- ── 7. DÉPENSES ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS depenses (
   id SERIAL PRIMARY KEY,
@@ -155,13 +204,16 @@ CREATE TABLE IF NOT EXISTS depenses (
 );
 
 -- ── 8. PHOTOS DES CHANTIERS ───────────────────────────────────
-CREATE TABLE IF NOT EXISTS photos_projets (
+CREATE TABLE IF NOT EXISTS photos (
   id SERIAL PRIMARY KEY,
   projet_id INTEGER NOT NULL,
-  fichier VARCHAR(255) NOT NULL,
+  fichier_url VARCHAR(255) NOT NULL,
+  fichier_nom VARCHAR(255) NOT NULL,
+  taille INTEGER,
   legende VARCHAR(200),
+  date_prise DATE,
   uploaded_by INTEGER,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (projet_id) REFERENCES projets(id) ON DELETE CASCADE,
   FOREIGN KEY (uploaded_by) REFERENCES utilisateurs(id) ON DELETE SET NULL
 );
@@ -185,11 +237,13 @@ CREATE TABLE IF NOT EXISTS signalements (
 CREATE TABLE IF NOT EXISTS journal (
   id SERIAL PRIMARY KEY,
   utilisateur_id INTEGER,
+  commune_id INTEGER,
   action VARCHAR(100) NOT NULL,
   description TEXT,
   ip VARCHAR(45),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE SET NULL
+  FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE SET NULL,
+  FOREIGN KEY (commune_id) REFERENCES communes(id) ON DELETE SET NULL
 );
 
 -- ── 11. SUGGESTIONS CITOYENNES ────────────────────────────────

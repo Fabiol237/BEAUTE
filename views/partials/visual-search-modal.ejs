@@ -1,0 +1,766 @@
+<%#
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  Partial : visual-search-modal.ejs                           ║
+  ║  Modal de recherche visuelle — Portail Citoyen MuniPro       ║
+  ║  Inclure en bas de page + charger /assets/js/visual-search.js║
+  ╚══════════════════════════════════════════════════════════════╝
+%>
+
+<!-- ══════════════════════════════════════════════════════════════
+     STYLES DU MODAL (scoped via préfixe vs-)
+══════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Reset & base ─────────────────────────────────────────────── */
+#vs-modal *, #vs-modal *::before, #vs-modal *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Overlay ─────────────────────────────────────────────────── */
+#vs-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#vs-modal.vs-modal-open {
+  opacity: 1;
+}
+
+/* ── Boîte principale ────────────────────────────────────────── */
+.vs-box {
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: vs-slide-up 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+@keyframes vs-slide-up {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+
+/* ── En-tête ─────────────────────────────────────────────────── */
+.vs-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.vs-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vs-header-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #007A3D, #009F50);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,122,61,0.4);
+}
+.vs-header-title {
+  font-family: 'Poppins', sans-serif;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.vs-header-sub {
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.vs-close-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  line-height: 1;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.vs-close-btn:hover {
+  background: rgba(206,17,38,0.3);
+  border-color: rgba(206,17,38,0.5);
+  color: #fff;
+}
+
+/* ── Corps ───────────────────────────────────────────────────── */
+.vs-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Section caméra ──────────────────────────────────────────── */
+#vs-camera-section {
+  display: none;
+}
+.vs-camera-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(0,122,61,0.4);
+}
+#vs-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(1); /* pas de miroir pour caméra arrière */
+}
+.vs-camera-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Coins de visée animés */
+.vs-frame-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: #FCD116;
+  border-style: solid;
+  opacity: 0.8;
+  animation: vs-pulse-corner 2s ease-in-out infinite;
+}
+.vs-frame-corner.tl { top:12px; left:12px;  border-width: 3px 0 0 3px; }
+.vs-frame-corner.tr { top:12px; right:12px; border-width: 3px 3px 0 0; }
+.vs-frame-corner.bl { bottom:12px; left:12px;  border-width: 0 0 3px 3px; }
+.vs-frame-corner.br { bottom:12px; right:12px; border-width: 0 3px 3px 0; }
+@keyframes vs-pulse-corner {
+  0%,100% { opacity: 0.8; }
+  50%      { opacity: 0.3; }
+}
+/* Ligne de scan */
+.vs-scan-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #007A3D, #FCD116, #007A3D, transparent);
+  animation: vs-scan 3s ease-in-out infinite;
+  opacity: 0.7;
+}
+@keyframes vs-scan {
+  0%   { top: 15%; opacity: 0; }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.7; }
+  100% { top: 85%; opacity: 0; }
+}
+
+/* ── Bouton de capture ───────────────────────────────────────── */
+.vs-capture-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#vs-capture-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #007A3D, #009F50);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 6px 20px rgba(0,122,61,0.45);
+}
+#vs-capture-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,122,61,0.55);
+}
+#vs-capture-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+#vs-capture-btn:disabled {
+  background: rgba(255,255,255,0.1);
+  box-shadow: none;
+  cursor: not-allowed;
+  color: rgba(255,255,255,0.35);
+}
+.vs-cam-icon { font-size: 18px; }
+.vs-capture-hint {
+  color: rgba(255,255,255,0.35);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+}
+
+/* ── Canvas caché ────────────────────────────────────────────── */
+#vs-canvas {
+  display: none;
+  width: 224px;
+  height: 224px;
+}
+
+/* ── Erreur permission ───────────────────────────────────────── */
+#vs-permission-error {
+  display: none;
+  background: rgba(206,17,38,0.1);
+  border: 1px solid rgba(206,17,38,0.3);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  color: rgba(255,255,255,0.8);
+  font-family: 'Poppins', sans-serif;
+}
+.vs-perm-icon { font-size: 36px; margin-bottom: 10px; }
+.vs-perm-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+.vs-perm-sub { font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.55); }
+
+/* ── Barre de statut ─────────────────────────────────────────── */
+.vs-status {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+.vs-status-loading {
+  background: rgba(252,209,22,0.12);
+  border: 1px solid rgba(252,209,22,0.25);
+  color: #FCD116;
+}
+.vs-status-loading::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(252,209,22,0.3);
+  border-top-color: #FCD116;
+  border-radius: 50%;
+  animation: vs-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.vs-status-success {
+  background: rgba(0,122,61,0.15);
+  border: 1px solid rgba(0,122,61,0.3);
+  color: #4ade80;
+}
+.vs-status-error {
+  background: rgba(206,17,38,0.12);
+  border: 1px solid rgba(206,17,38,0.3);
+  color: #ff6b6b;
+}
+.vs-status-warning {
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: #FCD116;
+}
+.vs-status-info {
+  background: rgba(99,102,241,0.12);
+  border: 1px solid rgba(99,102,241,0.3);
+  color: #a5b4fc;
+}
+@keyframes vs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Spinner dans bouton ─────────────────────────────────────── */
+.vs-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: vs-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Aperçu de la capture ────────────────────────────────────── */
+#vs-preview-section {
+  display: none;
+}
+.vs-preview-header {
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.55);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.vs-preview-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+#vs-preview-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid rgba(252,209,22,0.3);
+  flex-shrink: 0;
+}
+.vs-labels-wrap {
+  flex: 1;
+}
+.vs-labels-title {
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.4);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 6px;
+}
+#vs-detected-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vs-label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(252,209,22,0.1);
+  border: 1px solid rgba(252,209,22,0.25);
+  border-radius: 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: #FCD116;
+}
+.vs-label-chip strong {
+  color: rgba(252,209,22,0.7);
+}
+
+/* ── Section résultats ───────────────────────────────────────── */
+#vs-results-section {
+  display: none;
+}
+.vs-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#vs-results-count {
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+}
+.vs-results-scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+/* ── Cartes projet ───────────────────────────────────────────── */
+.vs-card {
+  background: #1F2937;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+.vs-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  border-color: rgba(0,122,61,0.4);
+}
+.vs-card-img {
+  height: 130px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+.vs-card-placeholder {
+  font-size: 2.5rem;
+  color: rgba(255,255,255,0.15);
+}
+.vs-statut-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.vs-statut-badge.s-en_cours   { background: rgba(0,122,61,0.9);  color: #fff; }
+.vs-statut-badge.s-terminé,
+.vs-statut-badge.s-termine    { background: rgba(14,165,233,0.9); color: #fff; }
+.vs-statut-badge.s-planifié,
+.vs-statut-badge.s-planifie   { background: rgba(252,209,22,0.9); color: #1a1a1a; }
+.vs-statut-badge.s-suspendu   { background: rgba(239,68,68,0.9);  color: #fff; }
+
+.vs-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.vs-card-type {
+  font-family: 'Poppins', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #007A3D;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.vs-card-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #F9FAFB;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.vs-card-commune {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+.vs-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.vs-progress-lbl {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+}
+.vs-progress-val {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+.vs-prog-bar {
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.vs-prog-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+.vs-card-arrow {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10.5px;
+  color: rgba(0,122,61,0.7);
+  font-weight: 600;
+  margin-top: 8px;
+}
+.vs-card:hover .vs-card-arrow { color: #007A3D; }
+
+/* ── État vide ───────────────────────────────────────────────── */
+.vs-empty {
+  text-align: center;
+  padding: 32px 24px;
+  grid-column: 1 / -1;
+}
+.vs-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.vs-empty-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #F9FAFB;
+  margin-bottom: 8px;
+}
+.vs-empty-sub {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.vs-btn-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: rgba(0,122,61,0.2);
+  border: 1px solid rgba(0,122,61,0.4);
+  border-radius: 8px;
+  color: #4ade80;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.vs-btn-retry:hover { background: rgba(0,122,61,0.35); }
+.vs-btn-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.vs-btn-all:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* ── Footer modal ────────────────────────────────────────────── */
+.vs-footer {
+  padding: 14px 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.vs-footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+}
+.vs-footer-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #007A3D;
+  animation: vs-blink 2s ease-in-out infinite;
+}
+@keyframes vs-blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+.vs-footer-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.55);
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.vs-footer-close:hover {
+  background: rgba(206,17,38,0.15);
+  border-color: rgba(206,17,38,0.4);
+  color: #ff6b6b;
+}
+
+/* ── Responsive mobile ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  .vs-box { border-radius: 16px; }
+  .vs-body { padding: 14px 16px; }
+  .vs-header { padding: 14px 16px; }
+  .vs-results-scroll { grid-template-columns: 1fr 1fr; gap: 10px; }
+  #vs-capture-btn { max-width: 100%; }
+}
+@media (max-width: 360px) {
+  .vs-results-scroll { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HTML DU MODAL
+══════════════════════════════════════════════════════════════ -->
+<div id="vs-modal" role="dialog" aria-modal="true" aria-label="Recherche visuelle par caméra">
+
+  <div class="vs-box">
+
+    <!-- En-tête ────────────────────────────────────────────────── -->
+    <div class="vs-header">
+      <div class="vs-header-left">
+        <div class="vs-header-icon">📷</div>
+        <div>
+          <div class="vs-header-title">Recherche Visuelle</div>
+          <div class="vs-header-sub">Identifiez un projet en le photographiant</div>
+        </div>
+      </div>
+      <button
+        class="vs-close-btn"
+        onclick="VisualSearch.close()"
+        aria-label="Fermer la recherche visuelle"
+        title="Fermer (Échap)"
+      >✕</button>
+    </div>
+
+    <!-- Corps ──────────────────────────────────────────────────── -->
+    <div class="vs-body">
+
+      <!-- Barre de statut -->
+      <div id="vs-status" class="vs-status" role="status" aria-live="polite"></div>
+
+      <!-- Section caméra -->
+      <div id="vs-camera-section">
+        <div class="vs-camera-wrapper">
+          <video
+            id="vs-video"
+            autoplay
+            playsinline
+            muted
+            aria-label="Flux caméra en direct"
+          ></video>
+          <!-- Overlay visée -->
+          <div class="vs-camera-frame">
+            <div class="vs-frame-corner tl"></div>
+            <div class="vs-frame-corner tr"></div>
+            <div class="vs-frame-corner bl"></div>
+            <div class="vs-frame-corner br"></div>
+            <div class="vs-scan-line"></div>
+          </div>
+        </div>
+
+        <!-- Bouton capture -->
+        <div class="vs-capture-area" style="margin-top:16px;">
+          <button
+            id="vs-capture-btn"
+            onclick="VisualSearch.capture()"
+            disabled
+            aria-label="Capturer et analyser l'image"
+          >
+            <span class="vs-cam-icon">📷</span>
+            Capturer
+          </button>
+          <p class="vs-capture-hint">Pointez la caméra vers un chantier ou bâtiment</p>
+        </div>
+      </div>
+
+      <!-- Erreur permission caméra -->
+      <div id="vs-permission-error">
+        <div class="vs-perm-icon">🚫</div>
+        <div class="vs-perm-title">Accès à la caméra refusé</div>
+        <div class="vs-perm-sub">
+          Autorisez l'accès à la caméra dans les paramètres de votre navigateur,
+          puis rechargez la page.<br><br>
+          <strong>iOS Safari :</strong> Réglages → Safari → Caméra → Autoriser<br>
+          <strong>Android Chrome :</strong> Paramètres site → Caméra → Autoriser
+        </div>
+      </div>
+
+      <!-- Canvas caché pour la capture 224×224 -->
+      <canvas id="vs-canvas" width="224" height="224"></canvas>
+
+      <!-- Aperçu de la photo capturée -->
+      <div id="vs-preview-section">
+        <div class="vs-preview-header">📸 Photo analysée</div>
+        <div class="vs-preview-row">
+          <img id="vs-preview-img" src="" alt="Photo capturée">
+          <div class="vs-labels-wrap">
+            <div class="vs-labels-title">Labels détectés par l'IA</div>
+            <div id="vs-detected-labels"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Résultats -->
+      <div id="vs-results-section">
+        <div class="vs-results-header">
+          <span id="vs-results-count"></span>
+          <button
+            onclick="VisualSearch.resetCapture()"
+            class="vs-btn-retry"
+            style="padding:6px 14px;font-size:11px;"
+          >
+            📷 Nouvelle capture
+          </button>
+        </div>
+        <div class="vs-results-scroll" id="vs-results-list"></div>
+      </div>
+
+    </div><!-- /vs-body -->
+
+    <!-- Pied ───────────────────────────────────────────────────── -->
+    <div class="vs-footer">
+      <div class="vs-footer-badge">
+        <span class="dot"></span>
+        Traitement 100% local · IA embarquée · Aucune donnée envoyée
+      </div>
+      <button class="vs-footer-close" onclick="VisualSearch.close()">
+        ✕ Fermer
+      </button>
+    </div>
+
+  </div><!-- /vs-box -->
+</div><!-- /#vs-modal -->

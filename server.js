@@ -19,6 +19,7 @@ const superAdminRoutes = require('./routes/superAdmin');
 const communesRoutes = require('./routes/communes');
 const alertesRoutes = require('./routes/alertes');
 const rapportsRoutes = require('./routes/rapports');
+const visualSearchRoutes = require('./routes/visualSearch');
 
 const app = express();
 
@@ -69,6 +70,8 @@ app.use((req, res, next) => {
 });
 
 app.use('/assets', express.static(path.join(config.rootDir, 'public', 'assets')));
+// Servir sw.js à la racine (requis pour que le Service Worker ait le bon scope)
+app.use(express.static(path.join(config.rootDir, 'public'), { index: false }));
 app.use(attachLocals);
 
 
@@ -87,6 +90,7 @@ app.use('/super-admin', superAdminRoutes);
 app.use('/communes', communesRoutes);
 app.use('/alertes', alertesRoutes);
 app.use('/rapports', rapportsRoutes);
+app.use('/api', visualSearchRoutes);
 
 app.use((req, res) => {
   res.status(404).send('Page non trouvée');
