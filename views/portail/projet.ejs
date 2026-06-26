@@ -305,7 +305,7 @@
               <% if (av.auteur_nom) { %>
               <span class="av-auteur"><i class="bi bi-person-fill"></i> <%= av.auteur_nom %></span>
               <% } %>
-              <button class="av-print-btn" onclick="printAvancement('<%= (av.description||'').replace(/'/g,`&apos;`) %>', '<%= (av.observations||'').replace(/'/g,`&apos;`) %>', '<%= av.pourcentage %>', '<%= av.date_constat ? new Date(av.date_constat).toLocaleDateString(\'fr-FR\') : new Date(av.created_at).toLocaleDateString(\'fr-FR\') %>', '<%= av.auteur_nom || \'\' %>')">
+              <button class="av-print-btn" onclick="printAvancement('<%= (av.description||'').replace(/'/g,`&apos;`) %>', '<%= (av.observations||'').replace(/'/g,`&apos;`) %>', '<%= av.pourcentage %>', '<%= av.date_constat ? new Date(av.date_constat).toLocaleDateString('fr-FR') : new Date(av.created_at).toLocaleDateString('fr-FR') %>', '<%= av.auteur_nom || '' %>')">
                 <i class="bi bi-printer"></i> Imprimer
               </button>
             </div>
