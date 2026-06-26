@@ -91,9 +91,10 @@
     .nav-date { color: rgba(255,255,255,0.6); font-size: 11px; font-style: italic; }
 
     .mobile-menu-btn { display: none; background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; }
-    .lang-toggle { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 11px; margin-left: 10px; }
-    .lang-toggle a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: bold; }
-    .lang-toggle a.active { color: var(--jaune); }
+    .lang-toggle { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 12px; font-size: 11px; margin-left: 12px; border: 1px solid rgba(255,255,255,0.25); transition: all 0.3s; }
+    .lang-toggle a { color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 600; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+    .lang-toggle a:hover { color: var(--jaune); background: rgba(255,255,255,0.1); }
+    .lang-toggle a.active { color: var(--jaune); background: rgba(252,209,22,0.2); font-weight: 700; }
 
     @media(max-width:768px){
       .official-left, .official-right, .official-divider { display: none; }
@@ -209,8 +210,8 @@
 
     .card-banner {
       height: 145px; position: relative; overflow: hidden;
-      background-image: url('<%= globalBanner %>');
       background-size: cover; background-position: center;
+      background-color: var(--blanc);
     }
     .card-banner-overlay {
       position: absolute; inset: 0;
@@ -327,8 +328,9 @@
         <a href="<%= siteUrl %>/portail-citoyen/carte"><i class="bi bi-map-fill"></i> <%- __('map') %></a>
         <a href="<%= siteUrl %>/portail-citoyen/suggestion"><i class="bi bi-chat-dots-fill"></i> <%- __('suggestions') %></a>
         <div class="lang-toggle">
-          <a href="?lang=fr" class="<%= currentLang === 'fr' ? 'active' : '' %>">FR</a> | 
-          <a href="?lang=en" class="<%= currentLang === 'en' ? 'active' : '' %>">EN</a>
+          <a href="?lang=fr" class="<%= currentLang === 'fr' ? 'active' : '' %>" title="Français"><i class="bi bi-check-circle-fill" style="<%= currentLang === 'fr' ? '' : 'opacity:0;' %>"></i> 🇫🇷 <span>FR</span></a>
+          <span style="color: rgba(255,255,255,0.4);">|</span>
+          <a href="?lang=en" class="<%= currentLang === 'en' ? 'active' : '' %>" title="English"><i class="bi bi-check-circle-fill" style="<%= currentLang === 'en' ? '' : 'opacity:0;' %>"></i> 🇬🇧 <span>EN</span></a>
         </div>
       </div>
       <div class="nav-date"><i class="bi bi-calendar3"></i> <%= new Date().toLocaleDateString(currentLang === 'en' ? 'en-US' : 'fr-FR', {day:'2-digit', month:'long', year:'numeric'}) %></div>
@@ -385,9 +387,8 @@
     <div class="communes-grid">
       <% communes.forEach((c, i) => { %>
       <a href="<%= siteUrl %>/portail-citoyen/commune/<%= c.id %>" class="commune-card">
-        <div class="card-banner" <%= c.banniere ? `style="background-image: url('${c.banniere}');"` : '' %>>
-          <div class="card-banner-overlay" style="--c1:<%= bannerColors[i % bannerColors.length][0] %>;--c2:<%= bannerColors[i % bannerColors.length][1] %>;"></div>
-          <% if (!c.banniere) { %><i class="bi bi-buildings card-banner-icon"></i><% } %>
+        <div class="card-banner" style="background-image: url('<%= c.banniere || c.image_url || `https://picsum.photos/seed/commune${c.id}/800/600` %>');">
+          <div class="card-banner-overlay" style="--c1:<%= bannerColors[i % bannerColors.length][0] %>;--c2:<%= bannerColors[i % bannerColors.length][1] %>; opacity: 0.25;"></div>
           <span class="card-status"><i class="bi bi-broadcast" style="font-size:8px;"></i> <%- __('online') %></span>
           <div class="card-flag">
             <span style="background:#007A3D;"></span>
@@ -395,7 +396,8 @@
             <span style="background:#FCD116;"></span>
           </div>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="position: relative; padding-top: 35px;">
+          <img src="<%= c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.nom)}&background=random` %>" alt="<%= c.nom %>" style="width: 70px; height: 70px; border-radius: 50%; border: 4px solid var(--blanc); object-fit: cover; position: absolute; top: -35px; left: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: var(--blanc);">
           <div class="card-commune-name"><%= c.nom %></div>
           <div class="card-region"><i class="bi bi-geo-alt-fill" style="color:var(--vert);"></i> <%= c.region %>, Cameroun</div>
           <div class="card-kpis">

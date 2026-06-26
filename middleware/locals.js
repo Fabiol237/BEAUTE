@@ -28,8 +28,8 @@ async function attachLocals(req, res, next) {
   res.locals.__ = res.__ || function(key){return key;};
 
   try {
-    const admin = await queryOne('SELECT banniere_globale FROM munipro_admins LIMIT 1');
-    res.locals.globalBanner = admin?.banniere_globale || '/assets/images/hero-bg.jpg';
+    const configRow = await queryOne("SELECT valeur FROM munipro_config WHERE cle = 'banniere_globale'");
+    res.locals.globalBanner = configRow?.valeur || '/assets/images/hero-bg.jpg';
   } catch (err) {
     res.locals.globalBanner = '/assets/images/hero-bg.jpg';
   }

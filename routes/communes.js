@@ -31,17 +31,18 @@ router.get('/', async (req, res, next) => {
     `;
     const conditions = [];
     const params = [];
+    let pIdx = 1;
 
     if (statut) {
-      conditions.push('c.statut = ?');
+      conditions.push(`c.statut = $${pIdx++}`);
       params.push(statut);
     }
     if (region) {
-      conditions.push('c.region = ?');
+      conditions.push(`c.region = $${pIdx++}`);
       params.push(region);
     }
     if (search) {
-      conditions.push('c.nom ILIKE ?');
+      conditions.push(`c.nom ILIKE $${pIdx++}`);
       params.push(`%${search}%`);
     }
 
@@ -93,7 +94,7 @@ router.post('/creer', async (req, res, next) => {
   try {
     await query(`
       INSERT INTO communes (nom, region, email, telephone, responsable, statut)
-      VALUES (?, ?, ?, ?, ?, 'inactif')
+      VALUES ($1, $2, $3, $4, $5, 'inactif')
     `, [nom, region || 'Littoral', email, telephone || '', responsable || '']);
 
     res.redirect('/communes');
@@ -120,7 +121,7 @@ router.get('/:id', async (req, res, next) => {
         COALESCE(AVG(p.avancement_physique), 0) AS taux_avancement
       FROM communes c
       LEFT JOIN projets p ON c.id = p.commune_id
-      WHERE c.id = ?
+      WHERE c.id = $1
       GROUP BY c.id
     `, [req.params.id]);
 
@@ -139,7 +140,7 @@ router.get('/:id', async (req, res, next) => {
       SELECT p.*, tp.nom AS type_nom
       FROM projets p
       LEFT JOIN types_projets tp ON p.type_projet_id = tp.id
-      WHERE p.commune_id = ?
+      WHERE p.commune_id = $1
       ORDER BY p.created_at DESC
     `, [req.params.id]);
 
@@ -154,11 +155,11 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/:id/toggle', async (req, res, next) => {
   try {
-    const commune = await queryOne('SELECT statut FROM communes WHERE id = ?', [req.params.id]);
+    const commune = await queryOne('SELECT statut FROM communes WHERE id = $1', [req.params.id]);
     if (!commune) return res.redirect('/communes');
     
     const newStatut = commune.statut === 'actif' ? 'suspendu' : 'actif';
-    await query('UPDATE communes SET statut = ? WHERE id = ?', [newStatut, req.params.id]);
+    await query('UPDATE communes SET statut = $1 WHERE id = $2', [newStatut, req.params.id]);
     
     res.redirect(`/communes/${req.params.id}`);
   } catch (err) {

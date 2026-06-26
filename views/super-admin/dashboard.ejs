@@ -168,7 +168,7 @@
           </div>
           <div class="d-flex align-items-center gap-3">
             <input type="file" id="banner-file" name="banniere" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" required style="max-width: 400px;"
-                   onchange="if(this.files[0]){var p=document.getElementById('saBannerPreview');var d=document.getElementById('saBannerPlaceholder');p.src=URL.createObjectURL(this.files[0]);p.style.display='block';if(d)d.style.display='none';}">
+                   onchange="if(this.files[0]){var p=document.getElementById('saBannerPreview');var d=document.getElementById('saBannerPlaceholder');var createUrl=window.URL&&window.URL.createObjectURL?window.URL.createObjectURL.bind(window.URL):null; if(createUrl){var url=createUrl(this.files[0]); p.src=url; p.style.display='block'; if(d)d.style.display='none';}}">
             <button type="submit" id="banner-btn" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Changer la bannière</button>
             <span id="banner-status" style="font-size:13px;display:none;"></span>
           </div>

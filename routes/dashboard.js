@@ -6,6 +6,7 @@ const multer = require('multer');
 const config = require('../config');
 const { query, queryOne } = require('../db');
 const { requireConnexion } = require('../middleware/auth');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../middleware/cloudinary');
 
 const { uploadToSupabase, supabaseAdmin } = require('../lib/supabase');
 
@@ -24,6 +25,19 @@ const uploadBanner = multer({
     cb(ok ? null : new Error('Type de fichier non autorisé'), ok);
   }
 });
+
+// Multi-file upload pour bannière + image commune
+const multiUpload = multer({
+  storage: bannerStorage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = /^image\/(jpeg|jpg|png|gif|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Type de fichier non autorisé'), ok);
+  }
+}).fields([
+  { name: 'banniere', maxCount: 1 },
+  { name: 'image_commune', maxCount: 1 }
+]);
 
 router.get('/', async (req, res, next) => {
   const isSuperAdmin = req.session.utilisateur_role === 'super_admin';
@@ -116,17 +130,17 @@ router.get('/', async (req, res, next) => {
     }
 
     // ── ADMIN COMMUNE : données filtrées par commune_id ─────────────────
-    stats.total_projets    = Number((await queryOne('SELECT COUNT(*) AS c FROM projets WHERE commune_id = ?', [commune_id])).c);
-    stats.projets_en_cours = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND commune_id = ?", [commune_id])).c);
-    stats.projets_termines = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'terminé' AND commune_id = ?", [commune_id])).c);
-    stats.projets_retard   = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND date_fin_prevue < CURRENT_DATE AND commune_id = ?", [commune_id])).c);
-    stats.budget_total     = Number((await queryOne('SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets WHERE commune_id = ?', [commune_id])).s);
+    stats.total_projets    = Number((await queryOne('SELECT COUNT(*) AS c FROM projets WHERE commune_id = $1', [commune_id])).c);
+    stats.projets_en_cours = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND commune_id = $1", [commune_id])).c);
+    stats.projets_termines = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'terminé' AND commune_id = $1", [commune_id])).c);
+    stats.projets_retard   = Number((await queryOne("SELECT COUNT(*) AS c FROM projets WHERE statut = 'en_cours' AND date_fin_prevue < CURRENT_DATE AND commune_id = $1", [commune_id])).c);
+    stats.budget_total     = Number((await queryOne('SELECT COALESCE(SUM(budget_actuel), 0) AS s FROM projets WHERE commune_id = $1', [commune_id])).s);
     stats.depenses_total   = Number((await queryOne(
-      'SELECT COALESCE(SUM(d.montant), 0) AS s FROM depenses d JOIN projets p ON d.projet_id = p.id WHERE d.validee = true AND p.commune_id = ?',
+      'SELECT COALESCE(SUM(d.montant), 0) AS s FROM depenses d JOIN projets p ON d.projet_id = p.id WHERE d.validee = true AND p.commune_id = $1',
       [commune_id]
     )).s);
     stats.depenses_attente = Number((await queryOne(
-      'SELECT COUNT(*) AS c FROM depenses d JOIN projets p ON d.projet_id = p.id WHERE d.validee = false AND p.commune_id = ?',
+      'SELECT COUNT(*) AS c FROM depenses d JOIN projets p ON d.projet_id = p.id WHERE d.validee = false AND p.commune_id = $1',
       [commune_id]
     )).c);
     stats.budget_restant    = stats.budget_total - stats.depenses_total;
@@ -137,12 +151,12 @@ router.get('/', async (req, res, next) => {
        FROM projets p
        JOIN communes c ON p.commune_id = c.id
        JOIN types_projets tp ON p.type_projet_id = tp.id
-       WHERE p.commune_id = ?
+       WHERE p.commune_id = $1
        ORDER BY p.created_at DESC LIMIT 6`;
     const derniers_projets = await query(derniersProjetsSql, [commune_id]);
 
     const retardSql = `SELECT p.*, c.nom AS commune_nom FROM projets p JOIN communes c ON p.commune_id = c.id
-       WHERE p.statut = 'en_cours' AND p.date_fin_prevue < CURRENT_DATE AND p.commune_id = ?
+       WHERE p.statut = 'en_cours' AND p.date_fin_prevue < CURRENT_DATE AND p.commune_id = $1
        ORDER BY p.date_fin_prevue LIMIT 5`;
     const projets_retard = await query(retardSql, [commune_id]);
 
@@ -151,20 +165,20 @@ router.get('/', async (req, res, next) => {
         WHEN statut = 'planifié' THEN 'Planifié' WHEN statut = 'en_cours' THEN 'En cours'
         WHEN statut = 'terminé'  THEN 'Terminé'  WHEN statut = 'suspendu' THEN 'Suspendu'
         WHEN statut = 'annulé'   THEN 'Annulé'   ELSE statut END AS statut_label,
-        COUNT(*) AS nombre FROM projets WHERE commune_id = ? GROUP BY statut
+        COUNT(*) AS nombre FROM projets WHERE commune_id = $1 GROUP BY statut
     `, [commune_id]);
 
     const budget_types = await query(`SELECT t.nom AS type, COALESCE(SUM(p.budget_actuel), 0) AS budget_total, t.couleur
-       FROM types_projets t LEFT JOIN projets p ON t.id = p.type_projet_id AND p.commune_id = ?
+       FROM types_projets t LEFT JOIN projets p ON t.id = p.type_projet_id AND p.commune_id = $1
        GROUP BY t.id, t.nom, t.couleur ORDER BY budget_total DESC LIMIT 5`, [commune_id]);
 
     const evolution_projets = await query(`
       SELECT TO_CHAR(created_at, 'YYYY-MM') AS mois, COUNT(*) AS nombre FROM projets
-      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months' AND commune_id = ?
+      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months' AND commune_id = $1
       GROUP BY TO_CHAR(created_at, 'YYYY-MM') ORDER BY mois ASC
     `, [commune_id]);
 
-    const commune_info = await queryOne('SELECT * FROM communes WHERE id = ?', [commune_id]);
+    const commune_info = await queryOne('SELECT * FROM communes WHERE id = $1', [commune_id]);
 
     res.render('dashboard', {
       page_title: 'Dashboard',
@@ -187,7 +201,7 @@ router.get('/', async (req, res, next) => {
 router.get('/ma-commune', async (req, res, next) => {
   if (req.session.utilisateur_role !== 'admin') return res.redirect('/dashboard');
   try {
-    const commune = await queryOne('SELECT * FROM communes WHERE id = ?', [req.session.commune_id]);
+    const commune = await queryOne('SELECT * FROM communes WHERE id = $1', [req.session.commune_id]);
     res.render('ma-commune', { page_title: 'Paramètres de ma Commune', commune, is_super_admin: false, message: req.query.success ? 'Mise à jour réussie' : '' });
   } catch(err) {
     next(err);
@@ -195,7 +209,7 @@ router.get('/ma-commune', async (req, res, next) => {
 });
 
 router.post('/ma-commune', (req, res, next) => {
-  uploadBanner.single('banniere')(req, res, (err) => {
+  multiUpload(req, res, (err) => {
     if (err) {
       console.error('❌ Erreur Multer upload ma-commune:', err.message);
       const msg = encodeURIComponent(err.message || 'Erreur fichier invalide');
@@ -207,29 +221,63 @@ router.post('/ma-commune', (req, res, next) => {
   if (req.session.utilisateur_role !== 'admin') return res.redirect('/dashboard');
   try {
     const { nom, email, telephone, responsable } = req.body;
-    let sql, params;
+    const commune_id = req.session.commune_id;
+    
+    let updates = {
+      nom,
+      email,
+      telephone,
+      responsable
+    };
 
-    if (req.file) {
-      const ext = path.extname(req.file.originalname) || '.jpg';
+    // Gérer la bannière (Supabase)
+    if (req.files && req.files.banniere && req.files.banniere[0]) {
+      const ext = path.extname(req.files.banniere[0].originalname) || '.jpg';
       const rand = Math.random().toString(36).substring(2, 8);
-      const filename = `bannieres/commune_${req.session.commune_id || 'sa'}_${Date.now()}_${rand}${ext}`;
+      const filename = `bannieres/commune_${commune_id}_${Date.now()}_${rand}${ext}`;
       
-      let finalFilename = filename;
       try {
-        finalFilename = await uploadToSupabase(req.file.buffer, filename, req.file.mimetype);
+        updates.banniere = await uploadToSupabase(req.files.banniere[0].buffer, filename, req.files.banniere[0].mimetype);
       } catch (err) {
         console.error('Upload Supabase error:', err);
         return next(err);
       }
-
-      sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4, banniere=$5 WHERE id=$6';
-      params = [nom, email, telephone, responsable, finalFilename, req.session.commune_id];
-    } else {
-      sql = 'UPDATE communes SET nom=$1, email=$2, telephone=$3, responsable=$4 WHERE id=$5';
-      params = [nom, email, telephone, responsable, req.session.commune_id];
     }
 
-    await query(sql, params);
+    // Gérer l'image principale (Cloudinary)
+    if (req.files && req.files.image_commune && req.files.image_commune[0]) {
+      try {
+        const commune = await queryOne('SELECT image_public_id FROM communes WHERE id = $1', [commune_id]);
+        
+        // Supprimer l'ancienne image si elle existe
+        if (commune && commune.image_public_id) {
+          try {
+            await deleteFromCloudinary(commune.image_public_id);
+          } catch (err) {
+            console.error('Erreur suppression ancienne image:', err);
+          }
+        }
+
+        // Upload nouvelle image
+        const filename = `commune-${commune_id}-${Date.now()}`;
+        const result = await uploadToCloudinary(req.files.image_commune[0].buffer, filename, 'communes');
+        updates.image_url = result.secure_url;
+        updates.image_public_id = result.public_id;
+      } catch (err) {
+        console.error('Upload Cloudinary error:', err);
+        return next(err);
+      }
+    }
+
+    // Construire la requête UPDATE dynamiquement
+    const fields = Object.keys(updates);
+    const values = Object.values(updates);
+    values.push(commune_id);
+    
+    const setSql = fields.map((f, i) => `${f}=$${i + 1}`).join(', ');
+    const sql = `UPDATE communes SET ${setSql} WHERE id=$${fields.length + 1}`;
+    
+    await query(sql, values);
     res.redirect('/dashboard/ma-commune?success=1');
   } catch(err) {
     next(err);
@@ -276,8 +324,13 @@ router.post('/save-global-banner', express.json(), async (req, res) => {
   try {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL manquante' });
-    // On met à jour la bannière globale (en supposant qu'il n'y a qu'un super admin ou on met à jour pour tous)
-    await query('UPDATE munipro_admins SET banniere_globale = $1', [url]);
+    // On met à jour la bannière globale dans la table de configuration
+    // Upsert : si la ligne n'existe pas, on la crée
+    await query(`
+      INSERT INTO munipro_config (cle, valeur) VALUES ('banniere_globale', $1)
+      ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur, updated_at = NOW()
+    `, [url]);
+    console.log('✅ Bannière globale sauvegardée:', url);
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Erreur save global banner:', err.message);

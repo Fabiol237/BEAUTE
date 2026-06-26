@@ -739,27 +739,443 @@ body {
 }
 
 /* ============================================
- * RESPONSIVE
+ * RESPONSIVE - Desktop & Tablet
+ * ============================================ */
+@media (max-width: 1024px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .page-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 2rem;
+    }
+}
+
+/* ============================================
+ * RESPONSIVE - Tablet
  * ============================================ */
 @media (max-width: 768px) {
+    /* Navbar */
     .navbar-brand {
         font-size: 1.125rem;
     }
     
-    .page-header h1 {
-        font-size: 1.75rem;
+    .nav-link {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.9375rem;
     }
     
-    .stat-card h3 {
+    /* Page Header */
+    .page-header {
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        flex-wrap: wrap !important;
+    }
+    
+    .page-header h1 {
         font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        width: 100%;
+    }
+    
+    .page-header .d-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100%;
+    }
+    
+    .page-header .d-flex > div {
+        width: 100%;
+    }
+    
+    .page-header .d-flex.flex-wrap {
+        gap: 0.75rem !important;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.625rem 1rem;
+    }
+    
+    /* Cards */
+    .card {
+        margin-bottom: 1rem;
     }
     
     .card-body {
         padding: 1.25rem;
     }
     
+    .card-header {
+        padding: 1rem 1.25rem !important;
+    }
+    
+    /* Stat Cards */
+    .stat-card {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.75rem;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        right: 1rem;
+    }
+    
+    /* Tables */
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .table th {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Buttons */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    /* Login body */
     .login-body {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Alert */
+    .alert {
+        padding: 0.875rem 1rem;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .alert i {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Row spacing */
+    .row {
+        margin-left: -0.5rem !important;
+        margin-right: -0.5rem !important;
+    }
+    
+    [class*="col-"] {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* ============================================
+ * COMMUNE BANNER - Responsive header
+ * ============================================ */
+.commune-banner {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.commune-banner__icon,
+.commune-banner__body,
+.commune-banner__meta {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .commune-banner {
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .commune-banner__icon {
+        width: auto;
+    }
+
+    .commune-banner__body {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+    }
+
+    .commune-banner__meta {
+        width: auto;
+        margin-left: auto;
+        text-align: right;
+    }
+}
+
+@media (max-width: 767px) {
+    .commune-banner {
+        padding: 1rem !important;
+        text-align: center;
+    }
+
+    .commune-banner__body,
+    .commune-banner__meta {
+        text-align: center;
+    }
+
+    .commune-banner .role-chip {
+        white-space: normal;
+        word-break: break-word;
+    }
+}
+
+/* ============================================
+ * RESPONSIVE - Mobile (Small Phones)
+ * ============================================ */
+@media (max-width: 576px) {
+    /* Container */
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    /* Navbar */
+    .navbar {
+        padding: 0.5rem 0 !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .nav-link {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.875rem;
+    }
+    
+    /* Page Header */
+    .page-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        word-break: break-word;
+    }
+    
+    .page-header h1 i {
+        font-size: 1.5rem;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .page-header .badge {
+        font-size: 0.625rem !important;
+        padding: 0.25rem 0.5rem !important;
+        margin-left: 0.25rem !important;
+    }
+    
+    .page-header .d-flex {
+        gap: 0.5rem !important;
+    }
+    
+    /* Cards */
+    .card {
+        margin-bottom: 0.75rem;
+        border-radius: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-header {
+        padding: 0.875rem 1rem !important;
+        font-size: 0.9375rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    /* Stat Cards */
+    .stat-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card p {
+        font-size: 0.75rem;
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        opacity: 0.1;
+    }
+    
+    /* Buttons */
+    .btn {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-sm {
+        padding: 0.3125rem 0.625rem;
+        font-size: 0.75rem;
+        width: auto !important;
+    }
+    
+    /* Tables */
+    .table {
+        font-size: 0.8125rem;
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.25rem;
+        font-weight: 600;
+    }
+    
+    .table tbody td {
+        padding: 0.625rem 0.25rem;
+        font-size: 0.8125rem;
+    }
+    
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+    }
+    
+    /* Progress bars */
+    .progress {
+        height: 0.375rem;
+        margin: 0.25rem 0;
+    }
+    
+    /* Row and columns */
+    .row {
+        margin-left: -0.375rem !important;
+        margin-right: -0.375rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    [class*="col-"] {
+        padding-left: 0.375rem !important;
+        padding-right: 0.375rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .col-12, .col-lg-12, .col-lg-8, .col-lg-6, .col-xl-4, .col-xl-3 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    
+    /* Alert */
+    .alert {
+        padding: 0.75rem 0.875rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .alert i {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    /* Forms */
+    .form-control, .form-select {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Login body */
+    .login-body {
+        padding: 1.25rem 0.75rem;
+    }
+    
+    /* Banner commune */
+    [style*="background:linear-gradient"] {
+        padding: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    [style*="background:linear-gradient"] > div {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    /* Links */
+    a.btn, a.btn-primary, a.btn-secondary, a.btn-outline-secondary {
+        display: inline-flex;
+        width: auto;
+        word-break: break-word;
+    }
+}
+
+/* ============================================
+ * RESPONSIVE - Extra Small (< 400px)
+ * ============================================ */
+@media (max-width: 400px) {
+    .page-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 0.9375rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .table {
+        font-size: 0.75rem;
     }
 }
 

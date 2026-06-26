@@ -35,7 +35,7 @@ router.post('/login', guestOnly, async (req, res) => {
       `SELECT u.*, r.nom AS role_nom
        FROM utilisateurs u
        JOIN roles r ON u.role_id = r.id
-       WHERE u.email = ?
+       WHERE u.email = $1
          AND u.statut = 'actif'
          AND u.actif = true`,
       [email]
@@ -52,7 +52,7 @@ router.post('/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = user.role;
       req.session.commune_id = user.commune_id;
 
-      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [user.id]);
+      await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = $1', [user.id]);
       await logAction(req, 'CONNEXION', `Connexion réussie : ${user.email} (${user.role}) — Commune ID: ${user.commune_id}`);
       return res.redirect('/dashboard');
     }
@@ -82,7 +82,7 @@ router.post('/admin/login', guestOnly, async (req, res) => {
 
   try {
     const superAdmin = await queryOne(
-      `SELECT * FROM munipro_admins WHERE email = ? AND statut = 'actif'`,
+      `SELECT * FROM munipro_admins WHERE email = $1 AND statut = 'actif'`,
       [email]
     );
 
@@ -96,7 +96,7 @@ router.post('/admin/login', guestOnly, async (req, res) => {
       req.session.utilisateur_role = 'super_admin';
       req.session.is_super_admin = true;
 
-      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = ?', [superAdmin.id]);
+      await query('UPDATE munipro_admins SET derniere_connexion = NOW() WHERE id = $1', [superAdmin.id]);
       await logAction(req, 'CONNEXION', `Connexion Super Admin : ${superAdmin.email}`);
       return res.redirect('/dashboard');
     }
@@ -143,7 +143,7 @@ router.get('/inscription', guestOnly, async (req, res, next) => {
     }
 
     // Récupérer les détails de la commune
-    const commune = await queryOne('SELECT * FROM communes WHERE id = ? AND statut = ?', [commune_id, 'actif']);
+    const commune = await queryOne('SELECT * FROM communes WHERE id = $1 AND statut = $2', [commune_id, 'actif']);
     if (!commune) {
       return res.render('login', {
         page_title: 'Connexion',
@@ -187,7 +187,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
       return res.redirect('/login');
     }
 
-    const commune = await queryOne('SELECT * FROM communes WHERE id = ? AND statut = ?', [commune_id, 'actif']);
+    const commune = await queryOne('SELECT * FROM communes WHERE id = $1 AND statut = $2', [commune_id, 'actif']);
     if (!commune) {
       return res.redirect('/login');
     }
@@ -202,7 +202,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
 
     if (!erreurs.length) {
       // Vérifier l'unicité de l'email
-      const userExists = await queryOne('SELECT id FROM utilisateurs WHERE email = ?', [email]);
+      const userExists = await queryOne('SELECT id FROM utilisateurs WHERE email = $1', [email]);
       if (userExists) erreurs.push('Cette adresse email est déjà enregistrée.');
     }
 
@@ -222,7 +222,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
     // Insertion du compte utilisateur lié à sa commune (rôle ID 1 correspond à 'admin')
     const insertResult = await query(
       `INSERT INTO utilisateurs (commune_id, role_id, nom, prenom, email, password_hash, role, statut, actif, created_at)
-       VALUES (?, 1, ?, ?, ?, ?, 'admin', 'actif', true, NOW()) RETURNING id`,
+       VALUES ($1, 1, $2, $3, $4, $5, 'admin', 'actif', true, NOW()) RETURNING id`,
       [commune_id, nom, prenom, email, hash]
     );
 
@@ -236,7 +236,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
     req.session.utilisateur_role = 'admin';
     req.session.commune_id = commune_id;
 
-    await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = ?', [insertResult[0].id]);
+    await query('UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id = $1', [insertResult[0].id]);
     res.redirect('/dashboard');
   } catch (err) {
     next(err);

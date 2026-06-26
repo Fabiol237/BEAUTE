@@ -31,12 +31,27 @@ const formatMontant = (v) => {
   return Number(v).toLocaleString('fr-FR') + ' FCFA';
 };
 
+// Récupère la bannière globale depuis la table de config
+async function getGlobalBanner() {
+  try {
+    const row = await queryOne(
+      "SELECT valeur FROM munipro_config WHERE cle = 'banniere_globale'",
+      []
+    );
+    return row ? row.valeur : '';
+  } catch (err) {
+    // La table n'existe peut-être pas encore
+    console.warn('munipro_config non disponible:', err.message);
+    return '';
+  }
+}
+
 // ── PAGE SÉLECTION COMMUNE ──────────────────────────────────────
 router.get('/', async (req, res, next) => {
   try {
     const q = req.query.q || '';
     let sql = `
-      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at,
+      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.image_url, c.created_at,
         COUNT(DISTINCT p.id) AS total_projets,
         SUM(CASE WHEN p.statut='en_cours' THEN 1 ELSE 0 END) AS en_cours,
         COALESCE(AVG(p.avancement_physique),0) AS taux_avancement
@@ -45,16 +60,23 @@ router.get('/', async (req, res, next) => {
       WHERE c.statut = 'actif'
     `;
     const params = [];
-    if (q) { sql += ' AND c.nom ILIKE ?'; params.push(`%${q}%`); }
-    sql += ' GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at ORDER BY c.nom';
+    if (q) {
+      sql += ' AND c.nom ILIKE $1';
+      params.push(`%${q}%`);
+    }
+    sql += ' GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.image_url, c.created_at ORDER BY c.nom';
+
     const communes = (await query(sql, params)).map(c => ({
       ...c,
       taux_avancement: Math.round(Number(c.taux_avancement)||0),
       en_cours: Number(c.en_cours)||0,
     }));
+
+    const globalBanner = await getGlobalBanner();
+
     res.render('portail/choix-commune', {
       page_title: 'Portail Citoyen — Choisissez votre Commune',
-      layout: false, communes, bannerColors, query: q,
+      layout: false, communes, bannerColors, query: q, globalBanner,
     });
   } catch (err) { next(err); }
 });
@@ -63,14 +85,17 @@ router.get('/', async (req, res, next) => {
 router.get('/commune/:id', async (req, res, next) => {
   try {
     const commune_id = parseInt(req.params.id, 10);
+    if (isNaN(commune_id)) {
+      return res.status(404).send('Commune non trouvée');
+    }
     const commune = await queryOne(`
-      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at,
+      SELECT c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.image_url, c.created_at,
         COUNT(DISTINCT p.id) AS total_projets,
         COALESCE(SUM(p.budget_actuel),0) AS budget_total
       FROM communes c
       LEFT JOIN projets p ON p.commune_id = c.id
-      WHERE c.id = ? AND c.statut = 'actif'
-      GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.created_at
+      WHERE c.id = $1 AND c.statut = 'actif'
+      GROUP BY c.id, c.nom, c.region, c.statut, c.email, c.telephone, c.responsable, c.banniere, c.image_url, c.created_at
     `, [commune_id]);
     if (!commune) return res.redirect('/portail-citoyen');
 
@@ -78,9 +103,12 @@ router.get('/commune/:id', async (req, res, next) => {
       SELECT p.*, tp.nom AS type_nom
       FROM projets p
       JOIN types_projets tp ON tp.id = p.type_projet_id
-      WHERE p.commune_id = ? AND p.visible_public = TRUE
+      WHERE p.commune_id = $1 AND p.visible_public = TRUE
       ORDER BY p.created_at DESC
     `, [commune_id]);
+    projets.forEach(p => {
+      if (!p.photo && p.image_url) p.photo = p.image_url;
+    });
 
     const stats = {
       total:    projets.length,
@@ -112,20 +140,23 @@ router.get('/projets', async (req, res, next) => {
 
     const where = ['p.visible_public = TRUE'];
     const params = [];
+    let pIdx = 1;
+
     if (recherche) {
-      where.push('(p.titre ILIKE ? OR p.description ILIKE ?)');
+      where.push(`(p.titre ILIKE $${pIdx} OR p.description ILIKE $${pIdx + 1})`);
       params.push(`%${recherche}%`, `%${recherche}%`);
+      pIdx += 2;
     }
     if (commune_id) {
-      where.push('p.commune_id = ?');
+      where.push(`p.commune_id = $${pIdx++}`);
       params.push(commune_id);
     }
     if (type_id) {
-      where.push('p.type_projet_id = ?');
+      where.push(`p.type_projet_id = $${pIdx++}`);
       params.push(type_id);
     }
     if (statut) {
-      where.push('p.statut = ?');
+      where.push(`p.statut = $${pIdx++}`);
       params.push(statut);
     }
 
@@ -138,6 +169,9 @@ router.get('/projets', async (req, res, next) => {
        ORDER BY p.created_at DESC`,
       params
     );
+    projets.forEach(p => {
+      if (!p.photo && p.image_url) p.photo = p.image_url;
+    });
 
     const communes = await query('SELECT id, nom FROM communes ORDER BY nom');
     const types = await query('SELECT id, nom FROM types_projets ORDER BY nom');
@@ -161,19 +195,35 @@ router.get('/projets', async (req, res, next) => {
 router.get('/projet/:id', async (req, res, next) => {
   try {
     const projet_id = parseInt(req.params.id, 10);
+    if (isNaN(projet_id)) {
+      return res.status(404).send('Projet non trouvé');
+    }
     const projet = await queryOne(
       `SELECT p.*, tp.nom AS type_nom, c.nom AS commune_nom
        FROM projets p
        LEFT JOIN types_projets tp ON tp.id = p.type_projet_id
        LEFT JOIN communes c ON c.id = p.commune_id
-       WHERE p.id = ? AND p.visible_public = TRUE`,
+       WHERE p.id = $1 AND p.visible_public = TRUE`,
       [projet_id]
     );
+    if (projet && !projet.photo && projet.image_url) {
+      projet.photo = projet.image_url;
+    }
 
     if (!projet) return res.redirect('/portail-citoyen');
 
     const photos_list = await query(
-      'SELECT * FROM photos WHERE projet_id = ? ORDER BY date_upload DESC LIMIT 9',
+      'SELECT * FROM photos WHERE projet_id = $1 ORDER BY date_upload DESC LIMIT 20',
+      [projet_id]
+    );
+
+    const avancements_list = await query(
+      `SELECT a.*, u.nom AS auteur_nom
+       FROM avancements a
+       LEFT JOIN utilisateurs u ON u.id = a.utilisateur_id
+       WHERE a.projet_id = $1
+       ORDER BY a.date_constat DESC, a.created_at DESC
+       LIMIT 20`,
       [projet_id]
     );
 
@@ -185,14 +235,17 @@ router.get('/projet/:id', async (req, res, next) => {
       'linear-gradient(135deg,#5B2D8E,#7C3AED)',
     ];
     const heroColor = heroColors[projet_id % heroColors.length];
+    const siteUrl = `${req.protocol}://${req.get('host')}`;
 
     res.render('portail/projet', {
       page_title: projet.titre,
       layout: false,
       projet,
       photos_list,
+      avancements_list,
       heroColor,
       formatMontant,
+      siteUrl,
     });
   } catch (err) {
     next(err);
@@ -205,13 +258,16 @@ router.get('/carte', async (req, res, next) => {
   try {
     const projets = await query(`
       SELECT p.id, p.titre, p.statut, p.avancement_physique, p.budget_actuel,
-             p.latitude, p.longitude, p.photo, c.nom AS commune_nom
+             p.latitude, p.longitude, p.image_url, p.image_public_id, p.photo, c.nom AS commune_nom
       FROM projets p
       LEFT JOIN communes c ON c.id = p.commune_id
       WHERE p.visible_public = TRUE
         AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
       ORDER BY p.created_at DESC
     `);
+    projets.forEach(p => {
+      if (!p.photo && p.image_url) p.photo = p.image_url;
+    });
     res.render('portail/carte', {
       page_title: 'Carte Satellitaire — Portail Citoyen',
       layout: false,

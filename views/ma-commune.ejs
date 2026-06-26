@@ -30,8 +30,28 @@
                     </div>
                     <label class="form-label fw-bold mt-3">Changer la bannière</label>
                     <input type="file" name="banniere" class="form-control" accept="image/*"
-                           onchange="if(this.files[0]){var p=document.getElementById('bannerPreview');var d=document.getElementById('defaultBannerPlaceholder');p.src=URL.createObjectURL(this.files[0]);p.style.display='block';if(d)d.style.display='none';}">
+                           onchange="if(this.files[0]){var p=document.getElementById('bannerPreview');var d=document.getElementById('defaultBannerPlaceholder');var createUrl=window.URL&&window.URL.createObjectURL?window.URL.createObjectURL.bind(window.URL):null; if(createUrl){var url=createUrl(this.files[0]); p.src=url; p.style.display='block'; if(d)d.style.display='none';}}">
                     <small class="text-muted">Format recommandé : Paysage, JPG/PNG, max 2Mo</small>
+                </div>
+
+                <!-- Image principale de la commune (Cloudinary) -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">🖼️ Image de la Commune</label>
+                    <div class="mb-2">
+                        <% if (commune && commune.image_url) { %>
+                            <img id="imagePreview" src="<%= commune.image_url %>" alt="Image commune"
+                                 style="max-height: 300px; border-radius: 8px; object-fit: cover; width: 100%; display:block;">
+                        <% } else { %>
+                            <div id="defaultImagePlaceholder" class="bg-light p-4 text-center rounded text-muted">
+                                <i class="bi bi-building" style="font-size:40px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                                Aucune image principale. Une image par défaut sera utilisée.
+                            </div>
+                        <% } %>
+                    </div>
+                    <label class="form-label fw-bold mt-3">Changer l'image de la commune</label>
+                    <input type="file" name="image_commune" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp"
+                           onchange="if(this.files[0]){var p=document.getElementById('imagePreview');var d=document.getElementById('defaultImagePlaceholder');var createUrl=window.URL&&window.URL.createObjectURL?window.URL.createObjectURL.bind(window.URL):null; if(!createUrl) return; var url=createUrl(this.files[0]); p=p||document.createElement('img'); p.src=url; p.style.maxHeight='300px'; p.style.borderRadius='8px'; p.style.objectFit='cover'; p.style.width='100%'; p.id='imagePreview'; p.style.display='block'; if(d)d.style.display='none'; if(!document.getElementById('imagePreview')){d.parentNode.insertBefore(p,d);} else { document.getElementById('imagePreview').src=url; }}">
+                    <small class="text-muted">Format: JPEG, PNG, GIF ou WebP. Max 50 MB</small>
                 </div>
 
                 <div class="row mb-3">

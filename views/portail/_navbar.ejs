@@ -1,0 +1,112 @@
+<%
+  const _lang = typeof currentLang !== 'undefined' ? currentLang : 'fr';
+  const _url = typeof siteUrl !== 'undefined' ? siteUrl : '';
+  const _path = typeof reqPath !== 'undefined' ? reqPath : '';
+  const _switchLang = _lang === 'fr' ? 'en' : 'fr';
+  const _switchLabel = _lang === 'fr' ? '🇬🇧 English' : '🇫🇷 Français';
+%>
+<nav id="portail-nav">
+  <a href="<%= _url %>/portail-citoyen" class="nav-brand">
+    <img src="/assets/images/logo.png" alt="Logo MuniPro">
+    <span>Portail Citoyen</span>
+  </a>
+
+  <!-- Liens desktop -->
+  <div class="nav-links" id="navLinks">
+    <a href="<%= _url %>/portail-citoyen" class="nav-link-item"><i class="bi bi-house-door-fill"></i> Accueil</a>
+    <a href="<%= _url %>/portail-citoyen/communes" class="nav-link-item"><i class="bi bi-building-fill"></i> Communes</a>
+    <a href="<%= _url %>/portail-citoyen/projets" class="nav-link-item"><i class="bi bi-folder-fill"></i> Projets</a>
+    <a href="<%= _url %>/portail-citoyen/carte" class="nav-link-item"><i class="bi bi-map-fill"></i> Carte</a>
+    <a href="<%= _url %>/portail-citoyen/suggestion" class="nav-link-item"><i class="bi bi-chat-dots-fill"></i> Suggestion</a>
+    <!-- Bouton langue -->
+    <a href="?lang=<%= _switchLang %>" class="nav-lang-btn" title="Changer la langue">
+      <%= _switchLabel %>
+    </a>
+  </div>
+
+  <!-- Burger mobile -->
+  <button class="nav-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<style>
+  #portail-nav {
+    position: sticky; top: 0; z-index: 1050;
+    background: rgba(0,30,15,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 2px solid rgba(252,209,22,0.25);
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 62px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; flex-shrink: 0;
+  }
+  .nav-brand img {
+    height: 34px; width: 34px; object-fit: contain;
+    background: white; padding: 4px; border-radius: 8px;
+  }
+  .nav-brand span {
+    color: white; font-weight: 800; font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+  }
+  .nav-links {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-link-item {
+    color: rgba(255,255,255,0.82);
+    text-decoration: none; font-size: 13.5px; font-weight: 500;
+    padding: 6px 12px; border-radius: 8px;
+    transition: all .2s; font-family: 'Poppins', sans-serif;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .nav-link-item:hover {
+    color: #FCD116; background: rgba(252,209,22,0.12);
+  }
+  .nav-lang-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(252,209,22,0.15);
+    border: 1.5px solid rgba(252,209,22,0.5);
+    color: #FCD116; font-weight: 700; font-size: 13px;
+    padding: 5px 14px; border-radius: 20px;
+    text-decoration: none; transition: all .2s;
+    font-family: 'Poppins', sans-serif;
+    margin-left: 6px;
+  }
+  .nav-lang-btn:hover {
+    background: #FCD116; color: #003A1C; border-color: #FCD116;
+  }
+  .nav-burger {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+  }
+  .nav-burger span {
+    display: block; width: 24px; height: 2.5px;
+    background: white; border-radius: 2px;
+    transition: all .3s;
+  }
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none; flex-direction: column;
+      position: absolute; top: 62px; left: 0; right: 0;
+      background: rgba(0,30,15,0.97);
+      border-bottom: 2px solid rgba(252,209,22,0.2);
+      padding: 16px; gap: 4px;
+    }
+    .nav-links.open { display: flex; }
+    .nav-link-item { padding: 10px 16px; }
+    .nav-lang-btn { margin-left: 0; margin-top: 8px; justify-content: center; }
+    .nav-burger { display: flex; }
+    #portail-nav { position: relative; }
+  }
+</style>
+
+<script>
+  document.getElementById('navBurger').addEventListener('click', function() {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+</script>

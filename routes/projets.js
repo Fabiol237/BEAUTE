@@ -8,6 +8,7 @@ const { requireConnexion, requireRole, requireAdmin } = require('../middleware/a
 const { setFlash } = require('../middleware/flash');
 const { parseMontantInput, peutFaire, joursRestants } = require('../lib/helpers');
 const { loadProjetForPdf, streamRapport } = require('../lib/rapportPdf');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../middleware/cloudinary');
 
 const { uploadToSupabase } = require('../lib/supabase');
 
@@ -321,7 +322,7 @@ router.get('/details/:id', async (req, res, next) => {
     }
 
     const depRow = await queryOne(
-      'SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE projet_id = ? AND validee = true',
+      'SELECT COALESCE(SUM(montant), 0) AS s FROM depenses WHERE projet_id = $1 AND validee = true',
       [projet_id]
     );
     const depenses = Number(depRow.s);
@@ -344,7 +345,7 @@ router.get('/details/:id', async (req, res, next) => {
       `SELECT a.*, CONCAT(u.prenom, ' ', u.nom) AS auteur
        FROM avancements a
        JOIN utilisateurs u ON a.utilisateur_id = u.id
-       WHERE a.projet_id = ?
+       WHERE a.projet_id = $1
        ORDER BY a.date_constat DESC
        LIMIT 5`,
       [projet_id]
@@ -354,7 +355,7 @@ router.get('/details/:id', async (req, res, next) => {
       `SELECT p.*, CONCAT(u.prenom, ' ', u.nom) AS upload_par_nom
        FROM photos p
        JOIN utilisateurs u ON p.uploaded_by = u.id
-       WHERE p.projet_id = ?
+       WHERE p.projet_id = $1
        ORDER BY p.date_upload DESC
        LIMIT 6`,
       [projet_id]
@@ -737,6 +738,83 @@ router.get('/generer-rapport/:id', async (req, res, next) => {
   } catch (err) {
     console.error(err);
     setFlash(req, 'danger', `Erreur lors de la génération du rapport : ${err.message}`);
+    res.redirect(`/projets/details/${req.params.id}`);
+  }
+});
+
+// ── Upload image principale du projet (Cloudinary) ────────────────────────
+router.post('/:id/upload-image', gestionnaireOnly, uploadPhotos.single('image'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      setFlash(req, 'danger', 'Aucun fichier fourni');
+      return res.redirect(`/projets/details/${req.params.id}`);
+    }
+
+    const projet_id = parseInt(req.params.id, 10);
+    const projet = await queryOne('SELECT id, titre, image_public_id FROM projets WHERE id = $1', [projet_id]);
+    
+    if (!projet) {
+      setFlash(req, 'danger', 'Projet introuvable');
+      return res.redirect('/projets/liste');
+    }
+
+    // Supprimer l'ancienne image si elle existe
+    if (projet.image_public_id) {
+      try {
+        await deleteFromCloudinary(projet.image_public_id);
+      } catch (err) {
+        console.error('Erreur suppression ancienne image:', err);
+      }
+    }
+
+    // Upload nouvelle image
+    const filename = `projet-${projet_id}-${Date.now()}`;
+    const result = await uploadToCloudinary(req.file.buffer, filename, 'projets');
+
+    // Update database
+    await query(
+      'UPDATE projets SET image_url = $1, image_public_id = $2, updated_at = NOW() WHERE id = $3',
+      [result.secure_url, result.public_id, projet_id]
+    );
+
+    setFlash(req, 'success', `✅ Image du projet « ${projet.titre} » mise à jour avec succès`);
+    res.redirect(`/projets/details/${projet_id}`);
+  } catch (err) {
+    console.error('Erreur upload image:', err);
+    setFlash(req, 'danger', `Erreur lors de l'upload: ${err.message}`);
+    res.redirect(`/projets/details/${req.params.id}`);
+  }
+});
+
+// ── Supprimer image du projet ──────────────────────────────────────────────
+router.post('/:id/delete-image', gestionnaireOnly, async (req, res, next) => {
+  try {
+    const projet_id = parseInt(req.params.id, 10);
+    const projet = await queryOne('SELECT id, titre, image_public_id FROM projets WHERE id = $1', [projet_id]);
+    
+    if (!projet) {
+      setFlash(req, 'danger', 'Projet introuvable');
+      return res.redirect('/projets/liste');
+    }
+
+    if (projet.image_public_id) {
+      try {
+        await deleteFromCloudinary(projet.image_public_id);
+      } catch (err) {
+        console.error('Erreur suppression image:', err);
+      }
+    }
+
+    await query(
+      'UPDATE projets SET image_url = NULL, image_public_id = NULL, updated_at = NOW() WHERE id = $1',
+      [projet_id]
+    );
+
+    setFlash(req, 'success', `✅ Image du projet supprimée`);
+    res.redirect(`/projets/details/${projet_id}`);
+  } catch (err) {
+    console.error('Erreur suppression image:', err);
+    setFlash(req, 'danger', `Erreur lors de la suppression: ${err.message}`);
     res.redirect(`/projets/details/${req.params.id}`);
   }
 });

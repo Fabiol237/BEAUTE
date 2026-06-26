@@ -4,6 +4,7 @@ const { query, queryOne } = require('../db');
 const { requireConnexion, requireSuperAdmin } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
 const { logAction } = require('../middleware/journal');
+const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../middleware/cloudinary');
 
 const router = express.Router();
 router.use(requireConnexion, requireSuperAdmin);
@@ -185,5 +186,8 @@ router.get('/journal', async (req, res, next) => {
     });
   } catch (err) { next(err); }
 });
+
+// Les routes d'upload et suppression d'image ont été retirées à la demande du client.
+// Seules les communes peuvent gérer leur propre image depuis leurs paramètres.
 
 module.exports = router;

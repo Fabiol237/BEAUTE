@@ -36,6 +36,23 @@
       </div>
 
       <div class="card">
+        <div class="card-header"><h5><i class="bi bi-image" style="color:var(--munipro-blue);"></i> Image de la Commune</h5></div>
+        <div class="card-body">
+          <% if (commune.image_url) { %>
+            <div style="margin-bottom:20px;">
+              <img src="<%= commune.image_url %>" alt="<%= e(commune.nom) %>" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:16px;">
+            </div>
+          <% } else { %>
+            <div style="padding: 20px; text-align: center; color: var(--text-muted); background: #F8FAFC; border-radius: 8px; border: 1px dashed #DDE3EA;">
+              <i class="bi bi-image" style="font-size: 32px; opacity: 0.5;"></i>
+              <p style="margin-top: 8px; font-size: 13px;">La commune n'a pas encore ajouté d'image.</p>
+              <p style="font-size: 12px; opacity: 0.7;">Seul le responsable de la commune peut modifier cette image depuis ses paramètres.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-header"><h5><i class="bi bi-speedometer2" style="color:var(--munipro-blue);"></i> KPIs de Performance</h5></div>
         <div class="card-body">
           <div class="kpi-row" style="margin-bottom:20px;">

@@ -11,8 +11,8 @@ router.use(requireConnexion);
 router.get('/liste', async (req, res, next) => {
   try {
     const cId = req.session.commune_id;
-    const pCond = cId ? 'WHERE commune_id = ?' : '';
-    const dCond = cId ? 'WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = ?)' : '';
+    const pCond = cId ? 'WHERE commune_id = $1' : '';
+    const dCond = cId ? 'WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)' : '';
     const args = cId ? [cId] : [];
 
     const stats_budget = {};
@@ -43,7 +43,7 @@ router.get('/liste', async (req, res, next) => {
       LEFT JOIN types_projets t ON p.type_projet_id = t.id
       LEFT JOIN communes c ON p.commune_id = c.id
       LEFT JOIN depenses d ON d.projet_id = p.id
-      ${cId ? 'WHERE p.commune_id = ?' : ''}
+      ${cId ? 'WHERE p.commune_id = $1' : ''}
       GROUP BY p.id, t.nom, t.couleur, c.nom
       ORDER BY p.budget_actuel DESC
     `, args);
@@ -67,7 +67,7 @@ router.get('/depenses', async (req, res, next) => {
        FROM projets p
        LEFT JOIN types_projets t ON p.type_projet_id = t.id
        LEFT JOIN communes c ON p.commune_id = c.id
-       WHERE p.id = ? ${cId ? 'AND p.commune_id = ?' : ''}`,
+       WHERE p.id = $1 ${cId ? 'AND p.commune_id = $2' : ''}`,
       cId ? [projet_id, cId] : [projet_id]
     );
 
@@ -77,7 +77,7 @@ router.get('/depenses', async (req, res, next) => {
     }
 
     const depenses_list = await query(
-      'SELECT * FROM depenses WHERE projet_id = ? ORDER BY date_depense DESC',
+      'SELECT * FROM depenses WHERE projet_id = $1 ORDER BY date_depense DESC',
       [projet_id]
     );
 
@@ -130,11 +130,11 @@ router.post('/depenses', requireRole('gestionnaire'), async (req, res, next) => 
          FROM projets p
          LEFT JOIN types_projets t ON p.type_projet_id = t.id
          LEFT JOIN communes c ON p.commune_id = c.id
-         WHERE p.id = ?`,
+         WHERE p.id = $1`,
         [projet_id]
       );
       const depenses_list = await query(
-        'SELECT * FROM depenses WHERE projet_id = ? ORDER BY date_depense DESC',
+        'SELECT * FROM depenses WHERE projet_id = $1 ORDER BY date_depense DESC',
         [projet_id]
       );
       const total_depenses = depenses_list.reduce((s, d) => s + Number(d.montant), 0);
@@ -162,7 +162,7 @@ router.post('/depenses', requireRole('gestionnaire'), async (req, res, next) => 
     await query(
       `INSERT INTO depenses
         (projet_id, libelle, description, montant, date_depense, numero_facture, fournisseur, saisi_par, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
       [
         projet_id,
         libelle,

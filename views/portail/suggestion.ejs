@@ -152,8 +152,15 @@
       <div class="nav-links">
         <a href="<%= siteUrl %>/portail-citoyen"><i class="bi bi-house-fill"></i> Accueil</a>
         <a href="<%= siteUrl %>/portail-citoyen/carte"><i class="bi bi-map-fill"></i> Carte</a>
+        <a href="<%= siteUrl %>/portail-citoyen/projets"><i class="bi bi-folder-fill"></i> Projets</a>
       </div>
-      <a href="<%= siteUrl %>/portail-citoyen" class="btn-retour"><i class="bi bi-arrow-left"></i> Retour</a>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <a href="<%= siteUrl %>/portail-citoyen" class="btn-retour"><i class="bi bi-arrow-left"></i> Retour</a>
+        <% const _sl = typeof currentLang !== 'undefined' ? currentLang : 'fr'; %>
+        <a href="?lang=<%= _sl === 'fr' ? 'en' : 'fr' %>" style="display:inline-flex;align-items:center;gap:5px;background:rgba(252,209,22,0.18);border:1.5px solid rgba(252,209,22,0.5);color:#FCD116;font-weight:700;font-size:12px;padding:4px 12px;border-radius:20px;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#FCD116';this.style.color='#003A1C';" onmouseout="this.style.background='rgba(252,209,22,0.18)';this.style.color='#FCD116';">
+          <%= _sl === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR' %>
+        </a>
+      </div>
     </div>
   </nav>
 

@@ -19,5 +19,10 @@ module.exports = {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_ANON_KEY,
     serviceKey: process.env.SUPABASE_SERVICE_KEY
+  },
+  cloudinary: {
+    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'da22qmu1g',
+    apiKey: process.env.CLOUDINARY_API_KEY || '723179179819453',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || 'cznVoKxaUng2jaum31S95ji7kUA'
   }
 };
