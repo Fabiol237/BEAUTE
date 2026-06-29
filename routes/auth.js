@@ -143,7 +143,7 @@ router.get('/inscription', guestOnly, async (req, res, next) => {
     }
 
     // Récupérer les détails de la commune
-    const commune = await queryOne('SELECT * FROM communes WHERE id = $1 AND statut = $2', [commune_id, 'actif']);
+    const commune = await queryOne('SELECT * FROM communes WHERE id = $1', [commune_id]);
     if (!commune) {
       return res.render('login', {
         page_title: 'Connexion',
@@ -187,7 +187,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
       return res.redirect('/login');
     }
 
-    const commune = await queryOne('SELECT * FROM communes WHERE id = $1 AND statut = $2', [commune_id, 'actif']);
+    const commune = await queryOne('SELECT * FROM communes WHERE id = $1', [commune_id]);
     if (!commune) {
       return res.redirect('/login');
     }
@@ -225,6 +225,9 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
        VALUES ($1, 1, $2, $3, $4, $5, 'admin', 'actif', true, NOW()) RETURNING id`,
       [commune_id, nom, prenom, email, hash]
     );
+
+    // Mettre à jour le statut de la commune
+    await query('UPDATE communes SET statut = $1 WHERE id = $2', ['actif', commune_id]);
 
     // Connexion automatique immédiate après inscription
     req.session.utilisateur_id = insertResult[0].id;
