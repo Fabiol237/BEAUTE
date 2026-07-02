@@ -1,11 +1,19 @@
 require('dotenv').config();
 const path = require('path');
 
+function resolveSiteUrl() {
+  if (process.env.SITE_URL) return process.env.SITE_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+  return `http://localhost:${parseInt(process.env.PORT || '3000', 10)}`;
+}
+
 module.exports = {
   port: parseInt(process.env.PORT || '3000', 10),
-  siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+  siteUrl: resolveSiteUrl(),
   siteName: process.env.SITE_NAME || 'Suivi Projets Municipaux',
   sessionSecret: process.env.SESSION_SECRET || 'suivi-projets-dev-secret',
+  invitationSecret: process.env.SESSION_SECRET || 'suivi-projets-dev-secret',
   db: {
     host: process.env.DB_HOST || 'db.aewdvkgozowfypbyliwt.supabase.co',
     user: process.env.DB_USER || 'postgres',

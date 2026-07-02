@@ -101,6 +101,12 @@
               <%= c.statut==='actif'?'Suspendre':'Réactiver' %>
             </button>
           </form>
+          <form method="POST" action="<%= siteUrl %>/communes/<%= c.id %>/delete" style="margin:0;" onsubmit="return confirm('Supprimer définitivement cette commune ? Cette action supprimera aussi ses utilisateurs et projets.');">
+            <button type="submit" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"></i>
+              Supprimer
+            </button>
+          </form>
         </div>
       </div>
       <% }); %>

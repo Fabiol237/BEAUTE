@@ -1,6 +1,8 @@
 const express = require('express');
 const { query, queryOne } = require('../db');
 const { requireConnexion } = require('../middleware/auth');
+const { setFlash } = require('../middleware/flash');
+const { logAction } = require('../middleware/journal');
 const router = express.Router();
 
 router.use(requireConnexion, (req, res, next) => {
@@ -166,5 +168,41 @@ router.post('/:id/toggle', async (req, res, next) => {
     next(err);
   }
 });
+
+async function deleteCommune(req, res, next) {
+  try {
+    const commune = await queryOne('SELECT id, nom FROM communes WHERE id = $1', [req.params.id]);
+    if (!commune) {
+      setFlash(req, 'danger', 'Commune introuvable.');
+      return res.redirect('/communes');
+    }
+
+    // Nettoyage explicite avant la suppression de la commune.
+    // Certaines tables ont des contraintes qui peuvent échouer si les suppressions
+    // sont laissées uniquement aux cascades automatiques.
+    await query(`
+      DELETE FROM avancements
+      WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)
+         OR utilisateur_id IN (SELECT id FROM utilisateurs WHERE commune_id = $1)
+    `, [req.params.id]);
+    await query('DELETE FROM depenses WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)', [req.params.id]);
+    await query('DELETE FROM photos WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)', [req.params.id]);
+    await query('DELETE FROM jalons WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)', [req.params.id]);
+    await query('DELETE FROM risques WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)', [req.params.id]);
+    await query('DELETE FROM indicateurs WHERE projet_id IN (SELECT id FROM projets WHERE commune_id = $1)', [req.params.id]);
+
+    await query('DELETE FROM communes WHERE id = $1', [req.params.id]);
+    await logAction(req, 'DELETE_COMMUNE', `Commune supprimée : ${commune.nom} (ID: ${commune.id})`);
+    setFlash(req, 'success', `Commune ${commune.nom} supprimée avec succès.`);
+    res.redirect('/communes');
+  } catch (err) {
+    next(err);
+  }
+}
+
+router.post('/:id/delete', deleteCommune);
+router.post('/:id/supprimer', deleteCommune);
+router.post('/delete/:id', deleteCommune);
+router.delete('/:id', deleteCommune);
 
 module.exports = router;

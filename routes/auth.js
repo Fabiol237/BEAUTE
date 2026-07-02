@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { query, queryOne } = require('../db');
+const config = require('../config');
 const { guestOnly } = require('../middleware/auth');
 const { setFlash } = require('../middleware/flash');
 const { logAction } = require('../middleware/journal');
@@ -131,7 +132,7 @@ router.get('/inscription', guestOnly, async (req, res, next) => {
 
   try {
     // Valider le token MD5 avec la clé secrète
-    const secret = process.env.SESSION_SECRET || 'changez-moi-en-production';
+    const secret = config.invitationSecret;
     const calculatedToken = crypto.createHash('md5').update(`${commune_id}-${secret}`).digest('hex');
 
     if (calculatedToken !== token) {
@@ -180,7 +181,7 @@ router.post('/inscription', guestOnly, async (req, res, next) => {
 
   try {
     // Re-valider le token et la commune
-    const secret = process.env.SESSION_SECRET || 'changez-moi-en-production';
+    const secret = config.invitationSecret;
     const calculatedToken = crypto.createHash('md5').update(`${commune_id}-${secret}`).digest('hex');
 
     if (calculatedToken !== token) {

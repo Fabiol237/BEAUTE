@@ -15,6 +15,13 @@ router.use(requireConnexion);
 
 const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
 
+function getInvitationBaseUrl(req) {
+  if (config.siteUrl && !/^http:\/\/localhost:\d+$/i.test(config.siteUrl)) {
+    return config.siteUrl;
+  }
+  return `${req.protocol}://${req.get('host')}`;
+}
+
 // Utilisation de memoryStorage pour uploader vers Supabase
 const bannerStorage = multer.memoryStorage();
 const uploadBanner = multer({ 
@@ -86,7 +93,7 @@ router.get('/', async (req, res, next) => {
 
       communes_stats.forEach(c => {
         const token = crypto.createHash('md5').update(`${c.id}-${secret}`).digest('hex');
-        c.inscription_link = `${req.protocol}://${req.get('host')}/inscription?commune_id=${c.id}&token=${token}`;
+        c.inscription_link = `${getInvitationBaseUrl(req)}/inscription?commune_id=${c.id}&token=${token}`;
         c.has_admin = Number(c.nb_admins) > 0;
         c.taux_avancement = Math.round(Number(c.taux_avancement) || 0);
         c.en_retard = Number(c.en_retard) || 0;

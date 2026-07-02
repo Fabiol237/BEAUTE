@@ -8,13 +8,21 @@
       <span style="color:var(--text-muted);margin:0 8px;">/</span>
       <strong><%= e(commune.nom) %></strong>
     </div>
-    <span class="badge badge-<%= commune.statut %>" style="font-size:13px;padding:6px 14px;"><%= commune.statut %></span>
-    <form method="POST" action="<%= siteUrl %>/communes/<%= commune.id %>/toggle" style="margin:0;">
-      <button type="submit" class="btn btn-sm <%= commune.statut==='actif'?'btn-warning':'btn-success' %>">
-        <i class="bi bi-<%= commune.statut==='actif'?'pause':'play' %>-circle"></i>
-        <%= commune.statut==='actif'?'Suspendre':'Réactiver' %>
-      </button>
-    </form>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span class="badge badge-<%= commune.statut %>" style="font-size:13px;padding:6px 14px;"><%= commune.statut %></span>
+      <form method="POST" action="<%= siteUrl %>/communes/<%= commune.id %>/toggle" style="margin:0;">
+        <button type="submit" class="btn btn-sm <%= commune.statut==='actif'?'btn-warning':'btn-success' %>">
+          <i class="bi bi-<%= commune.statut==='actif'?'pause':'play' %>-circle"></i>
+          <%= commune.statut==='actif'?'Suspendre':'Réactiver' %>
+        </button>
+      </form>
+      <form method="POST" action="<%= siteUrl %>/communes/<%= commune.id %>/delete" style="margin:0;" onsubmit="return confirm('Supprimer définitivement cette commune ? Cette action supprimera aussi ses utilisateurs et projets.');">
+        <button type="submit" class="btn btn-sm btn-danger">
+          <i class="bi bi-trash"></i>
+          Supprimer
+        </button>
+      </form>
+    </div>
   </div>
 
   <div class="content-area">

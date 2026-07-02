@@ -334,6 +334,11 @@
                         class="btn btn-outline btn-sm btn-icon" title="Tester le lien" style="width: 32px; height: 32px;">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </a>
+                    <form method="POST" action="<%= siteUrl %>/communes/<%= c.id %>/delete" style="margin:0;" onsubmit="return confirm('Supprimer définitivement cette commune ? Cette action supprimera aussi ses utilisateurs et projets.');">
+                      <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Supprimer la commune" style="width: 32px; height: 32px;">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
                   </div>
                 </td>
               </tr>
